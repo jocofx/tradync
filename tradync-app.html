@@ -5101,10 +5101,11 @@ function renderProjection() {
   if(projEl) {
     const finalVal = projPts[projPts.length-1];
     const gain = finalVal - capital;
-    projEl.innerHTML = `<div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">
-      <div>Final: <span style="color:${gain>=0?'var(--green)':'var(--red)';font-weight:600}">${gain>=0?'+':''}$${gain.toFixed(0)}</span></div>
-      <div style="margin-top:4px;">Media/mes: <span style="color:var(--amber)">${avgPerMonth>=0?'+':''}$${avgPerMonth.toFixed(0)}</span></div>
-    </div>`;
+    const gainColor = gain >= 0 ? 'var(--green)' : 'var(--red)';
+    projEl.innerHTML = '<div style="font-size:11px;color:var(--text3);font-family:monospace;">' +
+      '<div>Final: <span style="color:' + gainColor + ';font-weight:600">' + (gain>=0?'+':'') + '$' + gain.toFixed(0) + '</span></div>' +
+      '<div style="margin-top:4px;">Media/mes: <span style="color:var(--amber)">' + (avgPerMonth>=0?'+':'') + '$' + avgPerMonth.toFixed(0) + '</span></div>' +
+      '</div>';
   }
   if(statsProjInst) statsProjInst.destroy();
   const color = (projPts[projPts.length-1]-capital)>=0?'#00d4a0':'#ff4d6d';
