@@ -1675,7 +1675,11 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 let allTrades = [];
 let riskSettings = JSON.parse(localStorage.getItem('tj_risk') || '{"maxLoss":200,"maxOps":5,"riskPct":1}');
-function saveRiskSettings() { localStorage.setItem('tj_risk', JSON.stringify(riskSettings)); }
+function saveRiskSettings() {
+  localStorage.setItem('tj_risk', JSON.stringify(riskSettings));
+  // Also sync to Supabase
+  if (currentUser) saveConfigToNotion('riskSettings', riskSettings).catch(()=>{});
+}
 
 // Date init for form
 const now = new Date();
@@ -1954,9 +1958,30 @@ async function loadConfigFromNotion() {
   const { data } = await sb.from('configuracion').select('*').eq('user_id',currentUser.id).catch(()=>({data:null}));
   if (!data) return;
   data.forEach(row => {
-    if (row.clave==='riskSettings'&&row.valor) { riskSettings=row.valor; saveRiskSettings(); }
-    if (row.clave==='customHabits'&&row.valor) { customHabits=row.valor; saveCustomHabits(); }
+    if (row.clave==='riskSettings'&&row.valor) {
+      riskSettings = row.valor;
+      localStorage.setItem('tj_risk', JSON.stringify(row.valor));
+      // Update risk inputs if visible
+      const ml = document.getElementById('cfg-maxloss');
+      const mo = document.getElementById('cfg-maxops');
+      const ob = document.getElementById('cfg-objetivo');
+      const rp = document.getElementById('cfg-riskpct');
+      if (ml) ml.value = row.valor.maxLoss || 200;
+      if (mo) mo.value = row.valor.maxOps || 5;
+      if (ob) ob.value = row.valor.objetivo || '';
+      if (rp) rp.value = row.valor.riskPct || 1;
+    }
+    if (row.clave==='customHabits'&&row.valor) {
+      customHabits = row.valor;
+      localStorage.setItem('tj_custom_habits', JSON.stringify(row.valor));
+    }
+    // Restore checklists
+    if (row.clave?.startsWith('checklist_')&&row.valor) {
+      const dateStr = row.clave.replace('checklist_','');
+      localStorage.setItem('tj_checklist_'+dateStr, JSON.stringify(row.valor));
+    }
   });
+  renderRiskPanel();
 }
 
 async function initNotionDatabases() { return true; }
@@ -2805,7 +2830,10 @@ let habitsToday = JSON.parse(localStorage.getItem('tj_habits_' + new Date().toIS
 let habitCalYear = new Date().getFullYear();
 let habitCalMonth = new Date().getMonth();
 
-function saveCustomHabits() { localStorage.setItem('tj_custom_habits', JSON.stringify(customHabits)); }
+function saveCustomHabits() {
+  localStorage.setItem('tj_custom_habits', JSON.stringify(customHabits));
+  if (currentUser) saveConfigToNotion('customHabits', customHabits).catch(()=>{});
+}
 
 function addHabit() {
   const name = document.getElementById('new-habit-name').value.trim();
@@ -3443,9 +3471,39 @@ let diarySelectedEmos = [];
 
 function initDiario() {
   const today = new Date().toISOString().slice(0,10);
-  document.getElementById('diario-fecha').value = today;
-  document.getElementById('diario-fecha').addEventListener('change', loadDiaryEntry);
+  const fechaEl = document.getElementById('diario-fecha');
+  if (!fechaEl) return;
+  fechaEl.value = today;
+  fechaEl.addEventListener('change', () => {
+    loadDiaryEntry();
+    // Also load from Supabase for the selected date
+    if (currentUser) loadDiaryFromSupabase(fechaEl.value);
+  });
   updateDiarioFechaLabel();
+  // Load today's diary from Supabase
+  if (currentUser) loadDiaryFromSupabase(today);
+  else loadDiaryEntry();
+  renderDiaryCalendar();
+  renderDiaryRecent();
+  renderDiaryStats();
+}
+
+async function loadDiaryFromSupabase(dateStr) {
+  if (!currentUser) return;
+  const { data } = await sb.from('diario').select('*')
+    .eq('user_id', currentUser.id).eq('fecha', dateStr).single()
+    .catch(()=>({data:null}));
+  if (!data) return;
+  const entry = {
+    fecha: data.fecha,
+    texto: data.texto || '',
+    leccion: data.leccion || '',
+    energia: data.energia || 7,
+    emociones: data.emociones || [],
+    savedAt: data.updated_at,
+  };
+  diaryEntries[dateStr] = entry;
+  localStorage.setItem('tj_diary', JSON.stringify(diaryEntries));
   loadDiaryEntry();
   renderDiaryCalendar();
   renderDiaryRecent();
