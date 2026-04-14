@@ -1960,28 +1960,7 @@ async function loadConfigFromNotion() {
 }
 
 async function initNotionDatabases() { return true; }
-async function findNotionRecord() { return null; }
-function setParentPage() { toast('Usando Supabase ✓', 'success'); }
 
-// ─── AUTH UI ─────────────────────────────────────────────────────
-function showAuthBanner() {
-  const banner = document.createElement('div');
-  banner.id = 'auth-banner';
-  banner.style.cssText = 'background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;';
-  banner.innerHTML = `
-    <div>
-      <div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:4px;">Inicia sesión para acceder a tu journal</div>
-      <div style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;">Tus datos se guardan de forma segura en la nube</div>
-    </div>
-    <div style="display:flex;gap:10px;">
-      <button class="btn" onclick="window.location.href=(window.location.protocol==='file:'?'tradync-landing.html':window.location.origin+'/tradync-landing.html')" style="font-size:13px;">Ir a la web</button>
-      <button class="btn btn-primary" onclick="showInlineAuth()" style="font-size:13px;">Iniciar sesión</button>
-    </div>`;
-  const main = document.querySelector('.main');
-  if (main) main.prepend(banner);
-  initChecklist(); initHabits(); initSurvey(); loadPlan(); loadMacroEvents();
-  updateAiContext(); initDiario(); renderRiskPanel(); renderAccounts(); renderCalendar();
-}
 
 function showInlineAuth() {
   const existing = document.getElementById('inline-auth-modal');
@@ -2087,51 +2066,9 @@ function getSelectedTags() {
 }
 
 // ─── NOTION API via Proxy ────────────────────────────────────────
-async function notionFetch(endpoint, method='GET', body=null) {
-  const opts = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      'x-notion-token': NOTION_TOKEN,
-    }
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(PROXY + endpoint, opts);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || 'Error ' + res.status);
-  }
-  return res.json();
-}
 
 // ─── CARGAR OPERACIONES ──────────────────────────────────────────
-async function loadTrades() {
-  setStatus('syncing', 'Sincronizando...');
-  document.getElementById('sync-btn').disabled = true;
-
-  try {
-    const data = await notionFetch('/databases/' + DATABASE_ID + '/query', 'POST', {
-      
-      page_size: 100
-    });
-
-    allTrades = data.results.map(parseNotionRow).filter(Boolean);
-    renderAll();
-    setStatus('connected', 'Sincronizado · ' + allTrades.length + ' ops.');
-    toast('Datos cargados desde Notion', 'success');
-    const todaySync = new Date().toISOString().slice(0,10);
-    loadHabitsFromNotion(todaySync).catch(()=>{});
-    loadPlanFromNotion(todaySync).catch(()=>{});
-    loadAccountsFromNotion().catch(()=>{});
-    loadConfigFromNotion().catch(()=>{});
-  } catch(e) {
-    setStatus('disconnected', 'Sin conexión');
-    toast('Error: ' + e.message, 'error');
-    console.error(e);
-  }
-
-  document.getElementById('sync-btn').disabled = false;
-}
+// loadTrades — handled by Supabase version above
 
 function parseNotionRow(page) {
   // page.created_time available as fallback
@@ -2181,77 +2118,8 @@ function parseNotionRow(page) {
 }
 
 // ─── GUARDAR OPERACIÓN ───────────────────────────────────────────
-async function guardarOperacion() {
-  const btn = document.getElementById('save-btn');
-  const status = document.getElementById('save-status');
+// guardarOperacion (duplicate removed)
 
-  const instr = document.getElementById('f-instrumento').value;
-  const estadoCheck = document.getElementById('f-estado').value;
-  const resultadoRaw = document.getElementById('f-resultado').value;
-  const resultado = parseFloat(resultadoRaw);
-  if (!instr) { toast('Selecciona un instrumento', 'error'); return; }
-  if (estadoCheck === 'Finalizada' && isNaN(resultado)) {
-    toast('Añade el resultado para una operación finalizada', 'error'); return;
-  }
-
-  btn.disabled = true; status.textContent = 'Guardando...';
-
-  const fechaVal = document.getElementById('f-fecha').value;
-  const entrada = parseFloat(document.getElementById('f-entrada').value) || null;
-  const sl = parseFloat(document.getElementById('f-sl').value) || null;
-  const tp = parseFloat(document.getElementById('f-tp').value) || null;
-  const rr = (entrada && sl && tp) ? Math.abs(tp - entrada) / Math.abs(entrada - sl) : null;
-
-  const props = {
-    'Nombre':           { title: [{ text: { content: (document.getElementById('f-instrumento').value || 'Op') + ' · ' + (new Date(fechaVal).toLocaleDateString('es-ES') || '') } }] },
-    'Instrumento':      { select: { name: instr } },
-    'Tipo':             { select: { name: document.getElementById('f-tipo').value } },
-    'Dirección':        { select: { name: document.getElementById('f-direccion').value } },
-    'Setup':            { select: { name: document.getElementById('f-setup').value } },
-    'Emoción':          { select: { name: document.getElementById('f-emocion').value } },
-    'Sesión':           { select: { name: document.getElementById('f-sesion').value } },
-    ...(estadoCheck !== 'Pendiente' && !isNaN(resultado) ? {'Resultado': { number: resultado }} : {}),
-    'Disciplina':       { number: parseInt(document.getElementById('f-disciplina').value) },
-    'Control impulsos': { number: parseInt(document.getElementById('f-impulsos').value) },
-    'Notas':            { rich_text: [{ text: { content: document.getElementById('f-notas').value } }] },
-  };
-
-  if (entrada) props['Entrada'] = { number: entrada };
-  if (sl)      props['SL']      = { number: sl };
-  if (tp)      props['TP']      = { number: tp };
-  if (rr)      props['RR']      = { number: parseFloat(rr.toFixed(2)) };
-  if (document.getElementById('f-contratos').value)
-               props['Contratos'] = { number: parseInt(document.getElementById('f-contratos').value) };
-
-  const estadoVal = document.getElementById('f-estado').value;
-  props['Estado'] = { select: { name: estadoVal } };
-  const cuentaVal = document.getElementById('f-cuenta').value;
-  if (cuentaVal) props['Cuenta'] = { select: { name: cuentaVal } };
-
-  if (imgAperturaBase64) props['Imagen apertura'] = { rich_text: [{ text: { content: imgAperturaBase64.slice(0, 1900) } }] };
-  if (imgCierreBase64) props['Imagen cierre'] = { rich_text: [{ text: { content: imgCierreBase64.slice(0, 1900) } }] };
-
-  const errores = getSelectedTags();
-  if (errores) props['Errores'] = { rich_text: [{ text: { content: errores } }] };
-
-  try {
-    await notionFetch('/pages', 'POST', {
-      parent: { database_id: DATABASE_ID },
-      properties: props
-    });
-    toast('Operación guardada en Notion ✓', 'success');
-    status.textContent = '¡Guardado!';
-    resetForm();
-    await loadTrades();
-  } catch(e) {
-    toast('Error al guardar: ' + e.message, 'error');
-    status.textContent = 'Error';
-    console.error(e);
-  }
-
-  btn.disabled = false;
-  setTimeout(() => status.textContent = '', 3000);
-}
 
 function resetForm() {
   ['f-instrumento','f-tipo','f-direccion','f-setup','f-emocion','f-sesion'].forEach(id => {
@@ -3564,52 +3432,8 @@ function closeEditModal() {
   editImgCierreBase64 = null;
 }
 
-async function saveEditedTrade() {
-  const pageId = document.getElementById('edit-page-id').value;
-  const btn = document.getElementById('edit-save-btn');
-  const status = document.getElementById('edit-save-status');
-  btn.disabled = true;
-  status.textContent = 'Guardando...';
+// saveEditedTrade (duplicate removed)
 
-  const estado = document.getElementById('edit-estado').value;
-  const resultado = parseFloat(document.getElementById('edit-resultado').value);
-  const entrada = parseFloat(document.getElementById('edit-entrada').value) || null;
-  const sl = parseFloat(document.getElementById('edit-sl').value) || null;
-  const tp = parseFloat(document.getElementById('edit-tp').value) || null;
-  const rr = (entrada && sl && tp) ? parseFloat((Math.abs(tp-entrada)/Math.abs(entrada-sl)).toFixed(2)) : null;
-
-  const props = {
-    'Estado': { select: { name: estado } },
-    'Instrumento': { select: { name: document.getElementById('edit-instrumento').value } },
-    'Dirección': { select: { name: document.getElementById('edit-direccion').value } },
-    'Setup': { select: { name: document.getElementById('edit-setup').value } },
-    'Emoción': { select: { name: document.getElementById('edit-emocion').value } },
-    'Notas': { rich_text: [{ text: { content: document.getElementById('edit-notas').value } }] },
-  };
-
-  if (!isNaN(resultado) && estado === 'Finalizada') props['Resultado'] = { number: resultado };
-  if (entrada) props['Entrada'] = { number: entrada };
-  if (sl) props['SL'] = { number: sl };
-  if (tp) props['TP'] = { number: tp };
-  if (rr) props['RR'] = { number: rr };
-  const contratos = parseInt(document.getElementById('edit-contratos').value);
-  if (contratos) props['Contratos'] = { number: contratos };
-  if (editImgCierreBase64) props['Imagen cierre'] = { rich_text: [{ text: { content: editImgCierreBase64.slice(0,1900) } }] };
-
-  try {
-    await notionFetch('/pages/' + pageId, 'PATCH', { properties: props });
-    toast('Operación actualizada en Notion ✓', 'success');
-    status.textContent = '¡Guardado!';
-    closeEditModal();
-    await loadTrades();
-  } catch(e) {
-    toast('Error: ' + e.message, 'error');
-    status.textContent = 'Error';
-    console.error(e);
-  }
-  btn.disabled = false;
-  setTimeout(() => status.textContent = '', 3000);
-}
 
 // ─── DIARIO ──────────────────────────────────────────────────────
 let diaryEntries = JSON.parse(localStorage.getItem('tj_diary') || '{}');
@@ -3680,20 +3504,7 @@ function saveDiaryEntry() {
   });
 }
 
-async function saveDiaryToNotion(date, entry) {
-  if (!DB_DIARIO) return;
-  const existing = await findNotionRecord(DB_DIARIO, 'Fecha', date, 'date');
-  const props = {
-    'Nombre': { title: [{ text: { content: '📓 ' + new Date(date + 'T12:00:00').toLocaleDateString('es-ES') } }] },
-    'Fecha': { date: { start: date } },
-    'Texto': { rich_text: [{ text: { content: entry.texto.slice(0,2000) } }] },
-    'Lección': { rich_text: [{ text: { content: entry.leccion } }] },
-    'Energía': { number: entry.energia },
-    'Emociones': { rich_text: [{ text: { content: entry.emociones.join(', ') } }] },
-  };
-  if (existing) await notionFetch('/pages/' + existing, 'PATCH', { properties: props });
-  else await notionFetch('/pages', 'POST', { parent: { database_id: DB_DIARIO }, properties: props });
-}
+// saveDiaryToNotion: handled by Supabase version above
 
 function changeDiaryMonth(dir) {
   diaryCalMonth += dir;
@@ -4223,12 +4034,7 @@ async function initNotionDatabases() {
       { name: 'Valor', type: 'rich_text' },
     ]);
 
-    localStorage.setItem('tj_db_habitos', DB_HABITOS);
-    localStorage.setItem('tj_db_diario', DB_DIARIO);
-    localStorage.setItem('tj_db_planes', DB_PLANES);
-    localStorage.setItem('tj_db_cuentas', DB_CUENTAS);
-    localStorage.setItem('tj_db_config', DB_CONFIG);
-
+                    
     toast('Bases de datos de Notion listas ✓', 'success');
     return true;
   } catch(e) {
@@ -4238,223 +4044,30 @@ async function initNotionDatabases() {
   }
 }
 
-async function createDB(title, properties) {
-  const propsObj = { 'Nombre': { title: {} } };
-  properties.forEach(p => {
-    if (p.type === 'rich_text') propsObj[p.name] = { rich_text: {} };
-    else if (p.type === 'number') propsObj[p.name] = { number: { format: p.format || 'number' } };
-    else if (p.type === 'date') propsObj[p.name] = { date: {} };
-    else if (p.type === 'select') propsObj[p.name] = { select: {} };
-    else if (p.type === 'checkbox') propsObj[p.name] = { checkbox: {} };
-  });
-  const res = await notionFetch('/databases', 'POST', {
-    parent: { type: 'page_id', page_id: PARENT_PAGE_ID },
-    title: [{ type: 'text', text: { content: title } }],
-    properties: propsObj
-  });
-  return res.id;
-}
+
 
 // ─── SAVE/LOAD HABITS TO NOTION ──────────────────────────────────
-async function saveHabitsToNotion(dateStr) {
-  if (!DB_HABITOS) return;
-  const data = JSON.parse(localStorage.getItem('tj_habits_' + dateStr) || '{}');
-  const survey = JSON.parse(localStorage.getItem('tj_survey_' + dateStr) || '{}');
-  const score = Math.round(getHabitScore(dateStr) * 100);
 
-  const extraHabits = customHabits.filter(h => !['sueno','ejercicio','meditacion','alcohol'].includes(h.id));
-  const extraVals = extraHabits.map(h => h.name + ':' + (data[h.id]||0)).join(', ');
 
-  const existing = await findNotionRecord(DB_HABITOS, 'Fecha', dateStr);
-  const props = {
-    'Nombre': { title: [{ text: { content: 'Hábitos · ' + new Date(dateStr).toLocaleDateString('es-ES') } }] },
-    'Fecha': { date: { start: dateStr } },
-    'Sueño': { number: data.sueno || 0 },
-    'Ejercicio': { number: data.ejercicio || 0 },
-    'Meditación': { number: data.meditacion || 0 },
-    'Sin alcohol': { number: data.alcohol || 0 },
-    'Hábitos extra': { rich_text: [{ text: { content: extraVals } }] },
-    'Encuesta': { rich_text: [{ text: { content: JSON.stringify(survey) } }] },
-    'Puntuación': { number: score },
-  };
-
-  if (existing) {
-    await notionFetch('/pages/' + existing, 'PATCH', { properties: props });
-  } else {
-    await notionFetch('/pages', 'POST', { parent: { database_id: DB_HABITOS }, properties: props });
-  }
-}
-
-async function loadHabitsFromNotion(dateStr) {
-  if (!DB_HABITOS) return;
-  try {
-    const data = await notionFetch('/databases/' + DB_HABITOS + '/query', 'POST', {
-      filter: { property: 'Fecha', date: { equals: dateStr } }
-    });
-    if (!data.results.length) return;
-    const p = data.results[0].properties;
-    const getN = name => p[name]?.number || 0;
-    const getT = name => p[name]?.rich_text?.[0]?.plain_text || '';
-    const habits = {
-      sueno: getN('Sueño'), ejercicio: getN('Ejercicio'),
-      meditacion: getN('Meditación'), alcohol: getN('Sin alcohol')
-    };
-    const extra = getT('Hábitos extra');
-    if (extra) extra.split(', ').forEach(pair => {
-      const [name, val] = pair.split(':');
-      const h = customHabits.find(h => h.name === name);
-      if (h) habits[h.id] = parseInt(val) || 0;
-    });
-    localStorage.setItem('tj_habits_' + dateStr, JSON.stringify(habits));
-    const survey = getT('Encuesta');
-    if (survey) {
-      try { localStorage.setItem('tj_survey_' + dateStr, survey); } catch(e){}
-    }
-    habitsToday = JSON.parse(localStorage.getItem('tj_habits_' + new Date().toISOString().slice(0,10)) || '{}');
-    initHabits();
-  } catch(e) { console.error('Error loading habits:', e); }
-}
+// loadHabitsFromNotion handled by Supabase
 
 // ─── SAVE/LOAD PLANS TO NOTION ────────────────────────────────────
-async function savePlanToNotion(dateStr, plan) {
-  if (!DB_PLANES) return;
-  const clState = JSON.parse(localStorage.getItem('tj_checklist_' + dateStr) || '{}');
-  const clDone = Object.values(clState).filter(Boolean).length;
-  const existing = await findNotionRecord(DB_PLANES, 'Fecha', dateStr);
-  const props = {
-    'Nombre': { title: [{ text: { content: 'Plan · ' + new Date(dateStr).toLocaleDateString('es-ES') } }] },
-    'Fecha': { date: { start: dateStr } },
-    'Sesgo': { select: { name: plan.sesgo || 'Sin sesgo claro' } },
-    'Niveles clave': { rich_text: [{ text: { content: plan.niveles || '' } }] },
-    'No hacer': { rich_text: [{ text: { content: plan.no || '' } }] },
-    'Notas': { rich_text: [{ text: { content: plan.notas || '' } }] },
-    'Checklist completado': { number: clDone },
-    'Max operaciones': { number: parseInt(plan.maxops) || 0 },
-  };
-  if (existing) {
-    await notionFetch('/pages/' + existing, 'PATCH', { properties: props });
-  } else {
-    await notionFetch('/pages', 'POST', { parent: { database_id: DB_PLANES }, properties: props });
-  }
-}
 
-async function loadPlanFromNotion(dateStr) {
-  if (!DB_PLANES) return;
-  try {
-    const data = await notionFetch('/databases/' + DB_PLANES + '/query', 'POST', {
-      filter: { property: 'Fecha', date: { equals: dateStr } }
-    });
-    if (!data.results.length) return;
-    const p = data.results[0].properties;
-    const getT = name => p[name]?.rich_text?.[0]?.plain_text || '';
-    const getS = name => p[name]?.select?.name || '';
-    const plan = {
-      sesgo: getS('Sesgo'), niveles: getT('Niveles clave'),
-      no: getT('No hacer'), notas: getT('Notas'),
-      maxops: p['Max operaciones']?.number || '',
-      date: dateStr
-    };
-    localStorage.setItem('tj_plan_' + dateStr, JSON.stringify(plan));
-    loadPlan();
-  } catch(e) { console.error('Error loading plan:', e); }
-}
+
+// loadPlanFromNotion handled by Supabase
 
 // ─── SAVE/LOAD ACCOUNTS TO NOTION ────────────────────────────────
-async function saveAccountToNotion(account) {
-  if (!DB_CUENTAS) return;
-  const existing = await findNotionRecord(DB_CUENTAS, 'Nombre', account.nombre, 'title');
-  const props = {
-    'Nombre': { title: [{ text: { content: account.nombre } }] },
-    'Broker': { rich_text: [{ text: { content: account.broker || '' } }] },
-    'Tipo': { select: { name: account.tipo === 'prop' ? 'Prop Firm' : 'Capital propio' } },
-    'Balance': { number: account.balance || 0 },
-    'Fase': { rich_text: [{ text: { content: account.fase || '' } }] },
-    'Activa': { checkbox: true },
-  };
-  if (existing) {
-    await notionFetch('/pages/' + existing, 'PATCH', { properties: props });
-  } else {
-    const res = await notionFetch('/pages', 'POST', { parent: { database_id: DB_CUENTAS }, properties: props });
-    account.notionId = res.id;
-  }
-}
 
-async function loadAccountsFromNotion() {
-  if (!DB_CUENTAS) return;
-  try {
-    const data = await notionFetch('/databases/' + DB_CUENTAS + '/query', 'POST', {
-      filter: { property: 'Activa', checkbox: { equals: true } }
-    });
-    const loaded = data.results.map(page => {
-      const p = page.properties;
-      return {
-        id: page.id,
-        notionId: page.id,
-        nombre: p['Nombre']?.title?.[0]?.plain_text || '',
-        broker: p['Broker']?.rich_text?.[0]?.plain_text || '',
-        tipo: p['Tipo']?.select?.name === 'Prop Firm' ? 'prop' : 'own',
-        balance: p['Balance']?.number || 0,
-        fase: p['Fase']?.rich_text?.[0]?.plain_text || '',
-      };
-    }).filter(a => a.nombre);
-    if (loaded.length) {
-      accounts = loaded;
-      saveAccountsLocal();
-      renderAccounts();
-      updateCuentaSelector();
-    }
-  } catch(e) { console.error('Error loading accounts:', e); }
-}
+
+// loadAccountsFromNotion handled by Supabase
 
 // ─── FIND NOTION RECORD ───────────────────────────────────────────
-async function findNotionRecord(dbId, property, value, type='date') {
-  try {
-    let filter;
-    if (type === 'date') filter = { property, date: { equals: value } };
-    else if (type === 'title') filter = { property, title: { equals: value } };
-    else filter = { property, rich_text: { equals: value } };
-    const data = await notionFetch('/databases/' + dbId + '/query', 'POST', { filter, page_size: 1 });
-    return data.results.length ? data.results[0].id : null;
-  } catch(e) { return null; }
-}
+
 
 // ─── SAVE CONFIG TO NOTION ────────────────────────────────────────
-async function saveConfigToNotion(key, value) {
-  if (!DB_CONFIG) return;
-  try {
-    const data = await notionFetch('/databases/' + DB_CONFIG + '/query', 'POST', {
-      filter: { property: 'Clave', rich_text: { equals: key } }
-    });
-    const props = {
-      'Nombre': { title: [{ text: { content: key } }] },
-      'Clave': { rich_text: [{ text: { content: key } }] },
-      'Valor': { rich_text: [{ text: { content: JSON.stringify(value) } }] },
-    };
-    if (data.results.length) {
-      await notionFetch('/pages/' + data.results[0].id, 'PATCH', { properties: props });
-    } else {
-      await notionFetch('/pages', 'POST', { parent: { database_id: DB_CONFIG }, properties: props });
-    }
-  } catch(e) { console.error('Config save error:', e); }
-}
 
-async function loadConfigFromNotion() {
-  if (!DB_CONFIG) return;
-  try {
-    const data = await notionFetch('/databases/' + DB_CONFIG + '/query', 'POST', {});
-    data.results.forEach(page => {
-      const key = page.properties['Clave']?.rich_text?.[0]?.plain_text;
-      const val = page.properties['Valor']?.rich_text?.[0]?.plain_text;
-      if (key && val) {
-        try {
-          const parsed = JSON.parse(val);
-          if (key === 'riskSettings') { riskSettings = parsed; saveRiskSettings(); }
-          if (key === 'customHabits') { customHabits = parsed; saveCustomHabits(); }
-        } catch(e) {}
-      }
-    });
-  } catch(e) { console.error('Config load error:', e); }
-}
+
+// loadConfigFromNotion handled by Supabase
 
 function setParentPage() {
   const input = document.getElementById('parent-page-input').value.trim();
