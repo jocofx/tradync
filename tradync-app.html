@@ -37,13 +37,13 @@
     --purple: #7c3aed; --purple-bg: rgba(124,58,237,0.08);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  html, body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; max-width: 100vw; }
   body::before {
     content: ''; position: fixed; inset: 0;
     background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
     background-size: 40px 40px; pointer-events: none; z-index: 0;
   }
-  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; overflow-x: hidden; width: 100%; }
 
   /* SIDEBAR */
   .sidebar { width: 220px; min-height: 100vh; background: var(--bg2); border-right: 1px solid var(--border); padding: 28px 0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
@@ -69,7 +69,7 @@
   .notion-status-text { font-size: 12px; color: var(--text2); }
 
   /* MAIN */
-  .main { margin-left: 220px; flex: 1; padding: 32px 36px; }
+  .main { margin-left: 220px; flex: 1; padding: 28px 32px; min-width: 0; overflow-x: hidden; max-width: calc(100vw - 220px); }
   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
   .header-left h1 { font-size: 26px; font-weight: 800; letter-spacing: -1px; }
   .header-left h1 span { color: var(--green); }
@@ -436,6 +436,16 @@
   .pm-cal-pct { font-size:9px; opacity:0.8; }
 
 
+
+  /* ── OVERFLOW FIX ────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; }
+  .tab-panel { max-width: 100%; overflow-x: hidden; }
+  .card { max-width: 100%; }
+  .metrics-grid { max-width: 100%; }
+  canvas { max-width: 100%; }
+  table { max-width: 100%; }
+  .trade-table-wrap { overflow-x: auto; max-width: 100%; }
+  input, select, textarea { max-width: 100%; }
   /* MOBILE RESPONSIVE */
   .hamburger { display:none; flex-direction:column; gap:4px; cursor:pointer; padding:8px; border-radius:8px; border:1px solid var(--border2); background:var(--bg3); }
   .hamburger span { width:18px; height:2px; background:var(--text2); border-radius:2px; transition:all 0.3s; display:block; }
@@ -1148,9 +1158,97 @@
     </div>
 
     <!-- ESTADÍSTICAS AVANZADAS -->
+        <!-- ESTADÍSTICAS -->
     <div class="tab-panel" id="panel-estadisticas">
       <div class="section-title">Análisis avanzado</div>
 
+      <!-- ROW 1: P&L instrumento + Mensual + Proyección -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="card">
+          <div class="card-title">P&L por instrumento</div>
+          <div style="position:relative;height:180px;"><canvas id="stats-instr-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Comparativa mensual</div>
+          <div style="position:relative;height:180px;"><canvas id="stats-monthly-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Win Rate por mes</div>
+          <div style="position:relative;height:180px;"><canvas id="stats-wr-monthly-chart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ROW 2: Equity + Drawdown -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="card">
+          <div class="card-title">Curva de equity acumulada <span class="card-title-badge" id="stats-equity-badge">—</span></div>
+          <div style="position:relative;height:160px;"><canvas id="stats-equity-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Drawdown máximo</div>
+          <div style="position:relative;height:160px;"><canvas id="stats-dd-chart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ROW 3: Hora + Día semana + Setup -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="card">
+          <div class="card-title">P&L por hora del día</div>
+          <div style="position:relative;height:160px;"><canvas id="stats-hour-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">P&L por día de la semana</div>
+          <div style="position:relative;height:160px;"><canvas id="stats-weekday-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">P&L por setup</div>
+          <div style="position:relative;height:160px;"><canvas id="stats-setup-chart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ROW 4: Distribución + Consecutive -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="card">
+          <div class="card-title">Distribución de resultados</div>
+          <div style="position:relative;height:160px;"><canvas id="stats-dist-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Racha de wins/losses consecutivos</div>
+          <div style="position:relative;height:160px;"><canvas id="stats-streak-chart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ROW 5: KPIs TABLE + PROJECTION -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="card">
+          <div class="card-title">KPIs completos</div>
+          <div id="stats-kpis-table"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Proyección de cuenta <span class="card-title-badge">Basada en historial</span></div>
+          <div style="display:grid;grid-template-columns:160px 1fr;gap:12px;align-items:start;margin-top:8px;">
+            <div>
+              <div class="form-field" style="margin-bottom:10px;">
+                <label class="form-label">Capital ($)</label>
+                <input class="form-input" type="number" id="proj-capital" placeholder="10000" oninput="renderProjection()">
+              </div>
+              <div class="form-field" style="margin-bottom:10px;">
+                <label class="form-label">Meses</label>
+                <input class="form-input" type="number" id="proj-meses" value="12" min="1" max="36" oninput="renderProjection()">
+              </div>
+              <div id="proj-summary" style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"></div>
+            </div>
+            <div style="position:relative;height:140px;"><canvas id="stats-proj-chart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 6: Instr detailed bars -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-title">Detalle por instrumento — barras de rendimiento</div>
+        <div id="instr-stats"></div>
+      </div>
+    </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
         <div class="card">
           <div class="card-title">P&L por instrumento</div>
@@ -4787,6 +4885,239 @@ function renderPsychCharts() {
     `<div class="stat-row"><span class="stat-name">${emo}</span><span class="stat-val" style="color:${d.pnl>=0?'var(--green)':'var(--red)'}">${d.pnl>=0?'+':''}$${d.pnl.toFixed(0)} · ${d.count} ops · ${(d.wins/d.count*100).toFixed(0)}%WR</span></div>`
   ).join('');
 }
+// ─── ESTADÍSTICAS CHARTS ─────────────────────────────────────────
+let statsInstrInst=null,statsMonthlyInst=null,statsWrMonthlyInst=null;
+let statsEquityInst=null,statsDdInst=null,statsHourInst=null;
+let statsWeekdayInst=null,statsSetupInst=null,statsDistInst=null;
+let statsStreakInst=null,statsProjInst=null;
+
+function renderStatsCharts() {
+  if (!allTrades.length) return;
+  const th = getChartTheme();
+  const finTrades = allTrades.filter(t => t.resultado !== null && t.estado !== 'Pendiente');
+
+  // ─ P&L POR INSTRUMENTO ─
+  const instrMap = {};
+  finTrades.forEach(t => { const k=t.instrumento||'Otro'; if(!instrMap[k]) instrMap[k]=0; instrMap[k]+=(t.resultado||0); });
+  const instrE = Object.entries(instrMap).sort((a,b)=>b[1]-a[1]);
+  if(statsInstrInst) statsInstrInst.destroy();
+  statsInstrInst = mkChart('stats-instr-chart', {type:'bar',
+    data:{labels:instrE.map(e=>e[0]),datasets:[{data:instrE.map(e=>parseFloat(e[1].toFixed(2))),
+      backgroundColor:instrE.map(e=>e[1]>=0?'rgba(0,212,160,0.75)':'rgba(255,77,109,0.75)'),borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{backgroundColor:th.bg,bodyColor:th.text,callbacks:{label:ctx=>(ctx.raw>=0?'+':'')+'$'+ctx.raw.toFixed(2)}}},
+      scales:{x:{grid:{display:false},ticks:{color:th.tick,font:{size:10}}},
+        y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},callback:v=>'$'+v},border:{display:false}}}}});
+
+  // ─ MENSUAL P&L ─
+  const monthMap = {};
+  finTrades.forEach(t => {
+    if(!t.fecha) return;
+    const m = new Date(t.fecha).toLocaleDateString('es-ES',{month:'short',year:'2-digit'});
+    if(!monthMap[m]) monthMap[m]=0; monthMap[m]+=(t.resultado||0);
+  });
+  const monthKeys = Object.keys(monthMap).slice(-12);
+  if(statsMonthlyInst) statsMonthlyInst.destroy();
+  statsMonthlyInst = mkChart('stats-monthly-chart', {type:'bar',
+    data:{labels:monthKeys,datasets:[{data:monthKeys.map(k=>parseFloat((monthMap[k]||0).toFixed(2))),
+      backgroundColor:monthKeys.map(k=>(monthMap[k]||0)>=0?'rgba(77,159,255,0.75)':'rgba(255,77,109,0.75)'),borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{backgroundColor:th.bg,bodyColor:th.text,callbacks:{label:ctx=>(ctx.raw>=0?'+':'')+'$'+ctx.raw.toFixed(2)}}},
+      scales:{x:{grid:{display:false},ticks:{color:th.tick,font:{size:9},maxRotation:45}},
+        y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},callback:v=>'$'+v},border:{display:false}}}}});
+
+  // ─ WIN RATE MENSUAL ─
+  const wrMonth = {};
+  finTrades.forEach(t => {
+    if(!t.fecha) return;
+    const m = new Date(t.fecha).toLocaleDateString('es-ES',{month:'short',year:'2-digit'});
+    if(!wrMonth[m]) wrMonth[m]={w:0,t:0};
+    wrMonth[m].t++; if((t.resultado||0)>0) wrMonth[m].w++;
+  });
+  const wrKeys = Object.keys(wrMonth).slice(-12);
+  if(statsWrMonthlyInst) statsWrMonthlyInst.destroy();
+  statsWrMonthlyInst = mkChart('stats-wr-monthly-chart', {type:'line',
+    data:{labels:wrKeys,datasets:[{data:wrKeys.map(k=>parseFloat((wrMonth[k].w/wrMonth[k].t*100).toFixed(1))),
+      borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,0.1)',borderWidth:2,pointRadius:4,
+      pointBackgroundColor:'#a78bfa',tension:0.4,fill:true}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{backgroundColor:th.bg,bodyColor:th.text,callbacks:{label:ctx=>ctx.raw+'%'}}},
+      scales:{x:{grid:{display:false},ticks:{color:th.tick,font:{size:9},maxRotation:45}},
+        y:{grid:{color:th.grid},max:100,ticks:{color:th.tick,font:{size:9},callback:v=>v+'%'},border:{display:false}}}}});
+
+  // ─ EQUITY + BADGE ─
+  const sorted = finTrades.slice().sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+  let cum=0;
+  const eqPts = sorted.map(t=>{cum+=(t.resultado||0);return parseFloat(cum.toFixed(2));});
+  const totalPnl = eqPts[eqPts.length-1]||0;
+  const eqBadge = document.getElementById('stats-equity-badge');
+  if(eqBadge) eqBadge.textContent=(totalPnl>=0?'+':'')+'$'+totalPnl.toFixed(2);
+  if(statsEquityInst) statsEquityInst.destroy();
+  const eqColor = totalPnl>=0?'#00d4a0':'#ff4d6d';
+  statsEquityInst = mkChart('stats-equity-chart', {type:'line',
+    data:{labels:sorted.map(t=>new Date(t.fecha).toLocaleDateString('es-ES',{day:'numeric',month:'short'})),
+      datasets:[{data:eqPts,borderColor:eqColor,
+        backgroundColor:totalPnl>=0?'rgba(0,212,160,0.08)':'rgba(255,77,109,0.08)',
+        borderWidth:2,pointRadius:0,tension:0.3,fill:true}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{backgroundColor:th.bg,bodyColor:th.text,callbacks:{label:ctx=>(ctx.raw>=0?'+':'')+'$'+ctx.raw.toFixed(2)}}},
+      scales:{x:{display:false},y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},callback:v=>'$'+v},border:{display:false}}}}});
+
+  // ─ DRAWDOWN ─
+  let peak=0, ddPts=[];
+  eqPts.forEach(p=>{ if(p>peak) peak=p; ddPts.push(parseFloat(((peak>0?((p-peak)/peak):0)*100).toFixed(1))); });
+  if(statsDdInst) statsDdInst.destroy();
+  statsDdInst = mkChart('stats-dd-chart', {type:'line',
+    data:{labels:ddPts.map((_,i)=>i),
+      datasets:[{data:ddPts,borderColor:'#ff4d6d',backgroundColor:'rgba(255,77,109,0.1)',borderWidth:1.5,pointRadius:0,tension:0.3,fill:true}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{backgroundColor:th.bg,bodyColor:th.text,callbacks:{label:ctx=>ctx.raw+'%'}}},
+      scales:{x:{display:false},y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},callback:v=>v+'%'},border:{display:false}}}}});
+
+  // ─ POR HORA ─
+  const hourMap={};
+  finTrades.forEach(t=>{if(!t.fecha)return;const h=new Date(t.fecha).getHours();if(!hourMap[h])hourMap[h]=0;hourMap[h]+=(t.resultado||0);});
+  const hours=Object.keys(hourMap).sort((a,b)=>parseInt(a)-parseInt(b));
+  if(statsHourInst) statsHourInst.destroy();
+  statsHourInst = mkChart('stats-hour-chart', {type:'bar',
+    data:{labels:hours.map(h=>h+':00'),datasets:[{data:hours.map(h=>parseFloat(hourMap[h].toFixed(2))),
+      backgroundColor:hours.map(h=>hourMap[h]>=0?'rgba(0,212,160,0.7)':'rgba(255,77,109,0.7)'),borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{backgroundColor:th.bg,bodyColor:th.text,callbacks:{label:ctx=>(ctx.raw>=0?'+':'')+'$'+ctx.raw.toFixed(2)}}},
+      scales:{x:{grid:{display:false},ticks:{color:th.tick,font:{size:9}}},
+        y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},callback:v=>'$'+v},border:{display:false}}}}});
+
+  // ─ POR DÍA SEMANA ─
+  const days=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const wdMap={0:0,1:0,2:0,3:0,4:0,5:0,6:0},wdCount={0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+  finTrades.forEach(t=>{if(!t.fecha)return;const wd=new Date(t.fecha).getDay();wdMap[wd]+=(t.resultado||0);wdCount[wd]++;});
+  const wdOrder=[1,2,3,4,5,6,0];
+  if(statsWeekdayInst) statsWeekdayInst.destroy();
+  statsWeekdayInst = mkChart('stats-weekday-chart', {type:'bar',
+    data:{labels:wdOrder.map(d=>days[d]),datasets:[{data:wdOrder.map(d=>parseFloat((wdMap[d]||0).toFixed(2))),
+      backgroundColor:wdOrder.map(d=>(wdMap[d]||0)>=0?'rgba(245,166,35,0.75)':'rgba(255,77,109,0.75)'),borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{backgroundColor:th.bg,bodyColor:th.text,callbacks:{label:ctx=>(ctx.raw>=0?'+':'')+'$'+ctx.raw.toFixed(2)+' ('+wdCount[wdOrder[ctx.dataIndex]]+' ops)'}}},
+      scales:{x:{grid:{display:false},ticks:{color:th.tick,font:{size:10}}},
+        y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},callback:v=>'$'+v},border:{display:false}}}}});
+
+  // ─ POR SETUP ─
+  const setupMap={};
+  finTrades.forEach(t=>{const s=t.setup||'Otro';if(!setupMap[s])setupMap[s]=0;setupMap[s]+=(t.resultado||0);});
+  const setupE=Object.entries(setupMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(statsSetupInst) statsSetupInst.destroy();
+  statsSetupInst = mkChart('stats-setup-chart', {type:'bar',
+    data:{labels:setupE.map(e=>e[0]),datasets:[{data:setupE.map(e=>parseFloat(e[1].toFixed(2))),
+      backgroundColor:setupE.map(e=>e[1]>=0?'rgba(77,159,255,0.75)':'rgba(255,77,109,0.75)'),borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{backgroundColor:th.bg,bodyColor:th.text,callbacks:{label:ctx=>(ctx.raw>=0?'+':'')+'$'+ctx.raw.toFixed(2)}}},
+      scales:{x:{grid:{display:false},ticks:{color:th.tick,font:{size:9},maxRotation:30}},
+        y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},callback:v=>'$'+v},border:{display:false}}}}});
+
+  // ─ DISTRIBUCIÓN ─
+  const resultados=finTrades.map(t=>t.resultado||0);
+  if(resultados.length>1){
+    const min=Math.min(...resultados),max=Math.max(...resultados);
+    const bins=14,binSize=(max-min)/bins||1;
+    const buckets=Array(bins).fill(0);
+    const labels=[];
+    for(let i=0;i<bins;i++) labels.push('$'+(min+i*binSize).toFixed(0));
+    resultados.forEach(r=>{const idx=Math.min(Math.floor((r-min)/binSize),bins-1);buckets[idx]++;});
+    if(statsDistInst) statsDistInst.destroy();
+    statsDistInst = mkChart('stats-dist-chart', {type:'bar',
+      data:{labels,datasets:[{data:buckets,
+        backgroundColor:labels.map(l=>parseFloat(l.replace('$',''))>=0?'rgba(0,212,160,0.65)':'rgba(255,77,109,0.65)'),borderRadius:3}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{backgroundColor:th.bg,bodyColor:th.text,callbacks:{label:ctx=>ctx.raw+' ops'}}},
+        scales:{x:{grid:{display:false},ticks:{color:th.tick,font:{size:8},maxRotation:45,autoSkip:true}},
+          y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},stepSize:1},border:{display:false}}}}});
+  }
+
+  // ─ STREAKS ─
+  let maxWin=0,maxLoss=0,curW=0,curL=0;
+  const streakData=[];
+  sorted.forEach(t=>{
+    if((t.resultado||0)>0){curW++;curL=0;if(curW>maxWin)maxWin=curW;}
+    else if((t.resultado||0)<0){curL++;curW=0;if(curL>maxLoss)maxLoss=curL;}
+    else{curW=0;curL=0;}
+    streakData.push({w:curW,l:curL});
+  });
+  if(statsStreakInst) statsStreakInst.destroy();
+  statsStreakInst = mkChart('stats-streak-chart', {type:'bar',
+    data:{labels:streakData.map((_,i)=>i+1),
+      datasets:[
+        {label:'Wins consecutivos',data:streakData.map(s=>s.w),backgroundColor:'rgba(0,212,160,0.65)',borderRadius:2},
+        {label:'Losses consecutivos',data:streakData.map(s=>-s.l),backgroundColor:'rgba(255,77,109,0.65)',borderRadius:2}
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:th.tick,font:{size:9},boxWidth:8}},
+      tooltip:{backgroundColor:th.bg,bodyColor:th.text}},
+      scales:{x:{display:false},y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9}},border:{display:false}}}}});
+
+  // ─ KPIs TABLE ─
+  const wins=finTrades.filter(t=>(t.resultado||0)>0);
+  const losses=finTrades.filter(t=>(t.resultado||0)<0);
+  const totalPnl2=finTrades.reduce((s,t)=>s+(t.resultado||0),0);
+  const avgWin=wins.length?wins.reduce((s,t)=>s+(t.resultado||0),0)/wins.length:0;
+  const avgLoss=losses.length?Math.abs(losses.reduce((s,t)=>s+(t.resultado||0),0)/losses.length):0;
+  const sumW=wins.reduce((s,t)=>s+(t.resultado||0),0);
+  const sumL=Math.abs(losses.reduce((s,t)=>s+(t.resultado||0),0));
+  const pf=sumL>0?sumW/sumL:0;
+  const wr=finTrades.length?wins.length/finTrades.length*100:0;
+  const rrArr=finTrades.filter(t=>t.rr).map(t=>t.rr);
+  const avgRR=rrArr.length?rrArr.reduce((s,v)=>s+v,0)/rrArr.length:0;
+  const kpisEl=document.getElementById('stats-kpis-table');
+  if(kpisEl) kpisEl.innerHTML=[
+    ['Win Rate',wr.toFixed(1)+'%','var(--blue)'],
+    ['Profit Factor',pf.toFixed(2),pf>=1?'var(--green)':'var(--red)'],
+    ['P&L Total',(totalPnl2>=0?'+':'')+'$'+totalPnl2.toFixed(2),totalPnl2>=0?'var(--green)':'var(--red)'],
+    ['Media ganancia','+$'+avgWin.toFixed(2),'var(--green)'],
+    ['Media pérdida','-$'+avgLoss.toFixed(2),'var(--red)'],
+    ['RR Promedio',avgRR.toFixed(2)+':1','var(--amber)'],
+    ['Total operaciones',finTrades.length,'var(--text)'],
+    ['Wins / Losses',wins.length+' / '+losses.length,'var(--text2)'],
+    ['Mejor trade','+$'+Math.max(...finTrades.map(t=>t.resultado||0)).toFixed(2),'var(--green)'],
+    ['Peor trade','$'+Math.min(...finTrades.map(t=>t.resultado||0)).toFixed(2),'var(--red)'],
+    ['Expectativa/op',(totalPnl2/finTrades.length).toFixed(2),totalPnl2>=0?'var(--green)':'var(--red)'],
+    ['Días operados',[...new Set(finTrades.map(t=>(t.fecha||'').slice(0,10)))].length,'var(--text2)'],
+  ].map(([k,v,c])=>`<div class="stat-row"><span class="stat-name">${k}</span><span class="stat-val" style="color:${c}">${v}</span></div>`).join('');
+
+  renderProjection();
+}
+
+function renderProjection() {
+  const capital = parseFloat(document.getElementById('proj-capital')?.value) || 0;
+  const months = parseInt(document.getElementById('proj-meses')?.value) || 12;
+  if (!capital || !allTrades.length) return;
+  const finTrades = allTrades.filter(t=>t.resultado!==null&&t.estado!=='Pendiente');
+  if (!finTrades.length) return;
+  const totalPnl = finTrades.reduce((s,t)=>s+(t.resultado||0),0);
+  const days = [...new Set(finTrades.map(t=>(t.fecha||'').slice(0,10)))].length;
+  const avgPerDay = days > 0 ? totalPnl/days : 0;
+  const avgPerMonth = avgPerDay * 20;
+  const th = getChartTheme();
+  const projPts = [capital];
+  for(let i=1;i<=months;i++) projPts.push(parseFloat((capital + avgPerMonth*i).toFixed(2)));
+  const projEl = document.getElementById('proj-summary');
+  if(projEl) {
+    const finalVal = projPts[projPts.length-1];
+    const gain = finalVal - capital;
+    projEl.innerHTML = `<div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">
+      <div>Final: <span style="color:${gain>=0?'var(--green)':'var(--red)';font-weight:600}">${gain>=0?'+':''}$${gain.toFixed(0)}</span></div>
+      <div style="margin-top:4px;">Media/mes: <span style="color:var(--amber)">${avgPerMonth>=0?'+':''}$${avgPerMonth.toFixed(0)}</span></div>
+    </div>`;
+  }
+  if(statsProjInst) statsProjInst.destroy();
+  const color = (projPts[projPts.length-1]-capital)>=0?'#00d4a0':'#ff4d6d';
+  statsProjInst = mkChart('stats-proj-chart', {type:'line',
+    data:{labels:Array.from({length:months+1},(_,i)=>i===0?'Hoy':'M'+i),
+      datasets:[{data:projPts,borderColor:color,backgroundColor:color==='#00d4a0'?'rgba(0,212,160,0.08)':'rgba(255,77,109,0.08)',
+        borderWidth:2,pointRadius:0,tension:0.4,fill:true}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{backgroundColor:th.bg,bodyColor:th.text,callbacks:{label:ctx=>'$'+ctx.raw.toFixed(0)}}},
+      scales:{x:{grid:{display:false},ticks:{color:th.tick,font:{size:9}}},
+        y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},callback:v=>'$'+v},border:{display:false}}}}});
+}
+
 </script>
 
 
