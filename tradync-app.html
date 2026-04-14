@@ -3809,6 +3809,7 @@ function closeDayModal() {
 
 // ─── CUENTAS ─────────────────────────────────────────────────────
 let accounts = JSON.parse(localStorage.getItem('tj_accounts') || '[]');
+let selectedAccount = null;
 
 function saveAccountsLocal() {
   localStorage.setItem('tj_accounts', JSON.stringify(accounts));
@@ -3836,6 +3837,7 @@ function saveAccount() {
   const account = { id: Date.now(), nombre, balance, tipo, broker, fase, pnl: 0 };
   accounts.push(account);
   saveAccountsLocal();
+  saveAccountToNotion(account).catch(()=>{});
   renderAccounts();
   updateCuentaSelector();
   renderCalendar();
