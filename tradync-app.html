@@ -367,7 +367,23 @@
 
 
   /* ACCOUNTS */
-  .account-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.15s; position: relative; }
+  .account-card {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 130px;
+}
+.account-card:hover { transform: translateY(-2px); border-color: var(--green); box-shadow: 0 4px 20px rgba(0,212,160,0.1); }
+.account-card.selected { border-color: var(--green); background: var(--green-bg); }
+.account-card.prop { border-color: rgba(245,166,35,0.4); }
+.account-card.prop.selected { border-color: var(--amber); background: var(--amber-bg); }
   .account-card:hover { border-color: var(--border2); }
   .account-card.selected { border-color: var(--green); background: var(--green-bg); }
   .account-card.prop { border-color: rgba(245,166,35,0.3); }
@@ -378,7 +394,7 @@
   .account-type-badge.own { background: var(--green-bg); color: var(--green); }
   .account-type-badge.prop { background: var(--amber-bg); color: var(--amber); }
   .account-pnl { font-size: 11px; font-family: 'DM Mono', monospace; margin-top: 6px; }
-  .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
   .add-account-card { background: transparent; border: 1px dashed var(--border2); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text3); font-size: 13px; min-height: 100px; }
   .add-account-card:hover { border-color: var(--green); color: var(--green); }
 
@@ -697,7 +713,7 @@
           <span></span><span></span><span></span>
         </div>
         <div>
-          <h1>Mi <span>Trading</span> Journal</h1>
+          <h1 id="page-title">Mi <span>Trading</span> Journal</h1>
           <div class="header-date" id="current-date"></div>
         </div>
         <div style="width:1px;height:36px;background:var(--border);flex-shrink:0;"></div>
@@ -1286,9 +1302,10 @@
     <div class="tab-panel" id="panel-cuentas">
       <div class="section-title">Mis cuentas de trading</div>
       <div class="accounts-grid" id="accounts-grid">
-        <div class="add-account-card" onclick="openModal()">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg>
-          Añadir cuenta
+        <div class="add-account-card" onclick="openModal()" style="min-height:130px;flex-direction:column;gap:8px;border-radius:14px;">
+          <div style="width:36px;height:36px;border-radius:10px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text3);">+</div>
+          <div style="font-size:13px;font-weight:500;">Nueva cuenta</div>
+          <div style="font-size:11px;color:var(--text3);">Propia o Prop Firm</div>
         </div>
       </div>
 
@@ -2041,16 +2058,21 @@ function updateUserUI(user) {
     const logoutBtn = document.createElement('button');
     logoutBtn.id = 'logout-btn';
     logoutBtn.className = 'btn';
-    logoutBtn.style.fontSize = '12px';
-    logoutBtn.innerHTML = '<span style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle;">' + name + '</span> · Cerrar sesión';
-    logoutBtn.onclick = async () => {
-      logoutBtn.textContent = 'Cerrando...';
-      logoutBtn.disabled = true;
+    logoutBtn.style.cssText = 'font-size:12px;cursor:pointer;white-space:nowrap;padding:8px 12px;';
+    logoutBtn.textContent = name + ' · Cerrar sesión';
+    logoutBtn.title = 'Cerrar sesión';
+    logoutBtn.addEventListener('click', async function() {
+      this.textContent = 'Cerrando sesión...';
+      this.disabled = true;
       await sb.auth.signOut();
       currentUser = null;
       allTrades = [];
-      window.location.replace(window.location.origin + '/tradync-landing.html');
-    };
+      window.location.replace(
+        window.location.protocol === 'file:'
+          ? 'tradync-landing.html'
+          : window.location.origin + '/tradync-landing.html'
+      );
+    });
     headerActions.prepend(logoutBtn);
   }
 }
@@ -2063,12 +2085,30 @@ function toast(msg, type='info') {
 }
 
 // Tab
+const PAGE_TITLES = {
+  dashboard:'Dashboard', operaciones:'Operaciones', nueva:'Nueva Operación',
+  riesgo:'Control de Riesgo', calendario:'Calendario', premarket:'Pre-Market',
+  habitos:'Hábitos', estadisticas:'Estadísticas', cuentas:'Cuentas',
+  ia:'Coach IA', diario:'Diario', psicologia:'Psicología'
+};
+
 function goTab(id, el) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const panel = document.getElementById('panel-' + id);
   if (panel) panel.classList.add('active');
   if (el) el.classList.add('active');
+
+  // Update page title
+  const titleEl = document.getElementById('page-title');
+  if (titleEl && PAGE_TITLES[id]) {
+    const title = PAGE_TITLES[id];
+    const parts = title.split(' ');
+    titleEl.innerHTML = parts.length > 1
+      ? parts[0] + ' <span>' + parts.slice(1).join(' ') + '</span>'
+      : '<span>' + title + '</span>';
+  }
+
   // Refresh risk inputs when navigating to riesgo
   if (id === 'riesgo') {
     const ml = document.getElementById('cfg-maxloss');
@@ -2080,6 +2120,14 @@ function goTab(id, el) {
     if (ob) ob.value = riskSettings.objetivo || '';
     if (rp) rp.value = riskSettings.riskPct || 1;
   }
+  // Render stats charts when navigating to estadisticas
+  if (id === 'estadisticas') setTimeout(renderStatsCharts, 50);
+  // Render ops charts when navigating to operaciones
+  if (id === 'operaciones') setTimeout(renderOpsCharts, 50);
+  // Render account charts when navigating to cuentas
+  if (id === 'cuentas') setTimeout(renderAccountCharts, 50);
+  // Render psych charts when navigating to psicologia
+  if (id === 'psicologia') setTimeout(renderPsychCharts, 50);
 }
 
 // Toggle tag
@@ -3862,18 +3910,29 @@ function renderAccounts() {
     const wr = trades.length ? (wins / trades.length * 100).toFixed(1) : 0;
     const balanceActual = a.balance + pnl;
     return `
-      <div class="account-card ${a.tipo}" onclick="openAccountDetail(${a.id})">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-          <span class="account-type-badge ${a.tipo}">${a.tipo === 'prop' ? 'PROP FIRM' : 'CAPITAL PROPIO'}</span>
-          <span style="font-size:10px;color:var(--text3);cursor:pointer;font-family:'DM Mono',monospace;" onclick="event.stopPropagation();deleteAccount(${a.id})">✕</span>
+      <div class="account-card ${a.tipo}${a.id === selectedAccount ? ' selected' : ''}" onclick="selectAccount(${a.id})">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:10px;font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:6px;">
+              <span class="account-type-badge ${a.tipo === 'prop' ? 'prop' : 'own'}">${a.tipo === 'prop' ? 'PROP FIRM' : 'CAPITAL PROPIO'}</span>
+            </div>
+            <div class="account-name" style="font-size:15px;font-weight:700;color:var(--text);">${a.nombre}</div>
+            ${a.broker ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;">${a.broker}</div>` : ''}
+          </div>
+          <div onclick="event.stopPropagation();deleteAccount(${a.id})" style="font-size:16px;color:var(--text3);cursor:pointer;padding:4px;border-radius:6px;" title="Eliminar cuenta">×</div>
         </div>
-        <div class="account-name">${a.nombre}</div>
-        ${a.tipo === 'prop' ? `<div style="font-size:11px;color:var(--amber);font-family:monospace;margin-bottom:4px;">${a.broker} · ${a.fase}</div>` : ''}
-        <div class="account-balance" style="color:${pnl >= 0 ? 'var(--green)' : 'var(--red)'}">$${balanceActual.toLocaleString()}</div>
-        <div class="account-pnl" style="color:${pnl >= 0 ? 'var(--green)' : 'var(--red)'}">
-          ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} P&L · ${trades.length} ops · ${wr}% WR
+        <div style="margin-top:auto;">
+          <div class="account-balance" style="font-size:22px;font-weight:800;font-family:'DM Mono',monospace;color:${balanceActual >= (a.balance||0) ? 'var(--green)' : 'var(--red)'};">
+            $${fmt(balanceActual)}
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;">
+            <div style="font-size:11px;color:var(--text3);">P&L: <span style="color:${pnl>=0?'var(--green)':'var(--red)'};">${pnl>=0?'+':''}$${fmt(pnl)}</span></div>
+            <div style="font-size:11px;color:var(--text3);">WR: <span style="color:var(--blue);">${wr}%</span></div>
+          </div>
+          ${a.fase ? `<div style="font-size:10px;color:var(--amber);font-family:'DM Mono',monospace;margin-top:4px;">${a.fase}</div>` : ''}
         </div>
-      </div>`;
+      </div>
+    `;
   }).join('');
 
   grid.innerHTML = cards + `
