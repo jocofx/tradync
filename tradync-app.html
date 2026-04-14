@@ -2400,11 +2400,12 @@ function updateUserUI(user) {
     logoutBtn.style.fontSize = '12px';
     logoutBtn.textContent = name + ' · Salir';
     logoutBtn.onclick = async () => {
+      logoutBtn.textContent = 'Cerrando sesión...';
+      logoutBtn.disabled = true;
       await sb.auth.signOut();
       currentUser = null;
       allTrades = [];
-      toast('Sesión cerrada', 'info');
-      setTimeout(() => location.reload(), 1000);
+      window.location.replace(window.location.origin + '/tradync-landing.html');
     };
     headerActions.prepend(logoutBtn);
   }
