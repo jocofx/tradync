@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/tradync-landing.html" },
+    { "source": "/app", "destination": "/tradync-app.html" }
+  ]
+}
