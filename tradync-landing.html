@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tradync — Tu Journal de Trading Profesional</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -427,6 +427,9 @@ footer{
   .preview-mock{grid-template-columns:1fr 1fr;}
 }
 </style>
+  <!-- Edge Tracking Prevention fix -->
+  <meta http-equiv="origin-trial" content="">
+  <meta name="referrer" content="no-referrer-when-downgrade">
 </head>
 <body>
 
@@ -857,10 +860,10 @@ function goToApp(user) {
 
 function showWelcomeToast(name) {
   const toast = document.createElement('div');
-  toast.style.cssText = 'position:fixed;bottom:28px;right:28px;background:#00e5a0;color:#000;padding:14px 22px;border-radius:12px;font-size:14px;font-weight:700;z-index:9999;animation:fadeUp 0.3s ease;box-shadow:0 0 40px rgba(0,229,160,0.3);';
-  toast.textContent = '✓ Bienvenido' + (name ? ', ' + name.split(' ')[0] : '') + '! Accediendo al journal...';
+  toast.style.cssText = 'position:fixed;bottom:28px;right:28px;background:#00e5a0;color:#000;padding:14px 22px;border-radius:12px;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 0 40px rgba(0,229,160,0.3);';
+  toast.innerHTML = '✓ Bienvenido' + (name ? ', ' + name.split(' ')[0] : '') + '!<br><span style="font-size:12px;font-weight:500;">Redirigiendo al journal...</span>';
   document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
+  setTimeout(() => toast.remove(), 5000);
 }
 
 // ── SCROLL ANIMATIONS ─────────────────────────────────────────────
@@ -887,9 +890,10 @@ document.getElementById('auth-overlay').addEventListener('click', e => {
 sb.auth.getSession().then(({ data: { session } }) => {
   if (session) {
     // User already logged in - show "Go to journal" button
-    document.querySelector('.nav-cta').innerHTML = `
-      <span style="font-size:13px;color:var(--text2);">Hola, ${session.user.user_metadata?.full_name?.split(' ')[0] || session.user.email} 👋</span>
-      <button class="btn-primary" onclick="goToApp(${JSON.stringify(session.user).replace(/"/g,'&quot;')})">Ir al journal →</button>
+    const userName = session.user.user_metadata?.full_name?.split(' ')[0] || session.user.email.split('@')[0];
+  document.querySelector('.nav-cta').innerHTML = `
+      <span style="font-size:13px;color:var(--text2);">Hola, ${userName} 👋</span>
+      <button class="btn-primary" onclick="window.location.href = (window.location.protocol === 'file:' ? 'tradync-app.html' : window.location.origin + '/tradync-app.html')" >Ir al journal →</button>
       <button class="btn-ghost" onclick="doLogout()">Salir</button>
     `;
   }
