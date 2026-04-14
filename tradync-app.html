@@ -505,6 +505,105 @@
     .nav-item span:not(.nav-icon) { display: none; }
     .header-actions .btn:not(#sync-btn):not(#logout-btn):not(#theme-btn) { display: none; }
   }
+
+  /* ── RESPONSIVE MOBILE ──────────────────────────────────────── */
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 8px; border-radius: 8px; border: 1px solid var(--border2); background: var(--bg3); flex-shrink: 0; }
+  .hamburger span { width: 18px; height: 2px; background: var(--text2); border-radius: 2px; display: block; transition: all 0.3s; }
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 150; }
+  .sidebar-overlay.open { display: block; }
+
+  @media (max-width: 768px) {
+    /* SIDEBAR */
+    .sidebar {
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: 200;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.6); }
+    .hamburger { display: flex !important; }
+    .main { margin-left: 0 !important; padding: 12px !important; }
+
+    /* HEADER */
+    .header { padding: 12px 16px !important; flex-wrap: nowrap !important; gap: 8px; align-items: center; }
+    .header-left { gap: 10px !important; flex-shrink: 1; min-width: 0; }
+    .header-left h1 { font-size: 16px !important; white-space: nowrap; }
+    .header-date { display: none; }
+    .quote-wrap { display: none !important; }
+    .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* HIDE less important header buttons on mobile */
+    .header-actions .btn:not(#sync-btn):not(#theme-btn):not(#logout-btn) { display: none !important; }
+    #sync-btn { font-size: 11px !important; padding: 6px 10px !important; }
+    #theme-btn { font-size: 14px !important; padding: 6px 8px !important; }
+    #logout-btn { font-size: 11px !important; padding: 6px 10px !important; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* RISK BAR */
+    #fixed-risk-bar { margin: 10px 12px 0 !important; padding: 8px 14px !important; flex-wrap: wrap; gap: 6px; }
+    #fixed-risk-text { font-size: 12px !important; }
+    #fixed-risk-detail { font-size: 10px !important; }
+
+    /* CONTENT */
+    .main > h1, .main > div > h1 { font-size: 18px !important; }
+    .section-title { font-size: 11px !important; }
+
+    /* GRIDS */
+    .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+    .two-col { grid-template-columns: 1fr !important; gap: 12px !important; }
+    .three-col { grid-template-columns: 1fr !important; gap: 12px !important; }
+    .grid-sidebar { grid-template-columns: 1fr !important; gap: 12px !important; }
+    .form-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+    .accounts-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+    .habit-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+    .risk-meters { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+
+    /* CARDS */
+    .card { padding: 14px !important; border-radius: 12px !important; }
+    .metric-card { padding: 12px !important; }
+    .metric-value { font-size: 20px !important; }
+    .metric-label { font-size: 9px !important; }
+
+    /* CHARTS */
+    .tab-panel > div[style*="grid-template-columns:2fr"] { grid-template-columns: 1fr !important; }
+    .tab-panel > div[style*="grid-template-columns:1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+    .tab-panel > div[style*="grid-template-columns:180px"] { grid-template-columns: 1fr !important; }
+    .tab-panel > div[style*="grid-template-columns:260px"] { grid-template-columns: 1fr !important; }
+    .tab-panel > div[style*="grid-template-columns:1fr 300px"] { grid-template-columns: 1fr !important; }
+    .tab-panel > div[style*="grid-template-columns:1fr 320px"] { grid-template-columns: 1fr !important; }
+
+    /* TABLES */
+    .trade-table { font-size: 11px !important; }
+    .trade-table th, .trade-table td { padding: 7px 4px !important; }
+    table { display: block; overflow-x: auto; }
+
+    /* MODALS */
+    .day-modal { width: 96vw !important; max-height: 92vh !important; }
+    .edit-modal { width: 96vw !important; max-height: 92vh !important; }
+    .modal-overlay > .day-modal,
+    .modal-overlay > .edit-modal,
+    .modal-overlay > div { width: 96vw !important; max-width: 96vw !important; }
+
+    /* CALENDAR */
+    .cal-grid { gap: 3px !important; }
+    .cal-day { font-size: 10px !important; border-radius: 6px !important; }
+    .cal-pnl { font-size: 8px !important; }
+    .habit-cal-grid { gap: 3px !important; }
+
+    /* DAY SUMMARY */
+    .day-summary { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* STATS */
+    .stats-3col { grid-template-columns: 1fr !important; }
+  }
+
+  @media (max-width: 400px) {
+    .metrics-grid { grid-template-columns: 1fr 1fr !important; }
+    .accounts-grid { grid-template-columns: 1fr !important; }
+    .header-left h1 { font-size: 14px !important; }
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -582,8 +681,8 @@
   </aside>
 
   <main class="main">
-    <div class="header">
-      <div class="header-left" style="display:flex;align-items:center;gap:16px;">
+    <div class="header" style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;gap:12px;">
+      <div class="header-left" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
         <div class="hamburger" onclick="toggleSidebar()" id="hamburger">
           <span></span><span></span><span></span>
         </div>
@@ -604,10 +703,10 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn" onclick="loadTrades()" id="sync-btn">↻ Sincronizar</button>
-        <button class="btn" id="theme-btn" onclick="toggleTheme()" style="font-size:16px;padding:7px 12px;" title="Cambiar tema">🌙</button>
-        <button class="btn" onclick="openModal()">+ Nueva cuenta</button>
-        <button class="btn btn-primary" onclick="goTab('nueva', null)">+ Nueva operación</button>
+        <button class="btn" onclick="loadTrades()" id="sync-btn" title="Sincronizar" style="font-size:13px;padding:8px 12px;">↻ Sync</button>
+        <button class="btn" id="theme-btn" onclick="toggleTheme()" style="font-size:16px;padding:8px 10px;" title="Cambiar tema">🌙</button>
+        <button class="btn" onclick="openModal()" style="font-size:13px;padding:8px 12px;">+ Cuenta</button>
+        <button class="btn btn-primary" onclick="goTab('nueva', document.querySelector('[onclick*=nueva]'))" style="font-size:13px;padding:8px 14px;">+ Operación</button>
       </div>
     </div>
 
@@ -1841,7 +1940,7 @@ function updateUserUI(user) {
     logoutBtn.id = 'logout-btn';
     logoutBtn.className = 'btn';
     logoutBtn.style.fontSize = '12px';
-    logoutBtn.textContent = name + ' · Salir';
+    logoutBtn.innerHTML = '<span style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle;">' + name + '</span> · Cerrar sesión';
     logoutBtn.onclick = async () => {
       logoutBtn.textContent = 'Cerrando...';
       logoutBtn.disabled = true;
