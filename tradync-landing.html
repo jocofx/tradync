@@ -47,7 +47,7 @@ body::after{
 nav{
   position:fixed;top:0;left:0;right:0;z-index:100;
   padding:20px 48px;
-  display:flex;align-items:center;justify-content:space-between;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
   background:rgba(5,6,10,0.7);backdrop-filter:blur(20px);
   border-bottom:1px solid var(--border);
   transition:all 0.3s;
@@ -58,7 +58,7 @@ nav.scrolled{padding:14px 48px;}
 .nav-links{display:flex;gap:32px;}
 .nav-link{font-size:14px;color:var(--text2);cursor:pointer;transition:color 0.2s;font-weight:500;}
 .nav-link:hover{color:var(--text);}
-.nav-cta{display:flex;gap:10px;align-items:center;}
+.nav-cta{display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:nowrap;}
 .btn-ghost{padding:9px 20px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.2s;}
 .btn-ghost:hover{border-color:var(--green);color:var(--green);}
 .btn-primary{padding:9px 22px;border-radius:8px;border:none;background:var(--green);color:#000;font-size:14px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.2s;position:relative;overflow:hidden;}
@@ -410,7 +410,7 @@ footer{
 @keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
 
 @media(max-width:768px){
-  nav{padding:16px 20px;}
+  nav{padding:12px 16px;gap:8px;}
   .nav-links{display:none;}
   .hero{padding:100px 24px 60px;}
   .hero-stats{gap:24px;}
@@ -892,9 +892,9 @@ sb.auth.getSession().then(({ data: { session } }) => {
     // User already logged in - show "Go to journal" button
     const userName = session.user.user_metadata?.full_name?.split(' ')[0] || session.user.email.split('@')[0];
   document.querySelector('.nav-cta').innerHTML = `
-      <span style="font-size:13px;color:var(--text2);">Hola, ${userName} 👋</span>
-      <button class="btn-primary" onclick="window.location.href = (window.location.protocol === 'file:' ? 'tradync-app.html' : window.location.origin + '/tradync-app.html')" >Ir al journal →</button>
-      <button class="btn-ghost" onclick="doLogout()">Salir</button>
+      <span style="font-size:12px;color:var(--text2);white-space:nowrap;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03);">👤 ${userName}</span>
+      <button class="btn-primary" style="white-space:nowrap;" onclick="window.location.replace(window.location.protocol === 'file:' ? 'tradync-app.html' : window.location.origin + '/tradync-app.html')">Ir al journal →</button>
+      <button class="btn-ghost" style="white-space:nowrap;padding:9px 14px;" onclick="doLogout()">Salir</button>
     `;
   }
 });
