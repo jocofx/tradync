@@ -808,13 +808,20 @@ async function doLogin() {
   if (!email || !pass) { showMsg('login-msg', 'Rellena todos los campos', 'error'); return; }
   const btn = document.getElementById('login-btn');
   btn.disabled = true; btn.textContent = 'Entrando...';
-  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-  if (error) {
-    showMsg('login-msg', error.message === 'Invalid login credentials' ? 'Email o contraseña incorrectos' : error.message, 'error');
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (error) {
+      showMsg('login-msg', error.message === 'Invalid login credentials' ? 'Email o contraseña incorrectos' : error.message, 'error');
+      btn.disabled = false; btn.textContent = 'Iniciar sesión';
+    } else {
+      showMsg('login-msg', '✓ Accediendo a tu journal...', 'success');
+      btn.textContent = 'Redirigiendo...';
+      // Direct immediate redirect - don't wait
+      window.location.replace(window.location.origin + '/tradync-app.html');
+    }
+  } catch(e) {
+    showMsg('login-msg', 'Error de conexión. Inténtalo de nuevo.', 'error');
     btn.disabled = false; btn.textContent = 'Iniciar sesión';
-  } else {
-    showMsg('login-msg', '✓ Accediendo a tu journal...', 'success');
-    setTimeout(() => goToApp(data.user), 1200);
   }
 }
 
@@ -838,7 +845,8 @@ async function doRegister() {
     btn.textContent = 'Email enviado ✓';
   } else {
     showMsg('reg-msg', '✓ Cuenta creada. Entrando...', 'success');
-    setTimeout(() => goToApp(data.user), 1200);
+    btn.textContent = 'Redirigiendo...';
+    window.location.replace(window.location.origin + '/tradync-app.html');
   }
 }
 
