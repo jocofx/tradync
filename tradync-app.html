@@ -46,7 +46,8 @@
   .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
 
   /* SIDEBAR */
-  .sidebar { width: 220px; min-height: 100vh; background: var(--bg2); border-right: 1px solid var(--border); padding: 28px 0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+  .sidebar { width: 220px; min-height: 100vh; background: var(--bg2); border-right: 1px solid var(--border); padding: 28px 0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+  .sidebar.hidden { transform: translateX(-220px); }
   .logo { padding: 0 20px 28px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
   .logo-text { font-size: 16px; font-weight: 800; letter-spacing: -0.5px; }
   .logo-text span { color: var(--green); }
@@ -69,7 +70,7 @@
   .notion-status-text { font-size: 12px; color: var(--text2); }
 
   /* MAIN */
-  .main { margin-left: 220px; flex: 1; padding: 32px 36px; }
+  .main { margin-left: 220px; flex: 1; padding: 32px 36px; transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1), max-width 0.3s cubic-bezier(0.4,0,0.2,1); }
   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
   .header-left h1 { font-size: 26px; font-weight: 800; letter-spacing: -1px; }
   .header-left h1 span { color: var(--green); }
@@ -479,9 +480,14 @@
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div class="layout">
   <aside class="sidebar">
-    <div class="logo">
-      <div class="logo-text">Trade<span>Log</span></div>
-      <div class="logo-sub">NOTION SYNC · LIVE</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 0;">
+      <div class="logo">
+        <div class="logo-text">Trade<span>Log</span></div>
+        <div class="logo-sub">TRADYNC · LIVE</div>
+      </div>
+      <button id="sidebar-toggle-btn" onclick="toggleSidebar()"
+        style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);cursor:pointer;color:var(--text2);font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"
+        title="Ocultar menú">‹</button>
     </div>
     <div class="nav-section">
       <div class="nav-label">Navegación</div>
@@ -3299,21 +3305,28 @@ function toggleSidebar() {
   const main = document.querySelector('.main');
   const overlay = document.getElementById('sidebar-overlay');
   const showBtn = document.getElementById('sidebar-show-btn');
+  const toggleBtn = document.getElementById('sidebar-toggle-btn');
+
   if (window.innerWidth <= 768) {
     const isOpen = sidebar.classList.toggle('open');
     if (overlay) overlay.classList.toggle('open', isOpen);
     return;
   }
+
+  // Desktop: slide sidebar, never show overlay
   if (overlay) overlay.classList.remove('open');
   const isHidden = sidebar.classList.toggle('hidden');
+
   if (isHidden) {
-    if (main) { main.style.marginLeft='0'; main.style.maxWidth='100vw'; }
-    if (showBtn) showBtn.classList.add('visible');
-    localStorage.setItem('tj_sidebar','hidden');
+    if (main) { main.style.marginLeft = '0'; main.style.maxWidth = '100vw'; }
+    if (showBtn) showBtn.style.display = 'flex';
+    if (toggleBtn) toggleBtn.style.display = 'none';
+    localStorage.setItem('tj_sidebar', 'hidden');
   } else {
-    if (main) { main.style.marginLeft='220px'; main.style.maxWidth='calc(100vw - 220px)'; }
-    if (showBtn) showBtn.classList.remove('visible');
-    localStorage.setItem('tj_sidebar','visible');
+    if (main) { main.style.marginLeft = '220px'; main.style.maxWidth = 'calc(100vw - 220px)'; }
+    if (showBtn) showBtn.style.display = 'none';
+    if (toggleBtn) toggleBtn.style.display = 'flex';
+    localStorage.setItem('tj_sidebar', 'visible');
   }
 }
 
@@ -3848,14 +3861,16 @@ window.addEventListener('load', async () => {
     const tb = document.getElementById('theme-btn'); if (tb) tb.textContent = '🌙';
   }
 
-  // Sidebar
+  // Sidebar state restore
   if (localStorage.getItem('tj_sidebar') === 'hidden') {
     const sb2 = document.querySelector('.sidebar');
     const mn = document.querySelector('.main');
     if (sb2) sb2.classList.add('hidden');
     if (mn) { mn.style.marginLeft = '0'; mn.style.maxWidth = '100vw'; }
     const showBtn = document.getElementById('sidebar-show-btn');
-    if (showBtn) showBtn.classList.add('visible');
+    if (showBtn) showBtn.style.display = 'flex';
+    const toggleBtn = document.getElementById('sidebar-toggle-btn');
+    if (toggleBtn) toggleBtn.style.display = 'none';
   }
 
   // Risk inputs
@@ -4383,5 +4398,7 @@ function renderPsychCharts() {
 <div class="modal-overlay" id="img-preview-overlay" onclick="this.classList.remove('open')" style="cursor:zoom-out;">
   <img id="img-preview-full" style="max-width:90vw;max-height:90vh;border-radius:12px;object-fit:contain;">
 </div>
+<button id="sidebar-show-btn" onclick="toggleSidebar()" title="Mostrar menú"
+  style="position:fixed;top:50%;left:0;transform:translateY(-50%);z-index:101;width:20px;height:56px;background:var(--bg2);border:1px solid var(--border2);border-left:none;border-radius:0 8px 8px 0;cursor:pointer;display:none;align-items:center;justify-content:center;color:var(--text2);font-size:14px;transition:all 0.2s;">›</button>
 </body>
 </html>
