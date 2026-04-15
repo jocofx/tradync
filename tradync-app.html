@@ -4826,107 +4826,7 @@ function _old_setParentPage_unused() {
 // WINDOW LOAD
 // ═══════════════════════════════════════════════════════════════════
 window.addEventListener('load', async () => {
-  // Date fields
-  const dateEl = document.getElementById('current-date');
-  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('es-ES', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const fFecha = document.getElementById('f-fecha');
-  if (fFecha) fFecha.value = new Date().toISOString().slice(0,16);
-
-  // Theme
-  if (localStorage.getItem('tj_theme') === 'light') {
-    document.body.classList.add('light-mode');
-    const tb = document.getElementById('theme-btn');
-    if (tb) tb.textContent = '☀️';
-  } else {
-    const tb = document.getElementById('theme-btn');
-    if (tb) tb.textContent = '🌙';
-  }
-
-  // Sidebar
-  if (localStorage.getItem('tj_sidebar') === 'hidden') {
-    const sb2 = document.getElementById('sidebar');
-    const mn = document.querySelector('.main');
-    if (sb2) sb2.classList.add('hidden');
-    if (mn) { mn.style.marginLeft = '0'; mn.style.maxWidth = '100vw'; }
-    const sb3 = document.getElementById('sidebar-show-btn');
-    if (sb3) sb3.classList.add('visible');
-    const tb2 = document.getElementById('sidebar-toggle-btn');
-    if (tb2) tb2.style.display = 'none';
-  }
-
-  // Risk inputs
-  const riskInputs = {
-    'cfg-maxloss': () => riskSettings.maxLoss || 200,
-    'cfg-maxops': () => riskSettings.maxOps || 5,
-    'cfg-objetivo': () => riskSettings.objetivo || '',
-    'cfg-riskpct': () => riskSettings.riskPct || 1
-  };
-  Object.entries(riskInputs).forEach(([id, val]) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.value = val();
-      if (!el.dataset.bound) {
-        el.dataset.bound = '1';
-        el.addEventListener('change', () => {
-          updateRiskConfig();
-          if (currentUser) saveConfigToNotion('riskSettings', riskSettings).catch(()=>{});
-        });
-      }
-    }
-  });
-
-  // AI key
-  const savedKey = localStorage.getItem('tj_ai_key');
-  if (savedKey) { const ki = document.getElementById('ai-api-key'); if (ki) ki.value = savedKey; }
-
-  // Init UI (no auth needed)
-  try { initChecklist(); } catch(e) {}
-  try { initHabits(); } catch(e) {}
-  try { initSurvey(); } catch(e) {}
-  try { loadPlan(); } catch(e) {}
-  try { loadMacroEvents(); } catch(e) {}
-  try { renderRiskPanel(); } catch(e) {}
-  try { renderCalendar(); } catch(e) {}
-  try { renderPmCalendar(); } catch(e) {}
-  try { initDiario(); } catch(e) {}
-  try { initQuote(); setInterval(rotateQuote, 15000); } catch(e) {}
-
-  // Check Supabase session (with retry for Edge timing)
-  try {
-    let session = null;
-    try {
-      const r1 = await sb.auth.getSession();
-      session = r1.data?.session;
-    } catch(e) {}
-
-    if (!session) {
-      await new Promise(res => setTimeout(res, 800));
-      try {
-        const r2 = await sb.auth.getSession();
-        session = r2.data?.session;
-      } catch(e) {}
-    }
-
-    if (session) {
-      currentUser = session.user;
-      updateUserUI(session.user);
-      startAutoSync();
-      await loadTrades();
-      const today = new Date().toISOString().slice(0,10);
-      Promise.all([
-        loadHabitsFromNotion(today).catch(()=>{}),
-        loadPlanFromNotion(today).catch(()=>{}),
-        loadAccountsFromNotion().catch(()=>{}),
-        loadConfigFromNotion().catch(()=>{}),
-      ]);
-    } else {
-      showAuthBanner();
-    }
-  } catch(e) {
-    console.error('Load error:', e);
-    showAuthBanner();
-  }
-}););
+;
   const fFecha = document.getElementById('f-fecha');
   if (fFecha) fFecha.value = new Date().toISOString().slice(0,16);
 
@@ -5004,8 +4904,8 @@ window.addEventListener('load', async () => {
     console.error('Session error:', e);
     showAuthBanner();
   }
+})
 });
-
 
 // ─── DASHBOARD CHARTS ────────────────────────────────────────────
 function renderDashboardCharts() {
