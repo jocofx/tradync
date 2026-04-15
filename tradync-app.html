@@ -1757,6 +1757,7 @@ function goTab(id, el) {
     setTimeout(() => { try { renderRiskPanel(); } catch(e){} }, 50);
   }
   if (id === 'operaciones') setTimeout(() => { try { renderAllTrades(); renderOpsCharts(); } catch(e){} }, 50);
+  if (id === 'nueva') setTimeout(() => { try { updateCuentaSelector(); } catch(e){} }, 50);
   if (id === 'estadisticas') setTimeout(() => { try { renderStatsCharts(); } catch(e){} }, 50);
   if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); } catch(e){} }, 50);
   if (id === 'psicologia') setTimeout(() => { try { renderPsych(); renderPsychCharts(); } catch(e){} }, 50);
@@ -3608,7 +3609,18 @@ function updateCuentaSelector() {
   if (!sel) return;
   const current = sel.value;
   sel.innerHTML = '<option value="">— Sin cuenta asignada —</option>' +
-    accounts.map(a => `<option value="${a.nombre}" ${a.nombre === current ? 'selected' : ''}>${a.nombre} (${a.tipo === 'prop' ? 'Prop' : 'Propia'})</option>`).join('');
+    accounts.map(a => `<option value="${a.nombre}" ${a.nombre === current ? 'selected' : ''}>${a.nombre} (${a.tipo === 'prop' ? 'Prop' : 'Propia'})</option>`).join('') +
+    '<option value="__nueva__" style="color:var(--green);font-weight:600;">+ Crear cuenta nueva...</option>';
+  // Handle "crear cuenta nueva" selection
+  if (!sel.dataset.bound) {
+    sel.dataset.bound = '1';
+    sel.addEventListener('change', function() {
+      if (this.value === '__nueva__') {
+        this.value = '';
+        openModal();
+      }
+    });
+  }
 }
 
 // ─── IMÁGENES ─────────────────────────────────────────────────────
