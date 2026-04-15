@@ -2273,19 +2273,28 @@ function toggleSidebar() {
   const main = document.querySelector('.main');
   const showBtn = document.getElementById('sidebar-show-btn');
   const overlay = document.getElementById('sidebar-overlay');
+
   if (window.innerWidth <= 768) {
     const isOpen = sidebar.classList.toggle('expanded');
     if (overlay) overlay.classList.toggle('open', isOpen);
     return;
   }
+
+  // Desktop: never show overlay
+  if (overlay) overlay.classList.remove('open');
+
   const isHidden = sidebar.classList.toggle('hidden');
   if (isHidden) {
     if (main) { main.style.marginLeft = '0'; main.style.maxWidth = '100vw'; }
     if (showBtn) showBtn.classList.add('visible');
+    const btn = document.getElementById('sidebar-toggle-btn');
+    if (btn) btn.style.display = 'none';
     localStorage.setItem('tj_sidebar', 'hidden');
   } else {
     if (main) { main.style.marginLeft = '220px'; main.style.maxWidth = 'calc(100vw - 220px)'; }
     if (showBtn) showBtn.classList.remove('visible');
+    const btn = document.getElementById('sidebar-toggle-btn');
+    if (btn) btn.style.display = 'flex';
     localStorage.setItem('tj_sidebar', 'visible');
   }
 }
@@ -2304,22 +2313,40 @@ function goTab(id, el) {
   const panel = document.getElementById('panel-' + id);
   if (panel) panel.classList.add('active');
   if (el) el.classList.add('active');
+
+  // Update page title
   const titleEl = document.getElementById('page-title');
-  if (titleEl && PAGE_TITLES[id]) {
-    const t = PAGE_TITLES[id];
-    const parts = t.split(' ');
-    titleEl.innerHTML = parts.length > 1 ? parts[0] + ' <span>' + parts.slice(1).join(' ') + '</span>' : '<span>' + t + '</span>';
-  }
+  const titles = {
+    dashboard:'Mi <span>Trading</span> Journal',
+    operaciones:'<span>Operaciones</span>',
+    nueva:'<span>Nueva</span> Operación',
+    riesgo:'<span>Control</span> de Riesgo',
+    calendario:'<span>Calendario</span>',
+    premarket:'<span>Pre-Market</span>',
+    habitos:'<span>Hábitos</span>',
+    estadisticas:'<span>Estadísticas</span>',
+    cuentas:'<span>Cuentas</span>',
+    ia:'<span>Coach</span> IA',
+    diario:'<span>Diario</span>',
+    psicologia:'<span>Psicología</span>'
+  };
+  if (titleEl && titles[id]) titleEl.innerHTML = titles[id];
+
+  // Panel-specific actions
   if (id === 'riesgo') {
     const ml = document.getElementById('cfg-maxloss'); if (ml) ml.value = riskSettings.maxLoss || 200;
     const mo = document.getElementById('cfg-maxops'); if (mo) mo.value = riskSettings.maxOps || 5;
     const ob = document.getElementById('cfg-objetivo'); if (ob) ob.value = riskSettings.objetivo || '';
     const rp = document.getElementById('cfg-riskpct'); if (rp) rp.value = riskSettings.riskPct || 1;
+    setTimeout(() => renderRiskPanel(), 50);
   }
   if (id === 'estadisticas') setTimeout(() => { try { renderStatsCharts(); } catch(e){} }, 50);
   if (id === 'operaciones') setTimeout(() => { try { renderOpsCharts(); } catch(e){} }, 50);
-  if (id === 'cuentas') { setTimeout(() => { try { renderAccountCharts(); } catch(e){}; renderAccounts(); }, 50); }
-  if (id === 'psicologia') setTimeout(() => { try { renderPsychCharts(); } catch(e){} }, 50);
+  if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); } catch(e){} }, 50);
+  if (id === 'psicologia') setTimeout(() => { try { renderPsych(); renderPsychCharts(); } catch(e){} }, 50);
+  if (id === 'habitos') setTimeout(() => { try { renderHabitCalendar(); renderConsistencyScore(); renderHabitsCorrelation(); } catch(e){} }, 50);
+  if (id === 'calendario') setTimeout(() => { try { renderCalendar(); } catch(e){} }, 50);
+  if (id === 'premarket') setTimeout(() => { try { renderPmCalendar(); } catch(e){} }, 50);
 }
 
 // ─── CHART HELPERS ───────────────────────────────────────────────
@@ -2596,18 +2623,30 @@ function resetForm() {
 
 // ─── RENDERIZAR TODO ─────────────────────────────────────────────
 function renderAll() {
-  renderMetrics();
-  renderRecentTrades();
-  renderAllTrades();
-  renderRiskPanel();
-  renderAccounts();
-  renderCalendar();
-  renderInstrumentStats();
-  renderMonthCompare();
-  updateAiContext();
-  populateOpsFilters();
-  setTimeout(() => { try { renderEquity(); renderDashboardCharts(); } catch(e) { console.error('charts:', e); } }, 100);
-  setTimeout(() => { try { renderPsych(); renderHabitsCorrelation(); renderConsistencyScore(); renderHabitCalendar(); renderPmCalendar(); } catch(e) {} }, 200);
+  try { renderMetrics(); } catch(e) {}
+  try { renderRecentTrades(); } catch(e) {}
+  try { renderAllTrades(); } catch(e) {}
+  try { renderRiskPanel(); } catch(e) {}
+  try { renderAccounts(); } catch(e) {}
+  try { renderCalendar(); } catch(e) {}
+  try { renderInstrumentStats(); } catch(e) {}
+  try { renderMonthCompare(); } catch(e) {}
+  try { updateAiContext(); } catch(e) {}
+  try { populateOpsFilters(); } catch(e) {}
+  try { initDiario(); } catch(e) {}
+
+  setTimeout(() => {
+    try { renderEquity(); } catch(e) { console.error('renderEquity:', e); }
+    try { renderDashboardCharts(); } catch(e) { console.error('renderDashboardCharts:', e); }
+  }, 100);
+
+  setTimeout(() => {
+    try { renderPsych(); } catch(e) {}
+    try { renderHabitsCorrelation(); } catch(e) {}
+    try { renderConsistencyScore(); } catch(e) {}
+    try { renderHabitCalendar(); } catch(e) {}
+    try { renderPmCalendar(); } catch(e) {}
+  }, 250);
 }
 function fmtDate(d) {
   if (!d) return '—';
@@ -4776,35 +4815,118 @@ async function loadConfigFromNotion() {
 }
 
 function setParentPage() {
-  const input = document.getElementById('parent-page-input').value.trim();
-  if (!input) return;
-  // Extract ID from URL or use directly
-  const match = input.match(/([a-f0-9]{32})/i);
-  const id = match ? match[1] : input.replace(/-/g,'');
-  if (id.length < 32) { toast('URL o ID no válido', 'error'); return; }
-  PARENT_PAGE_ID = id;
-  localStorage.setItem('tj_parent_page', id);
-  toast('Página padre guardada. Iniciando bases de datos...', 'success');
-  initNotionDatabases().then(ok => {
-    if (ok) {
-      loadConfigFromNotion().catch(()=>{});
-      const today = new Date().toISOString().slice(0,10);
-      loadHabitsFromNotion(today).catch(()=>{});
-      loadPlanFromNotion(today).catch(()=>{});
-      loadAccountsFromNotion().catch(()=>{});
-    }
-  });
+  toast('Usando Supabase ✓', 'success');
 }
 
+// placeholder kept for compatibility
+function _old_setParentPage_unused() {
 
 
 // ═══════════════════════════════════════════════════════════════════
 // WINDOW LOAD
 // ═══════════════════════════════════════════════════════════════════
 window.addEventListener('load', async () => {
-  // Set date fields
+  // Date fields
   const dateEl = document.getElementById('current-date');
   if (dateEl) dateEl.textContent = new Date().toLocaleDateString('es-ES', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const fFecha = document.getElementById('f-fecha');
+  if (fFecha) fFecha.value = new Date().toISOString().slice(0,16);
+
+  // Theme
+  if (localStorage.getItem('tj_theme') === 'light') {
+    document.body.classList.add('light-mode');
+    const tb = document.getElementById('theme-btn');
+    if (tb) tb.textContent = '☀️';
+  } else {
+    const tb = document.getElementById('theme-btn');
+    if (tb) tb.textContent = '🌙';
+  }
+
+  // Sidebar
+  if (localStorage.getItem('tj_sidebar') === 'hidden') {
+    const sb2 = document.getElementById('sidebar');
+    const mn = document.querySelector('.main');
+    if (sb2) sb2.classList.add('hidden');
+    if (mn) { mn.style.marginLeft = '0'; mn.style.maxWidth = '100vw'; }
+    const sb3 = document.getElementById('sidebar-show-btn');
+    if (sb3) sb3.classList.add('visible');
+    const tb2 = document.getElementById('sidebar-toggle-btn');
+    if (tb2) tb2.style.display = 'none';
+  }
+
+  // Risk inputs
+  const riskInputs = {
+    'cfg-maxloss': () => riskSettings.maxLoss || 200,
+    'cfg-maxops': () => riskSettings.maxOps || 5,
+    'cfg-objetivo': () => riskSettings.objetivo || '',
+    'cfg-riskpct': () => riskSettings.riskPct || 1
+  };
+  Object.entries(riskInputs).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.value = val();
+      if (!el.dataset.bound) {
+        el.dataset.bound = '1';
+        el.addEventListener('change', () => {
+          updateRiskConfig();
+          if (currentUser) saveConfigToNotion('riskSettings', riskSettings).catch(()=>{});
+        });
+      }
+    }
+  });
+
+  // AI key
+  const savedKey = localStorage.getItem('tj_ai_key');
+  if (savedKey) { const ki = document.getElementById('ai-api-key'); if (ki) ki.value = savedKey; }
+
+  // Init UI (no auth needed)
+  try { initChecklist(); } catch(e) {}
+  try { initHabits(); } catch(e) {}
+  try { initSurvey(); } catch(e) {}
+  try { loadPlan(); } catch(e) {}
+  try { loadMacroEvents(); } catch(e) {}
+  try { renderRiskPanel(); } catch(e) {}
+  try { renderCalendar(); } catch(e) {}
+  try { renderPmCalendar(); } catch(e) {}
+  try { initDiario(); } catch(e) {}
+  try { initQuote(); setInterval(rotateQuote, 15000); } catch(e) {}
+
+  // Check Supabase session (with retry for Edge timing)
+  try {
+    let session = null;
+    try {
+      const r1 = await sb.auth.getSession();
+      session = r1.data?.session;
+    } catch(e) {}
+
+    if (!session) {
+      await new Promise(res => setTimeout(res, 800));
+      try {
+        const r2 = await sb.auth.getSession();
+        session = r2.data?.session;
+      } catch(e) {}
+    }
+
+    if (session) {
+      currentUser = session.user;
+      updateUserUI(session.user);
+      startAutoSync();
+      await loadTrades();
+      const today = new Date().toISOString().slice(0,10);
+      Promise.all([
+        loadHabitsFromNotion(today).catch(()=>{}),
+        loadPlanFromNotion(today).catch(()=>{}),
+        loadAccountsFromNotion().catch(()=>{}),
+        loadConfigFromNotion().catch(()=>{}),
+      ]);
+    } else {
+      showAuthBanner();
+    }
+  } catch(e) {
+    console.error('Load error:', e);
+    showAuthBanner();
+  }
+}););
   const fFecha = document.getElementById('f-fecha');
   if (fFecha) fFecha.value = new Date().toISOString().slice(0,16);
 
