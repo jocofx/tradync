@@ -915,7 +915,10 @@
     
     <!-- USER INFO -->
     <div id="sidebar-user-info" style="padding:12px 16px;border-top:1px solid var(--border);margin-top:auto;display:flex;align-items:center;gap:10px;">
-      <div style="width:30px;height:30px;border-radius:8px;background:var(--green-bg);border:1px solid rgba(0,212,160,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">👤</div>
+      <div style="position:relative;flex-shrink:0;">
+        <div style="width:30px;height:30px;border-radius:8px;background:var(--green-bg);border:1px solid rgba(0,212,160,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;">👤</div>
+        <div id="status-dot" style="position:absolute;bottom:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:var(--red);border:1.5px solid var(--bg2);"></div>
+      </div>
       <div style="min-width:0;flex:1;">
         <div id="sidebar-user-name" style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
         <div id="sidebar-user-email" style="font-size:10px;color:var(--text3);font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
@@ -1912,10 +1915,14 @@ function requireAuth() {
 
 // ─── SUPABASE STATUS ──────────────────────────────────────────────
 function setStatus(type, text) {
-  const el = document.getElementById('notion-status');
-  if (el) el.className = 'notion-status ' + type;
-  const tel = document.getElementById('notion-status-text');
-  if (tel) tel.textContent = text;
+  // Update sidebar status indicator color on user info area
+  const userInfo = document.getElementById('sidebar-user-info');
+  if (userInfo) {
+    const dot = document.getElementById('status-dot');
+    if (dot) {
+      dot.style.background = type === 'connected' ? 'var(--green)' : type === 'syncing' ? 'var(--amber)' : 'var(--red)';
+    }
+  }
 }
 
 // ─── LOAD TRADES ─────────────────────────────────────────────────
@@ -2449,24 +2456,35 @@ function resetForm() {
 
 // ─── RENDERIZAR TODO ─────────────────────────────────────────────
 function renderAll() {
+  // Core data renders (fast)
   renderMetrics();
   renderRecentTrades();
   renderAllTrades();
-  renderEquity();
-  renderDashboardCharts();
-  renderPsych();
-  renderPsychCharts();
+  renderRiskPanel();
   renderAccounts();
   renderCalendar();
-  renderRiskPanel();
-  renderInstrumentStats();
-  renderMonthCompare();
-  renderHabitsCorrelation();
-  renderConsistencyScore();
-  renderHabitCalendar();
-  renderPmCalendar();
   updateAiContext();
   populateOpsFilters();
+
+  // Charts rendered with delay to not block UI
+  setTimeout(() => {
+    renderEquity();
+    renderDashboardCharts();
+  }, 50);
+
+  setTimeout(() => {
+    renderPsych();
+    renderInstrumentStats();
+    renderMonthCompare();
+  }, 150);
+
+  setTimeout(() => {
+    renderHabitsCorrelation();
+    renderConsistencyScore();
+    renderHabitCalendar();
+    renderPmCalendar();
+  }, 250);
+
   initDiario();
   const savedKey = localStorage.getItem('tj_ai_key');
   if (savedKey) {
