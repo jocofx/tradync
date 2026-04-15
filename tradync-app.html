@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tradync — Tu Journal de Trading</title>
+<title>Trading Journal — Notion Sync</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -37,133 +37,16 @@
     --purple: #7c3aed; --purple-bg: rgba(124,58,237,0.08);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; max-width: 100vw; }
+  body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
   body::before {
     content: ''; position: fixed; inset: 0;
     background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
     background-size: 40px 40px; pointer-events: none; z-index: 0;
   }
-  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; overflow-x: hidden; width: 100%; }
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
 
   /* SIDEBAR */
-  
-  /* ── SIDEBAR ────────────────────────────────────────────────── */
-  .sidebar {
-    width: 220px;
-    min-height: 100vh;
-    background: var(--bg2);
-    border-right: 1px solid var(--border);
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    top: 0; left: 0;
-    z-index: 100;
-    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-  }
-  .sidebar.hidden { transform: translateX(-220px); }
-
-  .sidebar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 24px 16px 16px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .sidebar-collapse-btn {
-    width: 28px; height: 28px;
-    border-radius: 8px;
-    border: 1px solid var(--border2);
-    background: var(--bg3);
-    cursor: pointer;
-    color: var(--text2);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: all 0.2s;
-  }
-  .sidebar-collapse-btn:hover { background: var(--bg4); color: var(--text); }
-  .sidebar-collapse-btn svg { transition: transform 0.3s; }
-  .sidebar.hidden .sidebar-collapse-btn svg { transform: rotate(180deg); }
-
-  .sidebar-nav {
-    flex: 1;
-    padding: 12px 8px;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-  .sidebar-nav::-webkit-scrollbar { width: 3px; }
-  .sidebar-nav::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    cursor: pointer;
-    color: var(--text2);
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.15s;
-    white-space: nowrap;
-    position: relative;
-    margin-bottom: 2px;
-  }
-  .nav-item:hover {
-    background: var(--bg3);
-    color: var(--text);
-    transform: translateX(2px);
-  }
-  .nav-item.active {
-    background: var(--green-bg);
-    color: var(--green);
-    border: 1px solid rgba(0,212,160,0.15);
-  }
-  .nav-item.active .nav-icon svg { color: var(--green); }
-  .nav-icon {
-    width: 28px; height: 28px;
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 7px;
-    background: var(--bg3);
-    flex-shrink: 0;
-    transition: all 0.15s;
-  }
-  .nav-item.active .nav-icon {
-    background: rgba(0,212,160,0.15);
-  }
-  .nav-item:hover .nav-icon { background: var(--bg4); }
-  .nav-text {
-    font-size: 13px;
-    font-weight: 500;
-    transition: opacity 0.2s;
-  }
-
-  /* SHOW BUTTON when sidebar hidden */
-  #sidebar-show-btn {
-    position: fixed;
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-    z-index: 101;
-    width: 20px;
-    height: 56px;
-    background: var(--bg2);
-    border: 1px solid var(--border2);
-    border-left: none;
-    border-radius: 0 8px 8px 0;
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    color: var(--text2);
-    font-size: 14px;
-    transition: all 0.2s;
-    padding: 0;
-  }
-  #sidebar-show-btn.visible { display: flex; }
-  #sidebar-show-btn:hover { background: var(--bg3); color: var(--text); width: 26px; }
-
+  .sidebar { width: 220px; min-height: 100vh; background: var(--bg2); border-right: 1px solid var(--border); padding: 28px 0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
   .logo { padding: 0 20px 28px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
   .logo-text { font-size: 16px; font-weight: 800; letter-spacing: -0.5px; }
   .logo-text span { color: var(--green); }
@@ -186,16 +69,8 @@
   .notion-status-text { font-size: 12px; color: var(--text2); }
 
   /* MAIN */
-  .main {
-  margin-left: 220px;
-  flex: 1;
-  padding: 28px 32px 60px;
-  min-width: 0;
-  overflow-x: hidden;
-  max-width: calc(100vw - 220px);
-  box-sizing: border-box;
-  transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1), max-width 0.3s cubic-bezier(0.4,0,0.2,1);
-}
+  .main { margin-left: 220px; flex: 1; padding: 32px 36px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
   .header-left h1 { font-size: 26px; font-weight: 800; letter-spacing: -1px; }
   .header-left h1 span { color: var(--green); }
   .header-date { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 4px; }
@@ -451,8 +326,6 @@
   /* RISK CONTROL BANNER */
   .risk-banner { border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border: 1px solid; }
   .risk-banner.safe { background: var(--green-bg); border-color: rgba(0,212,160,0.2); }
-  .risk-banner.warn { background: var(--amber-bg); border-color: rgba(245,166,35,0.25); }
-  .risk-banner.danger { background: var(--red-bg); border-color: rgba(255,77,109,0.25); }
   .risk-banner.warn { background: var(--amber-bg); border-color: rgba(245,166,35,0.3); }
   .risk-banner.danger { background: var(--red-bg); border-color: rgba(255,77,109,0.3); }
   .risk-banner.stop { background: rgba(255,77,109,0.2); border-color: var(--red); }
@@ -492,23 +365,7 @@
 
 
   /* ACCOUNTS */
-  .account-card {
-  background: var(--bg2);
-  border: 1px solid var(--border2);
-  border-radius: 14px;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 130px;
-}
-.account-card:hover { transform: translateY(-2px); border-color: var(--green); box-shadow: 0 4px 20px rgba(0,212,160,0.1); }
-.account-card.selected { border-color: var(--green); background: var(--green-bg); }
-.account-card.prop { border-color: rgba(245,166,35,0.4); }
-.account-card.prop.selected { border-color: var(--amber); background: var(--amber-bg); }
+  .account-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.15s; position: relative; }
   .account-card:hover { border-color: var(--border2); }
   .account-card.selected { border-color: var(--green); background: var(--green-bg); }
   .account-card.prop { border-color: rgba(245,166,35,0.3); }
@@ -519,7 +376,7 @@
   .account-type-badge.own { background: var(--green-bg); color: var(--green); }
   .account-type-badge.prop { background: var(--amber-bg); color: var(--amber); }
   .account-pnl { font-size: 11px; font-family: 'DM Mono', monospace; margin-top: 6px; }
-  .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
   .add-account-card { background: transparent; border: 1px dashed var(--border2); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text3); font-size: 13px; min-height: 100px; }
   .add-account-card:hover { border-color: var(--green); color: var(--green); }
 
@@ -577,65 +434,6 @@
   .pm-cal-pct { font-size:9px; opacity:0.8; }
 
 
-
-
-  /* ── PANEL LAYOUT FIXES ─────────────────────────────────────── */
-  .section-title { margin-bottom: 20px; }
-  
-  /* Fix inline grid styles overflowing on medium screens */
-  @media (max-width: 1200px) {
-  }
-  @media (max-width: 900px) {
-    .main {
-  margin-left: 220px;
-  flex: 1;
-  padding: 28px 32px 60px;
-  min-width: 0;
-  overflow-x: hidden;
-  max-width: calc(100vw - 220px);
-  box-sizing: border-box;
-  transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1), max-width 0.3s cubic-bezier(0.4,0,0.2,1);
-}
-  }
-
-  /* ── OVERFLOW FIX ────────────────────────────────────────────── */
-  *, *::before, *::after { box-sizing: border-box; }
-  .card { max-width: 100%; }
-  .metrics-grid { max-width: 100%; }
-  canvas { max-width: 100%; }
-  table { max-width: 100%; }
-  .trade-table-wrap { overflow-x: auto; max-width: 100%; }
-  input, select, textarea { max-width: 100%; }
-
-  /* SIDEBAR TOGGLE FLOAT BUTTON */
-  #sidebar-show-btn {
-    position: fixed;
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-    z-index: 101;
-    width: 20px;
-    height: 56px;
-    background: var(--bg2);
-    border: 1px solid var(--border2);
-    border-left: none;
-    border-radius: 0 8px 8px 0;
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    color: var(--text2);
-    font-size: 13px;
-    transition: all 0.2s;
-  }
-  #sidebar-show-btn:hover { background: var(--bg3); color: var(--text); width: 24px; }
-  #sidebar-show-btn.visible { display: flex; }
-
-
-  /* TAB PANELS */
-  .tab-panel { display: none !important; width: 100%; max-width: 100%; overflow-x: hidden; box-sizing: border-box; }
-  .tab-panel.active { display: block !important; width: 100%; }
-
   /* MOBILE RESPONSIVE */
   .hamburger { display:none; flex-direction:column; gap:4px; cursor:pointer; padding:8px; border-radius:8px; border:1px solid var(--border2); background:var(--bg3); }
   .hamburger span { width:18px; height:2px; background:var(--text2); border-radius:2px; transition:all 0.3s; display:block; }
@@ -645,16 +443,7 @@
   @media (max-width: 768px) {
     .sidebar { transform: translateX(-100%); transition: transform 0.3s; z-index: 200; }
     .sidebar.open { transform: translateX(0); }
-    .main {
-  margin-left: 220px;
-  flex: 1;
-  padding: 28px 32px 60px;
-  min-width: 0;
-  overflow-x: hidden;
-  max-width: calc(100vw - 220px);
-  box-sizing: border-box;
-  transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1), max-width 0.3s cubic-bezier(0.4,0,0.2,1);
-}
+    .main { margin-left: 0 !important; padding: 16px; }
     .hamburger { display: flex; }
     .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; }
     .two-col { grid-template-columns: 1fr !important; }
@@ -679,242 +468,87 @@
   }
 
 
-  /* ── RESPONSIVE MOBILE ──────────────────────────────────────── */
-  @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); transition: transform 0.3s; z-index: 200; position: fixed; height: 100vh; }
-    .sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,0.5); }
-    .main {
-  margin-left: 220px;
-  flex: 1;
-  padding: 28px 32px 60px;
-  min-width: 0;
-  overflow-x: hidden;
-  max-width: calc(100vw - 220px);
-  box-sizing: border-box;
-  transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1), max-width 0.3s cubic-bezier(0.4,0,0.2,1);
-}
-    .hamburger { display: flex !important; }
-    .sidebar-overlay.open { display: block; }
-    .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; }
-    .two-col, .three-col, .grid-sidebar, .grid2, .grid3 { grid-template-columns: 1fr !important; }
-    .form-grid, .form-row { grid-template-columns: 1fr !important; }
-    .risk-meters { grid-template-columns: 1fr 1fr !important; }
-    .header { flex-wrap: wrap; gap: 10px; padding: 14px 16px !important; }
-    .header-actions { flex-wrap: wrap; gap: 6px; }
-    .header-left { flex-wrap: wrap; gap: 8px !important; }
-    .quote-wrap { display: none !important; }
-    .accounts-grid { grid-template-columns: 1fr !important; }
-    .habit-grid { grid-template-columns: repeat(2, 1fr) !important; }
-    .day-summary { grid-template-columns: repeat(2, 1fr) !important; }
-    .day-modal, .edit-modal { width: 95vw !important; max-height: 95vh !important; }
-    .modal-overlay > div { width: 95vw !important; }
-    h1 { font-size: 20px !important; }
-    .metric-value { font-size: 20px !important; }
-    table { font-size: 11px !important; }
-    .trade-table th, .trade-table td { padding: 8px 4px !important; }
-    .preview-mock { grid-template-columns: 1fr 1fr !important; }
-    .testi-grid { grid-template-columns: 1fr !important; }
-    .pricing-cards { grid-template-columns: 1fr !important; }
-    .features-grid { grid-template-columns: 1fr !important; }
-    .fixed-risk-bar-outer { margin: 12px 16px 0 !important; }
-  }
-  @media (max-width: 480px) {
-    .metrics-grid { grid-template-columns: 1fr 1fr !important; }
-    .nav-item span:not(.nav-icon) { display: none; }
-    .header-actions .btn:not(#logout-btn):not(#theme-btn) { display: none; }
-  }
-
-  /* ── RESPONSIVE MOBILE ──────────────────────────────────────── */
-  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 8px; border-radius: 8px; border: 1px solid var(--border2); background: var(--bg3); flex-shrink: 0; }
-  .hamburger span { width: 18px; height: 2px; background: var(--text2); border-radius: 2px; display: block; transition: all 0.3s; }
-  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 150; }
-  .sidebar-overlay.open { display: block; }
-
-  @media (max-width: 768px) {
-    /* SIDEBAR */
-    .sidebar {
-      transform: translateX(-100%) !important;
-      width: 220px !important;
-      z-index: 200;
-      height: 100vh;
-      overflow-y: auto;
-    }
-    .sidebar.expanded { transform: translateX(0) !important; box-shadow: 4px 0 24px rgba(0,0,0,0.6); }
-    .sidebar.hidden { transform: translateX(-100%) !important; }
-    .hamburger { display: flex !important; }
-    #sidebar-show-btn { display: none !important; }
-    .main {
-  margin-left: 220px;
-  flex: 1;
-  padding: 28px 32px 60px;
-  min-width: 0;
-  overflow-x: hidden;
-  max-width: calc(100vw - 220px);
-  box-sizing: border-box;
-  transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1), max-width 0.3s cubic-bezier(0.4,0,0.2,1);
-}
-
-    /* HEADER */
-    .header { padding: 12px 16px !important; flex-wrap: nowrap !important; gap: 8px; align-items: center; }
-    .header-left { gap: 10px !important; flex-shrink: 1; min-width: 0; }
-    .header-left h1 { font-size: 16px !important; white-space: nowrap; }
-    .header-date { display: none; }
-    .quote-wrap { display: none !important; }
-    .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
-
-    /* HIDE less important header buttons on mobile */
-    .header-actions .btn:not(#theme-btn):not(#logout-btn) { display: none !important; }
-    #theme-btn { font-size: 14px !important; padding: 6px 8px !important; }
-    #logout-btn { font-size: 11px !important; padding: 6px 10px !important; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-    /* RISK BAR */
-    #fixed-risk-bar { margin: 10px 12px 0 !important; padding: 8px 14px !important; flex-wrap: wrap; gap: 6px; }
-    #fixed-risk-text { font-size: 12px !important; }
-    #fixed-risk-detail { font-size: 10px !important; }
-
-    /* CONTENT */
-    .main > h1, .main > div > h1 { font-size: 18px !important; }
-    .section-title { font-size: 11px !important; }
-
-    /* GRIDS */
-    .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-    .two-col { grid-template-columns: 1fr !important; gap: 12px !important; }
-    .three-col { grid-template-columns: 1fr !important; gap: 12px !important; }
-    .grid-sidebar { grid-template-columns: 1fr !important; gap: 12px !important; }
-    .form-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
-    .accounts-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-    .habit-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-    .risk-meters { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
-
-    /* CARDS */
-    .card { padding: 14px !important; border-radius: 12px !important; }
-    .metric-card { padding: 12px !important; }
-    .metric-value { font-size: 20px !important; }
-    .metric-label { font-size: 9px !important; }
-
-    /* CHARTS */
-
-    /* TABLES */
-    .trade-table { font-size: 11px !important; }
-    .trade-table th, .trade-table td { padding: 7px 4px !important; }
-    table { display: block; overflow-x: auto; }
-
-    /* MODALS */
-    .day-modal { width: 96vw !important; max-height: 92vh !important; }
-    .edit-modal { width: 96vw !important; max-height: 92vh !important; }
-    .modal-overlay > .day-modal,
-    .modal-overlay > .edit-modal,
-    .modal-overlay > div { width: 96vw !important; max-width: 96vw !important; }
-
-    /* CALENDAR */
-    .cal-grid { gap: 3px !important; }
-    .cal-day { font-size: 10px !important; border-radius: 6px !important; }
-    .cal-pnl { font-size: 8px !important; }
-    .habit-cal-grid { gap: 3px !important; }
-
-    /* DAY SUMMARY */
-    .day-summary { grid-template-columns: repeat(2, 1fr) !important; }
-
-    /* STATS */
-    .stats-3col { grid-template-columns: 1fr !important; }
-  }
-
-  @media (max-width: 400px) {
-    .metrics-grid { grid-template-columns: 1fr 1fr !important; }
-    .accounts-grid { grid-template-columns: 1fr !important; }
-    .header-left h1 { font-size: 14px !important; }
-  }
+  .tab-panel { display: none !important; width: 100%; max-width: 100%; overflow-x: hidden; box-sizing: border-box; }
+  .tab-panel.active { display: block !important; width: 100%; }
 </style>
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
 <body>
 
-<button id="sidebar-show-btn" onclick="toggleSidebar()" title="Mostrar menú">›</button>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <!-- LOGO + TOGGLE -->
-    <div class="sidebar-header">
-      <div class="logo">
-        <div class="logo-text">Trad<span>ync</span></div>
-        <div class="logo-sub">TRADING JOURNAL</div>
-      </div>
-      <button class="sidebar-collapse-btn" id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Ocultar menú">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M9.5 13L4 8l5.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
-      </button>
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-text">Trade<span>Log</span></div>
+      <div class="logo-sub">NOTION SYNC · LIVE</div>
     </div>
-
-    <!-- NAV -->
-    <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Navegación</div>
       <div class="nav-item active" onclick="goTab('dashboard', this)">
-        <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M1 1h6v6H1zm8 0h6v6H9zM1 9h6v6H1zm8 0h6v6H9z"/></svg></div>
-        <span class="nav-text">Dashboard</span>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+        Dashboard
       </div>
       <div class="nav-item" onclick="goTab('operaciones', this)">
-        <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M2 4h12v1.5H2zm0 3.5h12V9H2zm0 3.5h8v1.5H2z"/></svg></div>
-        <span class="nav-text">Operaciones</span>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M2 4h12v1.5H2zm0 3.5h12V9H2zm0 3.5h8v1.5H2z"/></svg>
+        Operaciones
       </div>
       <div class="nav-item" onclick="goTab('nueva', this)">
-        <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg></div>
-        <span class="nav-text">Nueva Operación</span>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg>
+        Nueva Operación
       </div>
       <div class="nav-item" onclick="goTab('riesgo', this)">
-        <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L2 4v4c0 3.3 2.6 6.4 6 7 3.4-.6 6-3.7 6-7V4L8 1z"/></svg></div>
-        <span class="nav-text">Control Riesgo</span>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L2 4v4c0 3.3 2.6 6.4 6 7 3.4-.6 6-3.7 6-7V4L8 1z"/></svg>
+        Control Riesgo
       </div>
       <div class="nav-item" onclick="goTab('calendario', this)">
-        <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="14" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1 7h14M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.5"/></svg></div>
-        <span class="nav-text">Calendario</span>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="14" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1 7h14M5 1v3M11 1v3"/></svg>
+        Calendario
       </div>
       <div class="nav-item" onclick="goTab('estadisticas', this)">
-        <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3H2v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7H6V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h-4V2z"/></svg></div>
-        <span class="nav-text">Estadísticas</span>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/></svg>
+        Estadísticas
       </div>
       <div class="nav-item" onclick="goTab('cuentas', this)">
-        <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v2H2V3zm0 4h12v2H2V7zm0 4h12v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-2z"/></svg></div>
-        <span class="nav-text">Cuentas</span>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3zm0 5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8zm1 4a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2H3z"/></svg>
+        Cuentas
       </div>
       <div class="nav-item" onclick="goTab('premarket', this)">
-        <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-        <span class="nav-text">Pre-Market</span>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM4.5 7.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1zM8 4a.5.5 0 0 1 .5.5v3.793l2.146 2.147a.5.5 0 0 1-.707.707L7.646 8.854A.5.5 0 0 1 7.5 8.5v-4A.5.5 0 0 1 8 4z"/></svg>
+        Pre-Market
       </div>
       <div class="nav-item" onclick="goTab('habitos', this)">
-        <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-        <span class="nav-text">Hábitos</span>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm0 2a.5.5 0 0 0-.5.5v4.793l-2.146 2.147a.5.5 0 0 0 .707.707L8.354 9.854A.5.5 0 0 0 8.5 9.5v-5A.5.5 0 0 0 8 4z"/></svg>
+        Hábitos
       </div>
       <div class="nav-item" onclick="goTab('ia', this)">
-        <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a5.5 5.5 0 1 0 0 11A5.5 5.5 0 0 0 8 1zM8 10a.75.75 0 1 1 0-1.5A.75.75 0 0 1 8 10zm.75-3.25a.75.75 0 0 1-1.5 0V4.5a.75.75 0 0 1 1.5 0v2.25z"/></svg></div>
-        <span class="nav-text">Coach IA</span>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062z"/></svg>
+        Coach IA
       </div>
       <div class="nav-item" onclick="goTab('diario', this)">
-        <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M4 1h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2zm1 3h6v1H5V4zm0 2h6v1H5V6zm0 2h4v1H5V8z"/></svg></div>
-        <span class="nav-text">Diario</span>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M4 1h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H4zm1 3h6v1H5V5zm0 2h6v1H5V7zm0 2h4v1H5V9z"/></svg>
+        Diario
       </div>
       <div class="nav-item" onclick="goTab('psicologia', this)">
-        <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a5.5 5.5 0 1 0 0 11A5.5 5.5 0 0 0 8 1zM8 10a.75.75 0 1 1 0-1.5A.75.75 0 0 1 8 10zm.75-3.25a.75.75 0 0 1-1.5 0V4.5a.75.75 0 0 1 1.5 0v2.25z"/></svg></div>
-        <span class="nav-text">Psicología</span>
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a5.5 5.5 0 1 0 0 11A5.5 5.5 0 0 0 8 1zM8 10a.75.75 0 1 1 0-1.5A.75.75 0 0 1 8 10zm.75-3.25a.75.75 0 0 1-1.5 0V4.5a.75.75 0 0 1 1.5 0v2.25z"/></svg>
+        Psicología
       </div>
-    </nav>
-
-    <!-- NOTION STATUS -->
-    
-    <!-- USER INFO -->
-    <div id="sidebar-user-info" style="padding:12px 16px;border-top:1px solid var(--border);margin-top:auto;display:flex;align-items:center;gap:10px;">
-      <div style="position:relative;flex-shrink:0;">
-        <div style="width:30px;height:30px;border-radius:8px;background:var(--green-bg);border:1px solid rgba(0,212,160,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;">👤</div>
-        <div id="status-dot" style="position:absolute;bottom:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:var(--red);border:1.5px solid var(--bg2);"></div>
-      </div>
-      <div style="min-width:0;flex:1;">
-        <div id="sidebar-user-name" style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
-        <div id="sidebar-user-email" style="font-size:10px;color:var(--text3);font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+    </div>
+    <div id="notion-status" class="notion-status disconnected" style="margin-top: auto;">
+      <div class="notion-status-label">NOTION SYNC</div>
+      <div class="notion-status-text" id="notion-status-text">Conectando...</div>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
+        <input id="parent-page-input" type="text" placeholder="URL página padre Notion"
+          style="font-size:10px;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--text2);font-family:monospace;width:100%;"
+          id="parent-page-input" type="text" placeholder="URL página padre Notion" style="font-size:10px;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--text2);font-family:monospace;width:100%;">
+        <button onclick="setParentPage()" style="font-size:10px;padding:5px;border-radius:6px;border:1px solid rgba(0,212,160,0.3);background:rgba(0,212,160,0.08);color:var(--green);cursor:pointer;font-family:monospace;">Guardar página padre</button>
       </div>
     </div>
   </aside>
 
   <main class="main">
-    <div class="header" style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;gap:12px;">
-      <div class="header-left" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+    <div class="header">
+      <div class="header-left" style="display:flex;align-items:center;gap:16px;">
         <div class="hamburger" onclick="toggleSidebar()" id="hamburger">
           <span></span><span></span><span></span>
         </div>
@@ -935,15 +569,15 @@
         </div>
       </div>
       <div class="header-actions">
-        
-        <button class="btn" id="theme-btn" onclick="toggleTheme()" style="font-size:16px;padding:8px 10px;" title="Cambiar tema">🌙</button>
-        <button class="btn" onclick="openModal()" style="font-size:13px;padding:8px 12px;">+ Cuenta</button>
-        <button class="btn btn-primary" onclick="goTab('nueva', document.querySelector('[onclick*=nueva]'))" style="font-size:13px;padding:8px 14px;">+ Operación</button>
+        <button class="btn" onclick="loadTrades()" id="sync-btn">↻ Sincronizar</button>
+        <button class="btn" id="theme-btn" onclick="toggleTheme()" style="font-size:16px;padding:7px 12px;" title="Cambiar tema">🌙</button>
+        <button class="btn" onclick="openModal()">+ Nueva cuenta</button>
+        <button class="btn btn-primary" onclick="goTab('nueva', null)">+ Nueva operación</button>
       </div>
     </div>
 
     <!-- FIXED RISK BAR -->
-    <div id="fixed-risk-bar" onclick="goTab('riesgo',document.querySelector('[onclick*=riesgo]'))" style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-radius:10px;margin-bottom:20px;cursor:pointer;transition:all 0.2s;border:1px solid rgba(0,212,160,0.2);background:var(--green-bg);">
+    <div id="fixed-risk-bar" onclick="goTab('riesgo',document.querySelector('[onclick*=riesgo]'))" style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-radius:10px;margin-bottom:20px;cursor:pointer;transition:all 0.2s;border:1px solid;">
       <div style="display:flex;align-items:center;gap:10px;">
         <span id="fixed-risk-text" style="font-size:13px;font-weight:700;font-family:'DM Mono',monospace;">⏳ Cargando...</span>
         <span id="fixed-risk-detail" style="font-size:11px;font-family:'DM Mono',monospace;opacity:0.7;"></span>
@@ -1090,181 +724,165 @@
 
     <!-- NUEVA OPERACIÓN -->
     <div class="tab-panel" id="panel-nueva">
-      <div style="display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;">
+      <div class="section-title">Registrar operación</div>
+      <div class="card" style="max-width:680px;">
+        <div class="card-title">Nueva operación → se guardará en Notion</div>
 
-        <!-- LEFT: MAIN FORM -->
-        <div class="card">
-          <div class="card-title">Datos de la operación</div>
-
-          <div class="form-grid" style="grid-template-columns:repeat(3,1fr);">
-            <div class="form-field">
-              <label class="form-label">Instrumento</label>
-              <select class="form-select" id="f-instrumento">
-                <option>MES</option><option>MNQ</option><option>ES</option><option>NQ</option>
-                <option>GC (Oro)</option><option>CL (Crudo)</option><option>EUR/USD</option>
-                <option>GBP/USD</option><option>US30</option><option>Otro</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label class="form-label">Tipo</label>
-              <select class="form-select" id="f-tipo">
-                <option>Futuro</option><option>CFD</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label class="form-label">Dirección</label>
-              <select class="form-select" id="f-direccion">
-                <option>LONG</option><option>SHORT</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label class="form-label">Fecha y hora</label>
-              <input class="form-input" type="datetime-local" id="f-fecha">
-            </div>
-            <div class="form-field">
-              <label class="form-label">Precio entrada</label>
-              <input class="form-input" type="number" id="f-entrada" placeholder="5240.25" step="0.01" oninput="calcRR()">
-            </div>
-            <div class="form-field">
-              <label class="form-label">Contratos / Lotes</label>
-              <input class="form-input" type="number" id="f-contratos" placeholder="1" min="1" value="1">
-            </div>
-            <div class="form-field">
-              <label class="form-label">Stop Loss</label>
-              <input class="form-input" type="number" id="f-sl" placeholder="5232.00" step="0.01" oninput="calcRR()">
-            </div>
-            <div class="form-field">
-              <label class="form-label">Take Profit</label>
-              <input class="form-input" type="number" id="f-tp" placeholder="5260.00" step="0.01" oninput="calcRR()">
-            </div>
-            <div class="form-field">
-              <label class="form-label">RR estimado</label>
-              <input class="form-input" type="text" id="f-rr-display" placeholder="—" readonly style="background:var(--bg4);cursor:default;">
-            </div>
-            <div class="form-field">
-              <label class="form-label">Estado</label>
-              <select class="form-select" id="f-estado" onchange="toggleResultadoField()">
-                <option value="Pendiente">🟡 Pendiente</option>
-                <option value="Finalizada">✅ Finalizada</option>
-              </select>
-            </div>
-            <div class="form-field" id="resultado-field">
-              <label class="form-label">Resultado ($)</label>
-              <input class="form-input" type="number" id="f-resultado" placeholder="+150.00" step="0.01">
-            </div>
-            <div class="form-field">
-              <label class="form-label">Sesión</label>
-              <select class="form-select" id="f-sesion">
-                <option>Apertura NY</option><option>Mañana NY</option><option>Tarde NY</option>
-                <option>Apertura Londres</option><option>Asia</option><option>Otra</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label class="form-label">Setup / Estrategia</label>
-              <select class="form-select" id="f-setup">
-                <option>Breakout</option><option>Reversión</option><option>Tendencia</option>
-                <option>Soporte/Resistencia</option><option>Order Flow</option>
-                <option>SMC / ICT</option><option>Scalping</option><option>Otro</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label class="form-label">Emoción</label>
-              <select class="form-select" id="f-emocion">
-                <option>😌 Calmado</option><option>💪 Enfocado</option>
-                <option>😤 Ansioso</option><option>😰 Con miedo</option>
-                <option>🤑 Eufórico</option><option>😞 Frustrado</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label class="form-label">Cuenta</label>
-              <select class="form-select" id="f-cuenta">
-                <option value="">— Sin cuenta —</option>
-              </select>
-            </div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label">Instrumento</label>
+            <select class="form-select" id="f-instrumento">
+              <option>MES</option><option>MNQ</option><option>ES</option><option>NQ</option>
+              <option>GC (Oro)</option><option>CL (Crudo)</option><option>EUR/USD</option>
+              <option>GBP/USD</option><option>US30</option><option>Otro</option>
+            </select>
           </div>
-
-          <div style="height:1px;background:var(--border);margin:16px 0;"></div>
-
-          <!-- ERRORES PSICOLÓGICOS -->
-          <div class="form-field" style="margin-bottom:14px;">
-            <label class="form-label">Errores cometidos</label>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;" id="tags-container">
-              <span class="tag revenge" onclick="toggleTag(this,'Revenge trading')">Revenge trading</span>
-              <span class="tag fomo" onclick="toggleTag(this,'FOMO')">FOMO</span>
-              <span class="tag overtrading" onclick="toggleTag(this,'Overtrading')">Overtrading</span>
-              <span class="tag discipline" onclick="toggleTag(this,'Disciplina')">Disciplina ✓</span>
-              <span class="tag neutral" onclick="toggleTag(this,'Sin plan')">Sin plan</span>
-              <span class="tag neutral" onclick="toggleTag(this,'Mover SL')">Mover SL</span>
-            </div>
+          <div class="form-field">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" id="f-tipo">
+              <option>Futuro</option><option>CFD</option>
+            </select>
           </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-            <div class="form-field">
-              <label class="form-label">Disciplina (1-5)</label>
-              <input class="form-input" type="range" min="1" max="5" value="3" id="f-disciplina"
-                oninput="document.getElementById('f-disc-val').textContent=this.value" style="accent-color:var(--green);">
-              <div style="font-size:11px;color:var(--text3);font-family:monospace;margin-top:2px;">Nivel: <span id="f-disc-val">3</span>/5</div>
-            </div>
-            <div class="form-field">
-              <label class="form-label">Control impulsos (1-5)</label>
-              <input class="form-input" type="range" min="1" max="5" value="3" id="f-impulsos"
-                oninput="document.getElementById('f-imp-val').textContent=this.value" style="accent-color:var(--blue);">
-              <div style="font-size:11px;color:var(--text3);font-family:monospace;margin-top:2px;">Nivel: <span id="f-imp-val">3</span>/5</div>
-            </div>
+          <div class="form-field">
+            <label class="form-label">Dirección</label>
+            <select class="form-select" id="f-direccion">
+              <option>LONG</option><option>SHORT</option>
+            </select>
           </div>
-
-          <div class="form-field" style="margin-bottom:0;">
-            <label class="form-label">Notas</label>
-            <textarea class="form-textarea" id="f-notas" style="min-height:80px;" placeholder="¿Qué viste? ¿Por qué entraste? ¿Qué aprendiste?"></textarea>
+          <div class="form-field">
+            <label class="form-label">Fecha y hora</label>
+            <input class="form-input" type="datetime-local" id="f-fecha">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Precio entrada</label>
+            <input class="form-input" type="number" id="f-entrada" placeholder="5240.25" step="0.01">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Stop Loss</label>
+            <input class="form-input" type="number" id="f-sl" placeholder="5232.00" step="0.01">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Take Profit</label>
+            <input class="form-input" type="number" id="f-tp" placeholder="5260.00" step="0.01">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Contratos / Lotes</label>
+            <input class="form-input" type="number" id="f-contratos" placeholder="1" min="1" value="1">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Estado</label>
+            <select class="form-select" id="f-estado" onchange="toggleResultadoField()">
+              <option value="Pendiente">🟡 Pendiente (operación abierta)</option>
+              <option value="Finalizada">✅ Finalizada</option>
+            </select>
+          </div>
+          <div class="form-field" id="resultado-field">
+            <label class="form-label">Resultado ($)</label>
+            <input class="form-input" type="number" id="f-resultado" placeholder="+150.00" step="0.01">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Setup / Estrategia</label>
+            <select class="form-select" id="f-setup">
+              <option>Breakout</option><option>Reversión</option><option>Tendencia</option>
+              <option>Soporte/Resistencia</option><option>Order Flow</option>
+              <option>SMC / ICT</option><option>Scalping</option><option>Otro</option>
+            </select>
           </div>
         </div>
 
-        <!-- RIGHT: IMAGES + SAVE -->
-        <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="height:1px;background:var(--border);margin:16px 0;"></div>
+        <div class="section-title">Psicología</div>
 
-          <!-- CALC RR -->
-          <div class="card">
-            <div class="card-title">Calculadora de posición</div>
-            <div class="stat-row"><span class="stat-name">RR estimado</span><span class="stat-val" id="calc-rr" style="color:var(--amber);">—</span></div>
-            <div class="stat-row"><span class="stat-name">Riesgo en $</span><span class="stat-val" id="calc-risk" style="color:var(--red);">—</span></div>
-            <div class="stat-row"><span class="stat-name">Potencial ganancia</span><span class="stat-val" id="calc-gain" style="color:var(--green);">—</span></div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label">Estado emocional</label>
+            <select class="form-select" id="f-emocion">
+              <option>😌 Calmado</option><option>💪 Enfocado</option>
+              <option>😤 Ansioso</option><option>😰 Con miedo</option>
+              <option>🤑 Eufórico</option><option>😞 Frustrado</option>
+            </select>
           </div>
-
-          <!-- CAPTURA APERTURA -->
-          <div class="card">
-            <div class="card-title">Captura de apertura</div>
-            <div class="img-upload-zone" id="zone-apertura" onclick="document.getElementById('f-img-apertura').click()">
-              <input type="file" id="f-img-apertura" accept="image/*" style="display:none" onchange="previewImg(this,'zone-apertura','preview-apertura')">
-              <div id="preview-apertura">
-                <div class="img-upload-icon">📈</div>
-                <div class="img-upload-label">Añadir captura de entrada</div>
-              </div>
-            </div>
+          <div class="form-field">
+            <label class="form-label">Sesión</label>
+            <select class="form-select" id="f-sesion">
+              <option>Pre-market</option><option>Apertura NY</option>
+              <option>Media sesión</option><option>Cierre</option>
+              <option>Asia</option><option>Londres</option>
+            </select>
           </div>
-
-          <!-- CAPTURA CIERRE -->
-          <div class="card">
-            <div class="card-title">Captura de cierre</div>
-            <div class="img-upload-zone" id="zone-cierre" onclick="document.getElementById('f-img-cierre').click()">
-              <input type="file" id="f-img-cierre" accept="image/*" style="display:none" onchange="previewImg(this,'zone-cierre','preview-cierre')">
-              <div id="preview-cierre">
-                <div class="img-upload-icon">📉</div>
-                <div class="img-upload-label">Añadir captura de cierre</div>
-              </div>
-            </div>
+          <div class="form-field">
+            <label class="form-label">Disciplina (1-10): <span id="disc-val">7</span></label>
+            <input type="range" min="1" max="10" value="7" id="f-disciplina" oninput="document.getElementById('disc-val').textContent=this.value" style="width:100%;accent-color:var(--green);">
           </div>
-
-          <!-- SAVE BUTTON -->
-          <div class="card" style="background:var(--green-bg);border-color:rgba(0,212,160,0.2);">
-            <button class="btn btn-primary" onclick="guardarOperacion()" id="save-btn"
-              style="width:100%;padding:14px;font-size:15px;font-weight:700;border-radius:10px;">
-              💾 Guardar operación
-            </button>
-            <div id="save-status" style="font-size:12px;color:var(--green);font-family:monospace;text-align:center;margin-top:8px;min-height:16px;"></div>
+          <div class="form-field">
+            <label class="form-label">Control impulsos (1-10): <span id="imp-val">7</span></label>
+            <input type="range" min="1" max="10" value="7" id="f-impulsos" oninput="document.getElementById('imp-val').textContent=this.value" style="width:100%;accent-color:var(--green);">
           </div>
         </div>
 
+        <div class="form-field" style="margin-bottom:14px;">
+          <label class="form-label" style="margin-bottom:8px;">Errores psicológicos</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="tag revenge" onclick="toggleTag(this)">Revenge trading</span>
+            <span class="tag fomo" onclick="toggleTag(this)">FOMO</span>
+            <span class="tag overtrading" onclick="toggleTag(this)">Overtrading</span>
+            <span class="tag neutral" onclick="toggleTag(this)">Mover SL</span>
+            <span class="tag neutral" onclick="toggleTag(this)">Cerrar antes de TP</span>
+            <span class="tag discipline" onclick="toggleTag(this)">Seguí el plan ✓</span>
+          </div>
+        </div>
+
+        <div class="form-field" style="margin-bottom:14px; grid-column: 1 / -1;">
+          <label class="form-label">Cuenta</label>
+          <select class="form-select" id="f-cuenta">
+            <option value="">— Sin cuenta asignada —</option>
+          </select>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:4px 0 16px; grid-column: 1 / -1;"></div>
+        <div class="section-title" style="grid-column: 1 / -1;">Capturas del gráfico</div>
+
+        <div class="form-field" style="grid-column: 1 / -1;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div>
+              <label class="form-label" style="margin-bottom:8px;display:block;">Apertura de la operación</label>
+              <div class="img-upload-zone" id="zone-apertura" onclick="document.getElementById('img-apertura').click()">
+                <input type="file" id="img-apertura" accept="image/*" style="display:none" onchange="previewImg(this,'zone-apertura','preview-apertura')">
+                <div id="preview-apertura-wrap">
+                  <div class="img-upload-icon">📈</div>
+                  <div class="img-upload-label">Haz clic para subir captura</div>
+                  <div class="img-upload-label" style="font-size:10px;margin-top:2px;">PNG, JPG, WEBP</div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="form-label" style="margin-bottom:8px;display:block;">Cierre de la operación</label>
+              <div class="img-upload-zone" id="zone-cierre" onclick="document.getElementById('img-cierre').click()">
+                <input type="file" id="img-cierre" accept="image/*" style="display:none" onchange="previewImg(this,'zone-cierre','preview-cierre')">
+                <div id="preview-cierre-wrap">
+                  <div class="img-upload-icon">📉</div>
+                  <div class="img-upload-label">Haz clic para subir captura</div>
+                  <div class="img-upload-label" style="font-size:10px;margin-top:2px;">PNG, JPG, WEBP</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:4px 0 16px; grid-column: 1 / -1;"></div>
+
+        <div class="form-field" style="margin-bottom:20px; grid-column: 1 / -1;">
+          <label class="form-label">Notas y reflexión</label>
+          <textarea class="form-textarea" id="f-notas" placeholder="¿Qué salió bien? ¿Qué mejorarías?..."></textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="btn btn-primary" onclick="guardarOperacion()" id="save-btn">Guardar en Notion</button>
+          <button class="btn" onclick="resetForm()">Limpiar</button>
+          <span id="save-status" style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;"></span>
+        </div>
       </div>
+    </div>
 
     <!-- RIESGO -->
     <div class="tab-panel" id="panel-riesgo">
@@ -1396,82 +1014,49 @@
     </div>
 
     <!-- ESTADÍSTICAS AVANZADAS -->
-        <!-- ESTADÍSTICAS -->
     <div class="tab-panel" id="panel-estadisticas">
       <div class="section-title">Análisis avanzado</div>
 
-      <!-- ROW 1: P&L instrumento + Mensual -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
         <div class="card">
           <div class="card-title">P&L por instrumento</div>
-          <div style="position:relative;height:180px;"><canvas id="stats-instr-chart"></canvas></div>
+          <div id="instr-stats"></div>
         </div>
         <div class="card">
           <div class="card-title">Comparativa mensual</div>
-          <div style="position:relative;height:180px;"><canvas id="stats-monthly-chart"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Win Rate por mes</div>
-          <div style="position:relative;height:180px;"><canvas id="stats-wr-monthly-chart"></canvas></div>
+          <div style="display:flex;align-items:flex-end;gap:6px;height:120px;margin-bottom:8px;" id="month-compare-bars"></div>
+          <div style="display:flex;gap:6px;" id="month-compare-labels"></div>
         </div>
       </div>
 
-      <!-- ROW 2: Equity + Drawdown -->
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;">
-        <div class="card">
-          <div class="card-title">Curva de equity acumulada <span class="card-title-badge" id="stats-equity-badge">—</span></div>
-          <div style="position:relative;height:160px;"><canvas id="stats-equity-chart"></canvas></div>
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-title">Proyección de crecimiento de cuenta <span class="card-title-badge">Basada en tu historial</span></div>
+        <div style="display:grid;grid-template-columns:200px 1fr;gap:18px;align-items:start;">
+          <div>
+            <div class="form-field" style="margin-bottom:12px;">
+              <label class="form-label">Capital actual ($)</label>
+              <input class="form-input" type="number" id="proj-capital" placeholder="10000" oninput="renderProjection()">
+            </div>
+            <div class="form-field" style="margin-bottom:12px;">
+              <label class="form-label">Meses a proyectar</label>
+              <input class="form-input" type="number" id="proj-meses" value="12" min="1" max="36" oninput="renderProjection()">
+            </div>
+            <div id="proj-summary"></div>
+          </div>
+          <svg class="proj-svg" id="proj-svg" viewBox="0 0 400 160" preserveAspectRatio="none">
+            <text x="200" y="85" text-anchor="middle" fill="#555870" font-size="11" font-family="monospace">Introduce tu capital para proyectar</text>
+          </svg>
         </div>
-        <div class="card">
-          <div class="card-title">Drawdown máximo</div>
-          <div style="position:relative;height:160px;"><canvas id="stats-dd-chart"></canvas></div>
-        </div>
-      </div>
-
-      <!-- ROW 3: Hora + Día semana + Setup -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
-        <div class="card">
-          <div class="card-title">P&L por hora del día</div>
-          <div style="position:relative;height:160px;"><canvas id="stats-hour-chart"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title">P&L por día de la semana</div>
-          <div style="position:relative;height:160px;"><canvas id="stats-weekday-chart"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title">P&L por setup</div>
-          <div style="position:relative;height:160px;"><canvas id="stats-setup-chart"></canvas></div>
-        </div>
-      </div>
-
-      <!-- ROW 4: Distribución + Consecutive -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-        <div class="card">
-          <div class="card-title">Distribución de resultados</div>
-          <div style="position:relative;height:160px;"><canvas id="stats-dist-chart"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Racha de wins/losses consecutivos</div>
-          <div style="position:relative;height:160px;"><canvas id="stats-streak-chart"></canvas></div>
-        </div>
-      </div>
-
-            <!-- ROW 6: Instr detailed bars -->
-      <div class="card" style="margin-bottom:16px;">
-        <div class="card-title">Detalle por instrumento — barras de rendimiento</div>
-        <div id="instr-stats"></div>
       </div>
     </div>
-      
 
     <!-- CUENTAS -->
     <div class="tab-panel" id="panel-cuentas">
       <div class="section-title">Mis cuentas de trading</div>
       <div class="accounts-grid" id="accounts-grid">
-        <div class="add-account-card" onclick="openModal()" style="min-height:130px;flex-direction:column;gap:8px;border-radius:14px;">
-          <div style="width:36px;height:36px;border-radius:10px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text3);">+</div>
-          <div style="font-size:13px;font-weight:500;">Nueva cuenta</div>
-          <div style="font-size:11px;color:var(--text3);">Propia o Prop Firm</div>
+        <div class="add-account-card" onclick="openModal()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg>
+          Añadir cuenta
         </div>
       </div>
 
@@ -1849,7 +1434,10 @@
   </div>
 </div>
 
-<script>// ─── SUPABASE CONFIG ─────────────────────────────────────────────
+<script>
+// ═══════════════════════════════════════════════════════════════
+// SUPABASE CONFIG + AUTH
+// ═══════════════════════════════════════════════════════════════
 const SUPABASE_URL = 'https://oeznlehxublyvivzvuab.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lem5sZWh4dWJseXZpdnp2dWFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjUzMDQsImV4cCI6MjA5MTc0MTMwNH0.OJQRGgV0W64tJcrgQIos_C5e3RD8gsUtEm09LTtEhpE';
 const { createClient } = supabase;
@@ -1859,12 +1447,6 @@ let currentUser = null;
 let allTrades = [];
 let riskSettings = JSON.parse(localStorage.getItem('tj_risk') || '{"maxLoss":200,"maxOps":5,"riskPct":1}');
 function saveRiskSettings() { localStorage.setItem('tj_risk', JSON.stringify(riskSettings)); }
-
-async function getUser() {
-  const { data: { user } } = await sb.auth.getUser();
-  currentUser = user;
-  return user;
-}
 
 function requireAuth() {
   if (!currentUser) { toast('Inicia sesión para usar el journal', 'error'); return false; }
@@ -1884,10 +1466,8 @@ async function loadTrades() {
   const btn = document.getElementById('sync-btn');
   if (btn) btn.disabled = true;
   try {
-    const { data, error } = await sb
-      .from('operaciones').select('*')
-      .eq('user_id', currentUser.id)
-      .order('fecha', { ascending: false }).limit(500);
+    const { data, error } = await sb.from('operaciones').select('*')
+      .eq('user_id', currentUser.id).order('fecha', { ascending: false }).limit(500);
     if (error) throw error;
     allTrades = data.map(parseSupabaseRow);
     renderAll();
@@ -1902,18 +1482,13 @@ async function loadTrades() {
 
 function parseSupabaseRow(row) {
   return {
-    id: row.id, pageId: row.id,
-    fecha: row.fecha, instrumento: row.instrumento||'—',
-    tipo: row.tipo||'—', direccion: row.direccion||'—',
-    entrada: row.entrada, sl: row.sl, tp: row.tp, rr: row.rr,
-    contratos: row.contratos, resultado: row.resultado,
-    setup: row.setup||'—', emocion: row.emocion||'—',
-    sesion: row.sesion||'—', disciplina: row.disciplina,
-    impulsos: row.impulsos, errores: row.errores||'',
-    notas: row.notas||'', estado: row.estado||'Finalizada',
-    cuenta: row.cuenta||'',
-    imgApertura: row.img_apertura||null,
-    imgCierre: row.img_cierre||null,
+    id: row.id, pageId: row.id, fecha: row.fecha,
+    instrumento: row.instrumento||'—', tipo: row.tipo||'—', direccion: row.direccion||'—',
+    entrada: row.entrada, sl: row.sl, tp: row.tp, rr: row.rr, contratos: row.contratos,
+    resultado: row.resultado, setup: row.setup||'—', emocion: row.emocion||'—',
+    sesion: row.sesion||'—', disciplina: row.disciplina, impulsos: row.impulsos,
+    errores: row.errores||'', notas: row.notas||'', estado: row.estado||'Finalizada',
+    cuenta: row.cuenta||'', imgApertura: row.img_apertura||null, imgCierre: row.img_cierre||null,
   };
 }
 
@@ -1929,44 +1504,31 @@ async function guardarOperacion() {
   btn.disabled = true; status.textContent = 'Guardando...';
   const fechaVal = document.getElementById('f-fecha').value;
   const entrada = parseFloat(document.getElementById('f-entrada').value)||null;
-  const sl = parseFloat(document.getElementById('f-sl').value)||null;
-  const tp = parseFloat(document.getElementById('f-tp').value)||null;
-  const rr = (entrada&&sl&&tp) ? parseFloat((Math.abs(tp-entrada)/Math.abs(entrada-sl)).toFixed(2)) : null;
+  const sl2 = parseFloat(document.getElementById('f-sl').value)||null;
+  const tp2 = parseFloat(document.getElementById('f-tp').value)||null;
+  const rr2 = (entrada&&sl2&&tp2) ? parseFloat((Math.abs(tp2-entrada)/Math.abs(entrada-sl2)).toFixed(2)) : null;
   let imgAperturaUrl=null, imgCierreUrl=null;
   if (imgAperturaBase64) imgAperturaUrl = await uploadImage(imgAperturaBase64,'apertura');
   if (imgCierreBase64) imgCierreUrl = await uploadImage(imgCierreBase64,'cierre');
   const row = {
     user_id: currentUser.id, fecha: fechaVal||new Date().toISOString(),
     instrumento: instr, tipo: document.getElementById('f-tipo').value,
-    direccion: document.getElementById('f-direccion').value,
-    entrada, sl, tp, rr,
+    direccion: document.getElementById('f-direccion').value, entrada, sl:sl2, tp:tp2, rr:rr2,
     contratos: parseInt(document.getElementById('f-contratos').value)||null,
     resultado: estadoCheck!=='Pendiente'&&!isNaN(resultado)?resultado:null,
-    setup: document.getElementById('f-setup').value,
-    emocion: document.getElementById('f-emocion').value,
-    sesion: document.getElementById('f-sesion').value,
-    disciplina: parseInt(document.getElementById('f-disciplina').value),
-    impulsos: parseInt(document.getElementById('f-impulsos').value),
-    errores: getSelectedTags(),
-    notas: document.getElementById('f-notas').value,
-    estado: estadoCheck,
-    cuenta: document.getElementById('f-cuenta').value||null,
-    img_apertura: imgAperturaUrl||null,
-    img_cierre: imgCierreUrl||null,
+    setup: document.getElementById('f-setup').value, emocion: document.getElementById('f-emocion').value,
+    sesion: document.getElementById('f-sesion').value, disciplina: parseInt(document.getElementById('f-disciplina').value),
+    impulsos: parseInt(document.getElementById('f-impulsos').value), errores: getSelectedTags(),
+    notas: document.getElementById('f-notas').value, estado: estadoCheck,
+    cuenta: document.getElementById('f-cuenta').value||null, img_apertura: imgAperturaUrl||null, img_cierre: imgCierreUrl||null,
   };
   try {
     const { error } = await sb.from('operaciones').insert(row);
     if (error) throw error;
-    toast('Operación guardada ✓', 'success');
-    status.textContent = '¡Guardado!';
-    resetForm();
-    await loadTrades();
-  } catch(e) {
-    toast('Error: ' + e.message, 'error');
-    status.textContent = 'Error';
-  }
-  btn.disabled = false;
-  setTimeout(() => status.textContent = '', 3000);
+    toast('Operación guardada ✓', 'success'); status.textContent = '¡Guardado!';
+    resetForm(); await loadTrades();
+  } catch(e) { toast('Error: '+e.message,'error'); status.textContent='Error'; }
+  btn.disabled=false; setTimeout(()=>status.textContent='',3000);
 }
 
 async function saveEditedTrade() {
@@ -1974,49 +1536,37 @@ async function saveEditedTrade() {
   const pageId = document.getElementById('edit-page-id').value;
   const btn = document.getElementById('edit-save-btn');
   const status = document.getElementById('edit-save-status');
-  btn.disabled = true; status.textContent = 'Guardando...';
+  btn.disabled=true; status.textContent='Guardando...';
   const estado = document.getElementById('edit-estado').value;
   const resultado = parseFloat(document.getElementById('edit-resultado').value);
   const entrada = parseFloat(document.getElementById('edit-entrada').value)||null;
-  const sl = parseFloat(document.getElementById('edit-sl').value)||null;
-  const tp = parseFloat(document.getElementById('edit-tp').value)||null;
-  const rr = (entrada&&sl&&tp)?parseFloat((Math.abs(tp-entrada)/Math.abs(entrada-sl)).toFixed(2)):null;
+  const sl2 = parseFloat(document.getElementById('edit-sl').value)||null;
+  const tp2 = parseFloat(document.getElementById('edit-tp').value)||null;
+  const rr2 = (entrada&&sl2&&tp2)?parseFloat((Math.abs(tp2-entrada)/Math.abs(entrada-sl2)).toFixed(2)):null;
   let imgCierreUrl=null;
   if (editImgCierreBase64) imgCierreUrl = await uploadImage(editImgCierreBase64,'cierre');
-  const updates = {
-    estado, instrumento: document.getElementById('edit-instrumento').value,
-    direccion: document.getElementById('edit-direccion').value,
-    setup: document.getElementById('edit-setup').value,
-    emocion: document.getElementById('edit-emocion').value,
-    notas: document.getElementById('edit-notas').value,
-    entrada, sl, tp, rr,
-    contratos: parseInt(document.getElementById('edit-contratos').value)||null,
-    resultado: estado==='Finalizada'&&!isNaN(resultado)?resultado:null,
-    updated_at: new Date().toISOString(),
-  };
-  if (imgCierreUrl) updates.img_cierre = imgCierreUrl;
+  const updates = { estado, instrumento:document.getElementById('edit-instrumento').value,
+    direccion:document.getElementById('edit-direccion').value, setup:document.getElementById('edit-setup').value,
+    emocion:document.getElementById('edit-emocion').value, notas:document.getElementById('edit-notas').value,
+    entrada, sl:sl2, tp:tp2, rr:rr2, contratos:parseInt(document.getElementById('edit-contratos').value)||null,
+    resultado:estado==='Finalizada'&&!isNaN(resultado)?resultado:null, updated_at:new Date().toISOString() };
+  if (imgCierreUrl) updates.img_cierre=imgCierreUrl;
   try {
-    const { error } = await sb.from('operaciones').update(updates).eq('id',pageId).eq('user_id',currentUser.id);
+    const {error}=await sb.from('operaciones').update(updates).eq('id',pageId).eq('user_id',currentUser.id);
     if (error) throw error;
-    toast('Operación actualizada ✓', 'success');
-    closeEditModal();
-    await loadTrades();
-  } catch(e) {
-    toast('Error: '+e.message,'error');
-    status.textContent = 'Error';
-  }
-  btn.disabled = false;
+    toast('Operación actualizada ✓','success'); closeEditModal(); await loadTrades();
+  } catch(e) { toast('Error: '+e.message,'error'); status.textContent='Error'; }
+  btn.disabled=false;
 }
 
 async function uploadImage(base64, type) {
   try {
-    const res = await fetch(base64);
-    const blob = await res.blob();
+    const res = await fetch(base64); const blob = await res.blob();
     const ext = blob.type.includes('png')?'png':'jpg';
     const path = currentUser.id+'/'+Date.now()+'_'+type+'.'+ext;
-    const { error } = await sb.storage.from('charts').upload(path, blob);
+    const {error} = await sb.storage.from('charts').upload(path,blob);
     if (error) return null;
-    const { data } = sb.storage.from('charts').getPublicUrl(path);
+    const {data} = sb.storage.from('charts').getPublicUrl(path);
     return data?.publicUrl||null;
   } catch(e) { return null; }
 }
@@ -2025,18 +1575,14 @@ async function saveHabitsToNotion(dateStr) {
   if (!requireAuth()) return;
   const data = JSON.parse(localStorage.getItem('tj_habits_'+dateStr)||'{}');
   const survey = JSON.parse(localStorage.getItem('tj_survey_'+dateStr)||'{}');
-  const row = {
-    user_id: currentUser.id, fecha: dateStr,
-    sueno: data.sueno||0, ejercicio: data.ejercicio||0,
-    meditacion: data.meditacion||0, alcohol: data.alcohol||0,
-    habitos_extra: {}, encuesta: survey, updated_at: new Date().toISOString(),
-  };
-  await sb.from('habitos').upsert(row, {onConflict:'user_id,fecha'}).catch(()=>{});
+  const row = { user_id:currentUser.id, fecha:dateStr, sueno:data.sueno||0, ejercicio:data.ejercicio||0,
+    meditacion:data.meditacion||0, alcohol:data.alcohol||0, habitos_extra:{}, encuesta:survey, updated_at:new Date().toISOString() };
+  await sb.from('habitos').upsert(row,{onConflict:'user_id,fecha'}).catch(()=>{});
 }
 
 async function loadHabitsFromNotion(dateStr) {
   if (!requireAuth()) return;
-  const { data } = await sb.from('habitos').select('*').eq('user_id',currentUser.id).eq('fecha',dateStr).single().catch(()=>({data:null}));
+  const {data} = await sb.from('habitos').select('*').eq('user_id',currentUser.id).eq('fecha',dateStr).single().catch(()=>({data:null}));
   if (!data) return;
   const habits = { sueno:data.sueno||0, ejercicio:data.ejercicio||0, meditacion:data.meditacion||0, alcohol:data.alcohol||0, ...(data.habitos_extra||{}) };
   localStorage.setItem('tj_habits_'+dateStr, JSON.stringify(habits));
@@ -2047,70 +1593,47 @@ async function loadHabitsFromNotion(dateStr) {
 
 async function savePlanToNotion(dateStr, plan) {
   if (!requireAuth()) return;
-  const row = {
-    user_id: currentUser.id, fecha: dateStr,
-    sesgo: plan.sesgo||'', niveles: plan.niveles||'',
-    no_hacer: plan.no||'', notas: plan.notas||'',
-    max_operaciones: parseInt(plan.maxops)||null, updated_at: new Date().toISOString(),
-  };
-  await sb.from('planes').upsert(row, {onConflict:'user_id,fecha'}).catch(()=>{});
+  const row = { user_id:currentUser.id, fecha:dateStr, sesgo:plan.sesgo||'', niveles:plan.niveles||'',
+    no_hacer:plan.no||'', notas:plan.notas||'', max_operaciones:parseInt(plan.maxops)||null, updated_at:new Date().toISOString() };
+  await sb.from('planes').upsert(row,{onConflict:'user_id,fecha'}).catch(()=>{});
 }
 
 async function loadPlanFromNotion(dateStr) {
   if (!requireAuth()) return;
-  const { data } = await sb.from('planes').select('*').eq('user_id',currentUser.id).eq('fecha',dateStr).single().catch(()=>({data:null}));
+  const {data} = await sb.from('planes').select('*').eq('user_id',currentUser.id).eq('fecha',dateStr).single().catch(()=>({data:null}));
   if (!data) return;
-  const plan = { sesgo:data.sesgo, niveles:data.niveles, no:data.no_hacer, notas:data.notas, maxops:data.max_operaciones, date:dateStr };
-  localStorage.setItem('tj_plan_'+dateStr, JSON.stringify(plan));
+  localStorage.setItem('tj_plan_'+dateStr, JSON.stringify({ sesgo:data.sesgo, niveles:data.niveles, no:data.no_hacer, notas:data.notas, maxops:data.max_operaciones, date:dateStr }));
   loadPlan();
 }
 
 async function saveAccountToNotion(account) {
   if (!requireAuth()) return;
-  const row = {
-    user_id: currentUser.id, nombre: account.nombre,
-    tipo: account.tipo, balance: account.balance||0,
-    broker: account.broker||'', fase: account.fase||'',
-    activa: true, updated_at: new Date().toISOString(),
-  };
-  if (account.notionId) {
-    await sb.from('cuentas').update(row).eq('id',account.notionId).catch(()=>{});
-  } else {
-    const { data } = await sb.from('cuentas').insert(row).select().single().catch(()=>({data:null}));
-    if (data) account.notionId = data.id;
-  }
+  const row = { user_id:currentUser.id, nombre:account.nombre, tipo:account.tipo, balance:account.balance||0, broker:account.broker||'', fase:account.fase||'', activa:true, updated_at:new Date().toISOString() };
+  if (account.notionId) { await sb.from('cuentas').update(row).eq('id',account.notionId).catch(()=>{}); }
+  else { const {data} = await sb.from('cuentas').insert(row).select().single().catch(()=>({data:null})); if (data) account.notionId=data.id; }
 }
 
 async function loadAccountsFromNotion() {
   if (!requireAuth()) return;
-  const { data } = await sb.from('cuentas').select('*').eq('user_id',currentUser.id).eq('activa',true).catch(()=>({data:null}));
+  const {data} = await sb.from('cuentas').select('*').eq('user_id',currentUser.id).eq('activa',true).catch(()=>({data:null}));
   if (!data?.length) return;
-  accounts = data.map(r=>({ id:r.id, notionId:r.id, nombre:r.nombre, tipo:r.tipo, balance:r.balance, broker:r.broker, fase:r.fase }));
-  saveAccountsLocal();
-  renderAccounts();
-  updateCuentaSelector();
+  accounts = data.map(r=>({id:r.id,notionId:r.id,nombre:r.nombre,tipo:r.tipo,balance:r.balance,broker:r.broker,fase:r.fase}));
+  saveAccountsLocal(); renderAccounts(); updateCuentaSelector();
 }
 
 async function saveDiaryToNotion(date, entry) {
   if (!requireAuth()) return;
-  const row = {
-    user_id: currentUser.id, fecha: date,
-    texto: entry.texto?.slice(0,10000)||'',
-    leccion: entry.leccion||'', energia: entry.energia||7,
-    emociones: entry.emociones||[], updated_at: new Date().toISOString(),
-  };
-  await sb.from('diario').upsert(row, {onConflict:'user_id,fecha'}).catch(()=>{});
+  await sb.from('diario').upsert({ user_id:currentUser.id, fecha:date, texto:entry.texto?.slice(0,10000)||'', leccion:entry.leccion||'', energia:entry.energia||7, emociones:entry.emociones||[], updated_at:new Date().toISOString() },{onConflict:'user_id,fecha'}).catch(()=>{});
 }
 
 async function saveConfigToNotion(key, value) {
   if (!requireAuth()) return;
-  const row = { user_id: currentUser.id, clave: key, valor: value, updated_at: new Date().toISOString() };
-  await sb.from('configuracion').upsert(row, {onConflict:'user_id,clave'}).catch(()=>{});
+  await sb.from('configuracion').upsert({user_id:currentUser.id,clave:key,valor:value,updated_at:new Date().toISOString()},{onConflict:'user_id,clave'}).catch(()=>{});
 }
 
 async function loadConfigFromNotion() {
   if (!requireAuth()) return;
-  const { data } = await sb.from('configuracion').select('*').eq('user_id',currentUser.id).catch(()=>({data:null}));
+  const {data} = await sb.from('configuracion').select('*').eq('user_id',currentUser.id).catch(()=>({data:null}));
   if (!data) return;
   data.forEach(row => {
     if (row.clave==='riskSettings'&&row.valor) { riskSettings=row.valor; saveRiskSettings(); }
@@ -2123,91 +1646,76 @@ async function findNotionRecord() { return null; }
 function setParentPage() { toast('Usando Supabase ✓', 'success'); }
 
 function showAuthBanner() {
+  if (document.getElementById('auth-banner')) return;
   const banner = document.createElement('div');
   banner.id = 'auth-banner';
   banner.style.cssText = 'background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;';
-  banner.innerHTML = '<div><div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:4px;">Inicia sesión para acceder a tu journal</div><div style="font-size:12px;color:var(--text3);">Tus datos se guardan de forma segura en la nube</div></div><div style="display:flex;gap:10px;"><button class="btn" onclick="window.location.href=(window.location.protocol==='file:'?'tradync-landing.html':window.location.origin+'/tradync-landing.html')" style="font-size:13px;">Ir a la web</button><button class="btn btn-primary" onclick="showInlineAuth()" style="font-size:13px;">Iniciar sesión</button></div>';
-  const main = document.querySelector('.main');
-  if (main) main.prepend(banner);
+  const landingUrl = window.location.protocol === 'file:' ? 'tradync-landing.html' : window.location.origin + '/tradync-landing.html';
+  const left = document.createElement('div');
+  left.innerHTML = '<div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:4px;">Inicia sesión para acceder a tu journal</div><div style="font-size:12px;color:var(--text3);">Tus datos están guardados en la nube</div>';
+  const right = document.createElement('div');
+  right.style.cssText = 'display:flex;gap:10px;';
+  const btn1 = document.createElement('button'); btn1.className='btn'; btn1.style.fontSize='13px'; btn1.textContent='Ir a la web'; btn1.onclick=()=>window.location.href=landingUrl;
+  const btn2 = document.createElement('button'); btn2.className='btn btn-primary'; btn2.style.fontSize='13px'; btn2.textContent='Iniciar sesión'; btn2.onclick=showInlineAuth;
+  right.appendChild(btn1); right.appendChild(btn2); banner.appendChild(left); banner.appendChild(right);
+  const main = document.querySelector('.main'); if (main) main.prepend(banner);
   try { initChecklist(); initHabits(); initSurvey(); loadPlan(); loadMacroEvents(); updateAiContext(); initDiario(); renderRiskPanel(); renderAccounts(); renderCalendar(); } catch(e) {}
 }
 
 function showInlineAuth() {
-  const existing = document.getElementById('inline-auth-modal');
-  if (existing) existing.remove();
-  const modal = document.createElement('div');
-  modal.id = 'inline-auth-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  if (document.getElementById('inline-auth-modal')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'inline-auth-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;';
   const box = document.createElement('div');
   box.style.cssText = 'background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:32px;width:380px;max-width:95vw;position:relative;';
-  const title = document.createElement('div');
-  title.style.cssText = 'font-size:20px;font-weight:700;margin-bottom:20px;';
-  title.textContent = 'Iniciar sesión en Tradync';
-  const emailIn = document.createElement('input');
-  emailIn.id = 'inline-email'; emailIn.type = 'email'; emailIn.className = 'form-input';
-  emailIn.placeholder = 'tu@email.com'; emailIn.style.cssText = 'width:100%;margin-bottom:12px;';
-  const passIn = document.createElement('input');
-  passIn.id = 'inline-pass'; passIn.type = 'password'; passIn.className = 'form-input';
-  passIn.placeholder = '••••••••'; passIn.style.cssText = 'width:100%;margin-bottom:16px;';
-  passIn.addEventListener('keydown', e => { if (e.key === 'Enter') doInlineLogin(); });
-  const loginBtn = document.createElement('button');
-  loginBtn.className = 'btn btn-primary'; loginBtn.style.cssText = 'width:100%;padding:12px;';
-  loginBtn.textContent = 'Iniciar sesión'; loginBtn.onclick = doInlineLogin;
-  const msg = document.createElement('div');
-  msg.id = 'inline-msg'; msg.style.cssText = 'display:none;margin-top:10px;padding:8px 12px;border-radius:8px;font-size:12px;';
-  const closeBtn = document.createElement('div');
-  closeBtn.style.cssText = 'position:absolute;top:16px;right:16px;cursor:pointer;font-size:18px;color:var(--text3);width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border-radius:6px;';
-  closeBtn.textContent = '✕'; closeBtn.onclick = () => modal.remove();
-  box.appendChild(title); box.appendChild(emailIn); box.appendChild(passIn);
-  box.appendChild(loginBtn); box.appendChild(msg); box.appendChild(closeBtn);
-  modal.appendChild(box);
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-  document.body.appendChild(modal);
+  const title = document.createElement('div'); title.style.cssText='font-size:20px;font-weight:700;margin-bottom:20px;'; title.textContent='Iniciar sesión en Tradync';
+  const emailIn = document.createElement('input'); emailIn.id='inline-email'; emailIn.type='email'; emailIn.className='form-input'; emailIn.placeholder='tu@email.com'; emailIn.style.cssText='width:100%;margin-bottom:12px;';
+  const passIn = document.createElement('input'); passIn.id='inline-pass'; passIn.type='password'; passIn.className='form-input'; passIn.placeholder='••••••••'; passIn.style.cssText='width:100%;margin-bottom:16px;';
+  passIn.addEventListener('keydown', e => { if(e.key==='Enter') doInlineLogin(); });
+  const loginBtn = document.createElement('button'); loginBtn.className='btn btn-primary'; loginBtn.style.cssText='width:100%;padding:12px;'; loginBtn.textContent='Iniciar sesión'; loginBtn.onclick=doInlineLogin;
+  const msg = document.createElement('div'); msg.id='inline-msg'; msg.style.cssText='display:none;margin-top:10px;padding:8px 12px;border-radius:8px;font-size:12px;';
+  const closeBtn = document.createElement('div'); closeBtn.style.cssText='position:absolute;top:16px;right:16px;cursor:pointer;font-size:18px;color:var(--text3);width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border-radius:6px;'; closeBtn.textContent='✕'; closeBtn.onclick=()=>overlay.remove();
+  box.appendChild(title); box.appendChild(emailIn); box.appendChild(passIn); box.appendChild(loginBtn); box.appendChild(msg); box.appendChild(closeBtn);
+  overlay.appendChild(box); overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); }); document.body.appendChild(overlay);
 }
 
 async function doInlineLogin() {
   const email = document.getElementById('inline-email')?.value?.trim();
   const pass = document.getElementById('inline-pass')?.value;
   if (!email||!pass) return;
-  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
   const msg = document.getElementById('inline-msg');
-  if (error) {
-    if (msg) { msg.style.cssText='display:block;background:rgba(255,77,109,0.1);color:var(--red);padding:8px 12px;border-radius:8px;font-size:12px;'; msg.textContent='Email o contraseña incorrectos'; }
-  } else {
-    currentUser = data.user;
-    document.getElementById('inline-auth-modal')?.remove();
-    document.getElementById('auth-banner')?.remove();
-    updateUserUI(data.user);
-    toast('Bienvenido ✓', 'success');
-    await loadTrades();
-    const today = new Date().toISOString().slice(0,10);
+  if (error) { if(msg){msg.style.cssText='display:block;background:rgba(255,77,109,0.1);color:var(--red);padding:8px 12px;border-radius:8px;font-size:12px;';msg.textContent='Email o contraseña incorrectos';} }
+  else {
+    currentUser=data.user; document.getElementById('inline-auth-modal')?.remove(); document.getElementById('auth-banner')?.remove();
+    updateUserUI(data.user); toast('Bienvenido ✓','success'); await loadTrades();
+    const today=new Date().toISOString().slice(0,10);
     await Promise.all([loadHabitsFromNotion(today),loadPlanFromNotion(today),loadAccountsFromNotion(),loadConfigFromNotion()].map(p=>p.catch(()=>{})));
   }
 }
 
 function updateUserUI(user) {
-  const name = user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'Trader';
   const headerActions = document.querySelector('.header-actions');
   if (headerActions && !document.getElementById('logout-btn')) {
-    const logoutBtn = document.createElement('button');
-    logoutBtn.id = 'logout-btn'; logoutBtn.className = 'btn'; logoutBtn.type = 'button';
-    logoutBtn.style.cssText = 'font-size:12px;cursor:pointer;padding:8px 14px;';
-    logoutBtn.textContent = 'Cerrar sesión';
-    logoutBtn.addEventListener('click', async e => {
-      e.stopPropagation(); e.preventDefault();
-      logoutBtn.textContent = 'Cerrando...'; logoutBtn.disabled = true;
-      await sb.auth.signOut().catch(()=>{});
-      currentUser = null; allTrades = [];
-      window.location.replace(window.location.protocol === 'file:' ? 'tradync-landing.html' : window.location.origin + '/tradync-landing.html');
+    const btn = document.createElement('button');
+    btn.id='logout-btn'; btn.className='btn'; btn.type='button'; btn.style.cssText='font-size:12px;cursor:pointer;padding:8px 14px;'; btn.textContent='Cerrar sesión';
+    btn.addEventListener('click', async e => {
+      e.stopPropagation(); e.preventDefault(); btn.textContent='Cerrando...'; btn.disabled=true;
+      await sb.auth.signOut().catch(()=>{}); currentUser=null; allTrades=[];
+      window.location.replace(window.location.protocol==='file:'?'tradync-landing.html':window.location.origin+'/tradync-landing.html');
     });
-    headerActions.prepend(logoutBtn);
+    headerActions.prepend(btn);
   }
 }
 
 function saveApiKey(key) {
-  if (key && key.startsWith('sk-ant')) { localStorage.setItem('tj_ai_key', key); toast('API key guardada ✓', 'success'); }
+  if (key && key.startsWith('sk-ant')) { localStorage.setItem('tj_ai_key',key); toast('API key guardada ✓','success'); }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// V8 FUNCTIONS (proven working)
+// ═══════════════════════════════════════════════════════════════
 // Toast
 function toast(msg, type='info') {
   const t = document.getElementById('toast');
@@ -2222,27 +1730,17 @@ function goTab(id, el) {
   const panel = document.getElementById('panel-' + id);
   if (panel) panel.classList.add('active');
   if (el) el.classList.add('active');
-
-  // Update title
-  const titles = {dashboard:'Mi <span>Trading</span> Journal',operaciones:'<span>Operaciones</span>',nueva:'<span>Nueva</span> Operación',riesgo:'<span>Control</span> de Riesgo',calendario:'<span>Calendario</span>',premarket:'<span>Pre-Market</span>',habitos:'<span>Hábitos</span>',estadisticas:'<span>Estadísticas</span>',cuentas:'<span>Cuentas</span>',ia:'<span>Coach</span> IA',diario:'<span>Diario</span>',psicologia:'<span>Psicología</span>'};
-  const titleEl = document.getElementById('page-title');
-  if (titleEl && titles[id]) titleEl.innerHTML = titles[id];
-
+  // Refresh risk inputs when navigating to riesgo
   if (id === 'riesgo') {
-    const ml = document.getElementById('cfg-maxloss'); if (ml) ml.value = riskSettings.maxLoss || 200;
-    const mo = document.getElementById('cfg-maxops'); if (mo) mo.value = riskSettings.maxOps || 5;
-    const ob = document.getElementById('cfg-objetivo'); if (ob) ob.value = riskSettings.objetivo || '';
-    const rp = document.getElementById('cfg-riskpct'); if (rp) rp.value = riskSettings.riskPct || 1;
-    setTimeout(() => { try { renderRiskPanel(); } catch(e){} }, 50);
+    const ml = document.getElementById('cfg-maxloss');
+    const mo = document.getElementById('cfg-maxops');
+    const ob = document.getElementById('cfg-objetivo');
+    const rp = document.getElementById('cfg-riskpct');
+    if (ml) ml.value = riskSettings.maxLoss || 200;
+    if (mo) mo.value = riskSettings.maxOps || 5;
+    if (ob) ob.value = riskSettings.objetivo || '';
+    if (rp) rp.value = riskSettings.riskPct || 1;
   }
-  if (id === 'estadisticas') setTimeout(() => { try { renderStatsCharts(); } catch(e){} }, 50);
-  if (id === 'operaciones') setTimeout(() => { try { renderOpsCharts(); } catch(e){} }, 50);
-  if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); } catch(e){} }, 50);
-  if (id === 'psicologia') setTimeout(() => { try { renderPsych(); renderPsychCharts(); } catch(e){} }, 50);
-  if (id === 'habitos') setTimeout(() => { try { renderHabitCalendar(); renderConsistencyScore(); } catch(e){} }, 50);
-  if (id === 'calendario') setTimeout(() => { try { renderCalendar(); } catch(e){} }, 50);
-  if (id === 'premarket') setTimeout(() => { try { renderPmCalendar(); } catch(e){} }, 50);
-  if (id === 'diario') setTimeout(() => { try { initDiario(); } catch(e){} }, 50);
 }
 
 // Toggle tag
@@ -3963,33 +3461,25 @@ function saveApiKey(key) {
 }
 
 function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar') || document.querySelector('.sidebar');
+  const sidebar = document.querySelector('.sidebar');
   const main = document.querySelector('.main');
-  const showBtn = document.getElementById('sidebar-show-btn');
   const overlay = document.getElementById('sidebar-overlay');
-
+  const showBtn = document.getElementById('sidebar-show-btn');
   if (window.innerWidth <= 768) {
     const isOpen = sidebar.classList.toggle('open');
     if (overlay) overlay.classList.toggle('open', isOpen);
     return;
   }
-
-  // Desktop: never touch overlay
   if (overlay) overlay.classList.remove('open');
-
   const isHidden = sidebar.classList.toggle('hidden');
   if (isHidden) {
-    if (main) { main.style.marginLeft = '0'; main.style.maxWidth = '100vw'; }
+    if (main) { main.style.marginLeft='0'; main.style.maxWidth='100vw'; }
     if (showBtn) showBtn.classList.add('visible');
-    const btn = document.getElementById('sidebar-toggle-btn');
-    if (btn) { btn.style.display = 'none'; }
-    localStorage.setItem('tj_sidebar', 'hidden');
+    localStorage.setItem('tj_sidebar','hidden');
   } else {
-    if (main) { main.style.marginLeft = '220px'; main.style.maxWidth = 'calc(100vw - 220px)'; }
+    if (main) { main.style.marginLeft='220px'; main.style.maxWidth='calc(100vw - 220px)'; }
     if (showBtn) showBtn.classList.remove('visible');
-    const btn = document.getElementById('sidebar-toggle-btn');
-    if (btn) { btn.style.display = 'flex'; }
-    localStorage.setItem('tj_sidebar', 'visible');
+    localStorage.setItem('tj_sidebar','visible');
   }
 }
 
@@ -4695,23 +4185,21 @@ function setParentPage() {
 }
 
 window.addEventListener('load', async () => {
-  // Init date
+  // Set date field
   const fFecha = document.getElementById('f-fecha');
   if (fFecha) fFecha.value = new Date().toISOString().slice(0,16);
 
   // Theme
   if (localStorage.getItem('tj_theme') === 'light') {
     document.body.classList.add('light-mode');
-    const tb = document.getElementById('theme-btn');
-    if (tb) tb.textContent = '☀️';
+    const tb = document.getElementById('theme-btn'); if (tb) tb.textContent = '☀️';
   } else {
-    const tb = document.getElementById('theme-btn');
-    if (tb) tb.textContent = '🌙';
+    const tb = document.getElementById('theme-btn'); if (tb) tb.textContent = '🌙';
   }
 
-  // Sidebar state
+  // Sidebar
   if (localStorage.getItem('tj_sidebar') === 'hidden') {
-    const sb2 = document.getElementById('sidebar') || document.querySelector('.sidebar');
+    const sb2 = document.querySelector('.sidebar');
     const mn = document.querySelector('.main');
     if (sb2) sb2.classList.add('hidden');
     if (mn) { mn.style.marginLeft = '0'; mn.style.maxWidth = '100vw'; }
@@ -4720,23 +4208,22 @@ window.addEventListener('load', async () => {
   }
 
   // Risk inputs
-  ['cfg-maxloss','cfg-maxops','cfg-objetivo','cfg-riskpct'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el && !el.dataset.bound) {
-      el.dataset.bound = '1';
-      el.addEventListener('change', () => { updateRiskConfig(); if (currentUser) saveConfigToNotion('riskSettings', riskSettings).catch(()=>{}); });
-    }
+  const riskIds = ['cfg-maxloss','cfg-maxops','cfg-objetivo','cfg-riskpct'];
+  riskIds.forEach(id => {
+    const el = document.getElementById(id); if (!el || el.dataset.bound) return;
+    el.dataset.bound = '1';
+    el.addEventListener('change', () => { updateRiskConfig(); if (currentUser) saveConfigToNotion('riskSettings', riskSettings).catch(()=>{}); });
   });
   const ml = document.getElementById('cfg-maxloss'); if (ml) ml.value = riskSettings.maxLoss || 200;
   const mo = document.getElementById('cfg-maxops'); if (mo) mo.value = riskSettings.maxOps || 5;
   const ob = document.getElementById('cfg-objetivo'); if (ob) ob.value = riskSettings.objetivo || '';
-  const rp = document.getElementById('cfg-riskpct'); if (rp) rp.value = riskSettings.riskPct || 1;
+  const rp2 = document.getElementById('cfg-riskpct'); if (rp2) rp2.value = riskSettings.riskPct || 1;
 
   // AI key
   const savedKey = localStorage.getItem('tj_ai_key');
   if (savedKey) { const ki = document.getElementById('ai-api-key'); if (ki) ki.value = savedKey; }
 
-  // Check session with retry for Edge browser timing
+  // Supabase session - with retry for Edge timing
   let session = null;
   try { session = (await sb.auth.getSession()).data?.session; } catch(e) {}
   if (!session) {
@@ -4761,24 +4248,9 @@ window.addEventListener('load', async () => {
   }
 });
 
-  // AI key loaded in new window load above
 
-  // Check Supabase session
-  const { data: { session } } = await sb.auth.getSession().catch(()=>({data:{session:null}}));
-  if (!session) {
-    showAuthBanner();
-  } else {
-    currentUser = session.user;
-    updateUserUI(session.user);
-    setStatus('syncing', 'Cargando...');
-    await loadTrades();
-    const today = new Date().toISOString().slice(0,10);
-    await loadHabitsFromNotion(today).catch(()=>{});
-    await loadPlanFromNotion(today).catch(()=>{});
-    await loadAccountsFromNotion().catch(()=>{});
-    await loadConfigFromNotion().catch(()=>{});
-  }
-// Old load removed
+// ─── CHART FUNCTIONS (from v8) ───
+);
 
 // ─── DASHBOARD & ACCOUNT CHARTS ──────────────────────────────────
 let winlossChartInst=null,setupChartInst=null,sessionChartInst=null,distChartInst=null,todayChartInst=null;
