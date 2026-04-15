@@ -47,32 +47,24 @@
 
   /* SIDEBAR */
   .sidebar {
-  width: 64px;
+  width: 220px;
   min-height: 100vh;
   background: var(--bg2);
   border-right: 1px solid var(--border);
-  padding: 20px 0;
+  padding: 28px 0;
   display: flex;
   flex-direction: column;
   position: fixed;
   top: 0; left: 0;
   z-index: 100;
-  transition: width 0.25s cubic-bezier(0.4,0,0.2,1);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
   overflow: hidden;
 }
-.sidebar.expanded {
-  width: 220px;
+.sidebar.hidden {
+  transform: translateX(-220px);
 }
   .logo { padding: 0 20px 28px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
   .logo-text { font-size: 16px; font-weight: 800; letter-spacing: -0.5px; }
-.logo-sub, .logo .logo-text {
-  transition: opacity 0.2s, transform 0.2s;
-}
-.sidebar:not(.expanded) .logo-sub,
-.sidebar:not(.expanded) .logo-text {
-  opacity: 0;
-  pointer-events: none;
-}
   .logo-text span { color: var(--green); }
   .logo-sub { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 2px; letter-spacing: 1px; }
   .nav-section { padding: 0 12px; margin-bottom: 8px; }
@@ -94,19 +86,19 @@
 
   /* MAIN */
   .main {
-  margin-left: 64px;
+  margin-left: 220px;
   flex: 1;
   padding: 28px 32px 60px;
   min-width: 0;
   overflow-x: hidden;
-  max-width: calc(100vw - 64px);
-  box-sizing: border-box;
-  transition: margin-left 0.25s cubic-bezier(0.4,0,0.2,1), max-width 0.25s cubic-bezier(0.4,0,0.2,1);
-}
-.sidebar.expanded ~ .main,
-.layout.sidebar-open .main {
-  margin-left: 220px;
   max-width: calc(100vw - 220px);
+  box-sizing: border-box;
+  transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1), max-width 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.sidebar.hidden ~ .main,
+.main.expanded {
+  margin-left: 0;
+  max-width: 100vw;
 }
   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
   .header-left h1 { font-size: 26px; font-weight: 800; letter-spacing: -1px; }
@@ -523,6 +515,31 @@
   table { max-width: 100%; }
   .trade-table-wrap { overflow-x: auto; max-width: 100%; }
   input, select, textarea { max-width: 100%; }
+
+  /* SIDEBAR TOGGLE FLOAT BUTTON */
+  #sidebar-show-btn {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    z-index: 101;
+    width: 20px;
+    height: 56px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: var(--text2);
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  #sidebar-show-btn:hover { background: var(--bg3); color: var(--text); width: 24px; }
+  #sidebar-show-btn.visible { display: flex; }
+
   /* MOBILE RESPONSIVE */
   .hamburger { display:none; flex-direction:column; gap:4px; cursor:pointer; padding:8px; border-radius:8px; border:1px solid var(--border2); background:var(--bg3); }
   .hamburger span { width:18px; height:2px; background:var(--text2); border-radius:2px; transition:all 0.3s; display:block; }
@@ -603,7 +620,7 @@
     /* SIDEBAR */
     .sidebar {
       transform: translateX(-100%);
-      transition: transform 0.25s ease, width 0.25s ease;
+      transition: transform 0.3s ease !important;
       z-index: 200;
       position: fixed;
       top: 0; left: 0;
@@ -611,9 +628,10 @@
       overflow-y: auto;
       width: 220px !important;
     }
-    .sidebar.expanded { transform: translateX(0) !important; box-shadow: 4px 0 24px rgba(0,0,0,0.6); }
-    .sidebar.open { transform: translateX(0) !important; }
+    .sidebar.expanded, .sidebar.open { transform: translateX(0) !important; box-shadow: 4px 0 24px rgba(0,0,0,0.6); }
+    .sidebar.hidden { transform: translateX(-100%) !important; }
     .hamburger { display: flex !important; }
+    #sidebar-show-btn { display: none !important; }
     .main { margin-left: 0 !important; max-width: 100vw !important; padding: 12px !important; }
 
     /* HEADER */
@@ -698,12 +716,22 @@
 </head>
 <body>
 
+<button id="sidebar-show-btn" onclick="toggleSidebar()" title="Mostrar menú">›</button>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div class="layout">
   <aside class="sidebar">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 16px;margin-bottom:8px;">
-      <div class="logo" style="overflow:hidden;transition:all 0.25s;">
-        <div class="logo-text" style="white-space:nowrap;">Trad<span>ync</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:8px;">
+      <div class="logo">
+        <div class="logo-text">Trad<span>ync</span></div>
+        <div class="logo-sub">TRADING JOURNAL</div>
+      </div>
+      <button id="sidebar-toggle-btn" onclick="toggleSidebar()"
+        style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border2);
+               background:var(--bg3);cursor:pointer;color:var(--text2);font-size:13px;
+               display:flex;align-items:center;justify-content:center;flex-shrink:0;
+               transition:all 0.2s;"
+        title="Ocultar menú">‹</button>
+    </div>
         <div class="logo-sub" style="white-space:nowrap;">TRADING JOURNAL</div>
       </div>
       <button onclick="toggleSidebar()" id="sidebar-toggle-btn"
@@ -2308,13 +2336,15 @@ function renderAll() {
   }
   // Restore sidebar state
   const savedSidebar = localStorage.getItem('tj_sidebar');
-  if (savedSidebar === 'expanded') {
+  if (savedSidebar === 'hidden') {
     const sidebar = document.querySelector('.sidebar');
     const main = document.querySelector('.main');
-    if (sidebar) sidebar.classList.add('expanded');
-    if (main) { main.style.marginLeft = '220px'; main.style.maxWidth = 'calc(100vw - 220px)'; }
-    const btn = document.getElementById('sidebar-toggle-btn');
-    if (btn) btn.textContent = '›';
+    const toggleBtn = document.getElementById('sidebar-toggle-btn');
+    const showBtn = document.getElementById('sidebar-show-btn');
+    if (sidebar) sidebar.classList.add('hidden');
+    if (main) { main.style.marginLeft = '0'; main.style.maxWidth = '100vw'; }
+    if (toggleBtn) toggleBtn.style.display = 'none';
+    if (showBtn) showBtn.classList.add('visible');
   }
 
   if (localStorage.getItem('tj_theme') === 'light') {
@@ -3747,21 +3777,34 @@ function saveApiKey(key) {
 
 function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
-  const isExpanded = sidebar.classList.toggle('expanded');
-  // On mobile: overlay behavior
-  if (window.innerWidth <= 768) {
-    document.getElementById('sidebar-overlay').classList.toggle('open', isExpanded);
-  }
-  // Update toggle button arrow
-  const btn = document.getElementById('sidebar-toggle-btn');
-  if (btn) btn.textContent = isExpanded ? '›' : '‹';
-  // Update main margin
   const main = document.querySelector('.main');
-  if (main) {
-    main.style.marginLeft = isExpanded ? '220px' : '64px';
-    main.style.maxWidth = isExpanded ? 'calc(100vw - 220px)' : 'calc(100vw - 64px)';
+  const toggleBtn = document.getElementById('sidebar-toggle-btn');
+  const showBtn = document.getElementById('sidebar-show-btn');
+  const overlay = document.getElementById('sidebar-overlay');
+
+  // Mobile behavior
+  if (window.innerWidth <= 768) {
+    const isOpen = sidebar.classList.toggle('expanded');
+    if (overlay) overlay.classList.toggle('open', isOpen);
+    return;
   }
-  localStorage.setItem('tj_sidebar', isExpanded ? 'expanded' : 'collapsed');
+
+  // Desktop: hide/show sidebar
+  const isHidden = sidebar.classList.toggle('hidden');
+
+  if (isHidden) {
+    // Sidebar sliding out to the left
+    if (main) { main.style.marginLeft = '0'; main.style.maxWidth = '100vw'; }
+    if (toggleBtn) toggleBtn.style.display = 'none';
+    if (showBtn) showBtn.classList.add('visible');
+    localStorage.setItem('tj_sidebar', 'hidden');
+  } else {
+    // Sidebar coming back
+    if (main) { main.style.marginLeft = '220px'; main.style.maxWidth = 'calc(100vw - 220px)'; }
+    if (toggleBtn) { toggleBtn.style.display = 'flex'; toggleBtn.textContent = '‹'; }
+    if (showBtn) showBtn.classList.remove('visible');
+    localStorage.setItem('tj_sidebar', 'visible');
+  }
 }
 
 // ─── DÍA DETALLE ──────────────────────────────────────────────────
