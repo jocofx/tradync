@@ -482,8 +482,8 @@
   <aside class="sidebar">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 0;">
       <div class="logo">
-        <div class="logo-text">Trade<span>Log</span></div>
-        <div class="logo-sub">TRADYNC · LIVE</div>
+        <div class="logo-text">Tradync<span>App</span></div>
+        <div class="logo-sub">TRADING JOURNAL</div>
       </div>
       <button id="sidebar-toggle-btn" onclick="toggleSidebar()"
         style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);cursor:pointer;color:var(--text2);font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"
@@ -575,7 +575,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn" onclick="loadTrades()" id="sync-btn">↻ Sincronizar</button>
+        
         <button class="btn" id="theme-btn" onclick="toggleTheme()" style="font-size:16px;padding:7px 12px;" title="Cambiar tema">🌙</button>
         <button class="btn" onclick="openModal()">+ Nueva cuenta</button>
         <button class="btn btn-primary" onclick="goTab('nueva', null)">+ Nueva operación</button>
@@ -1469,8 +1469,6 @@ function setStatus(type, text) {
 async function loadTrades() {
   if (!requireAuth()) return;
   setStatus('syncing', 'Cargando...');
-  const btn = document.getElementById('sync-btn');
-  if (btn) btn.disabled = true;
   try {
     const { data, error } = await sb.from('operaciones').select('*')
       .eq('user_id', currentUser.id).order('fecha', { ascending: false }).limit(500);
@@ -1483,7 +1481,6 @@ async function loadTrades() {
     setStatus('disconnected', 'Error');
     toast('Error: ' + e.message, 'error');
   }
-  if (btn) btn.disabled = false;
 }
 
 function parseSupabaseRow(row) {
@@ -1736,17 +1733,24 @@ function goTab(id, el) {
   const panel = document.getElementById('panel-' + id);
   if (panel) panel.classList.add('active');
   if (el) el.classList.add('active');
-  // Refresh risk inputs when navigating to riesgo
-  if (id === 'riesgo') {
-    const ml = document.getElementById('cfg-maxloss');
-    const mo = document.getElementById('cfg-maxops');
-    const ob = document.getElementById('cfg-objetivo');
-    const rp = document.getElementById('cfg-riskpct');
-    if (ml) ml.value = riskSettings.maxLoss || 200;
-    if (mo) mo.value = riskSettings.maxOps || 5;
-    if (ob) ob.value = riskSettings.objetivo || '';
-    if (rp) rp.value = riskSettings.riskPct || 1;
-  }
+
+  // Update page title
+  const titles = {
+    dashboard: 'Mi <span>Trading</span> Journal',
+    operaciones: '<span>Operaciones</span>',
+    nueva: 'Nueva <span>Operación</span>',
+    riesgo: 'Control de <span>Riesgo</span>',
+    calendario: '<span>Calendario</span>',
+    premarket: '<span>Pre-Market</span>',
+    habitos: '<span>Hábitos</span>',
+    estadisticas: '<span>Estadísticas</span>',
+    cuentas: '<span>Cuentas</span>',
+    ia: 'Coach <span>IA</span>',
+    diario: '<span>Diario</span>',
+    psicologia: '<span>Psicología</span>'
+  };
+  const titleEl = document.getElementById('page-title');
+  if (titleEl && titles[id]) titleEl.innerHTML = titles[id];
 }
 
 // Toggle tag
