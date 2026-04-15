@@ -1746,6 +1746,24 @@ function goTab(id, el) {
   };
   const titleEl = document.getElementById('page-title');
   if (titleEl && titles[id]) titleEl.innerHTML = titles[id];
+
+  // Panel-specific renders
+  if (id === 'riesgo') {
+    const ml = document.getElementById('cfg-maxloss'); if (ml) ml.value = riskSettings.maxLoss || 200;
+    const mo = document.getElementById('cfg-maxops'); if (mo) mo.value = riskSettings.maxOps || 5;
+    const ob = document.getElementById('cfg-objetivo'); if (ob) ob.value = riskSettings.objetivo || '';
+    const rp = document.getElementById('cfg-riskpct'); if (rp) rp.value = riskSettings.riskPct || 1;
+    setTimeout(() => { try { renderRiskPanel(); } catch(e){} }, 50);
+  }
+  if (id === 'operaciones') setTimeout(() => { try { renderAllTrades(); renderOpsCharts(); } catch(e){} }, 50);
+  if (id === 'estadisticas') setTimeout(() => { try { renderStatsCharts(); } catch(e){} }, 50);
+  if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); } catch(e){} }, 50);
+  if (id === 'psicologia') setTimeout(() => { try { renderPsych(); renderPsychCharts(); } catch(e){} }, 50);
+  if (id === 'habitos') setTimeout(() => { try { renderHabitCalendar(); renderConsistencyScore(); renderHabitsCorrelation(); } catch(e){} }, 50);
+  if (id === 'calendario') setTimeout(() => { try { renderCalendar(); } catch(e){} }, 50);
+  if (id === 'premarket') setTimeout(() => { try { renderPmCalendar(); } catch(e){} }, 50);
+  if (id === 'diario') setTimeout(() => { try { initDiario(); } catch(e){} }, 50);
+  if (id === 'dashboard') setTimeout(() => { try { renderEquity(); renderDashboardCharts(); } catch(e){} }, 50);
 }
 
 // Toggle tag
