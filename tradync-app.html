@@ -1956,18 +1956,33 @@ async function saveAccountToNotion(account) {
     activa: true, updated_at: new Date().toISOString(),
   };
   if (account.notionId) {
-    await sb.from('cuentas').update(row).eq('id',account.notionId).catch(()=>{});
+    // Update existing
+    await sb.from('cuentas').update(row).eq('id', account.notionId).eq('user_id', currentUser.id).catch(()=>{});
   } else {
-    const { data } = await sb.from('cuentas').insert(row).select().single().catch(()=>({data:null}));
-    if (data) account.notionId = data.id;
+    // Check if already exists before inserting
+    const { data: existing } = await sb.from('cuentas')
+      .select('id').eq('user_id', currentUser.id).eq('nombre', account.nombre).eq('activa', true)
+      .single().catch(()=>({data:null}));
+    if (existing) {
+      account.notionId = existing.id;
+      await sb.from('cuentas').update(row).eq('id', existing.id).catch(()=>{});
+    } else {
+      const { data } = await sb.from('cuentas').insert(row).select().single().catch(()=>({data:null}));
+      if (data) { account.notionId = data.id; saveAccountsLocal(); }
+    }
   }
 }
 
 async function loadAccountsFromNotion() {
   if (!requireAuth()) return;
-  const { data } = await sb.from('cuentas').select('*').eq('user_id',currentUser.id).eq('activa',true).catch(()=>({data:null}));
+  const { data } = await sb.from('cuentas').select('*').eq('user_id', currentUser.id).eq('activa', true).catch(()=>({data:null}));
   if (!data?.length) return;
-  accounts = data.map(r=>({ id:r.id, notionId:r.id, nombre:r.nombre, tipo:r.tipo, balance:r.balance, broker:r.broker, fase:r.fase }));
+  // Replace local accounts entirely with Supabase data (source of truth)
+  accounts = data.map(r => ({
+    id: r.id, notionId: r.id,
+    nombre: r.nombre, tipo: r.tipo,
+    balance: r.balance, broker: r.broker, fase: r.fase,
+  }));
   saveAccountsLocal();
   renderAccounts();
   updateCuentaSelector();
@@ -3861,39 +3876,23 @@ function saveAccount() {
 
   if (!nombre) { toast('Escribe un nombre para la cuenta', 'error'); return; }
 
+  // Prevent duplicates - check if account with same name already exists
+  if (accounts.find(a => a.nombre.toLowerCase() === nombre.toLowerCase())) {
+    toast('Ya existe una cuenta con ese nombre', 'error');
+    return;
+  }
+
   const account = { id: Date.now(), nombre, balance, tipo, broker, fase, pnl: 0 };
   accounts.push(account);
   saveAccountsLocal();
+  
+  // Save to Supabase once - don't reload accounts after (avoids duplicates)
   saveAccountToNotion(account).catch(()=>{});
+
+  closeModal();
   renderAccounts();
   updateCuentaSelector();
-  renderCalendar();
-  renderRiskPanel();
-  initChecklist();
-  initHabits();
-  initSurvey();
-  loadPlan();
-  loadMacroEvents();
-  renderPmCalendar();
-  renderInstrumentStats();
-  renderMonthCompare();
-  updateAiContext();
-
-  
-  document.getElementById('cfg-maxloss').value = riskSettings.maxLoss || 200;
-  document.getElementById('cfg-maxops').value = riskSettings.maxOps || 5;
-  document.getElementById('cfg-objetivo').value = riskSettings.objetivo || '';
-  document.getElementById('cfg-riskpct').value = riskSettings.riskPct || 1;
-  // Persist risk settings on every input change
-  ['cfg-maxloss','cfg-maxops','cfg-objetivo','cfg-riskpct'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('change', () => {
-      updateRiskConfig();
-      saveConfigToNotion('riskSettings', riskSettings).catch(()=>{});
-    });
-  });
-  closeModal();
-  toast('Cuenta "' + nombre + '" añadida', 'success');
+  toast('Cuenta "' + nombre + '" añadida ✓', 'success');
 }
 
 function deleteAccount(id) {
@@ -4272,14 +4271,7 @@ window.addEventListener('load', async () => {
   document.getElementById('cfg-maxops').value = riskSettings.maxOps || 5;
   document.getElementById('cfg-objetivo').value = riskSettings.objetivo || '';
   document.getElementById('cfg-riskpct').value = riskSettings.riskPct || 1;
-  // Persist risk settings on every input change
-  ['cfg-maxloss','cfg-maxops','cfg-objetivo','cfg-riskpct'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('change', () => {
-      updateRiskConfig();
-      saveConfigToNotion('riskSettings', riskSettings).catch(()=>{});
-    });
-  });
+  // Risk listeners already bound
 });
 
 // ─── DASHBOARD & ACCOUNT CHARTS ──────────────────────────────────
