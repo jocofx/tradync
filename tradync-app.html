@@ -827,6 +827,11 @@
           </div>
         </div>
 
+          <div class="form-field" style="grid-column: 1 / -1;">
+            <label class="form-label">Notas / Reflexión</label>
+            <textarea class="form-input" id="f-notas" rows="3" style="resize:vertical;" placeholder="¿Cómo fue la operación? ¿Qué mejorarías?..."></textarea>
+          </div>
+
         <div class="form-field" style="margin-bottom:14px;">
           <label class="form-label" style="margin-bottom:8px;">Errores psicológicos</label>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -1516,9 +1521,9 @@ async function guardarOperacion() {
     contratos: parseInt(document.getElementById('f-contratos').value)||null,
     resultado: estadoCheck!=='Pendiente'&&!isNaN(resultado)?resultado:null,
     setup: document.getElementById('f-setup').value, emocion: document.getElementById('f-emocion').value,
-    sesion: document.getElementById('f-sesion').value, disciplina: parseInt(document.getElementById('f-disciplina').value),
-    impulsos: parseInt(document.getElementById('f-impulsos').value), errores: getSelectedTags(),
-    notas: document.getElementById('f-notas').value, estado: estadoCheck,
+    sesion: document.getElementById('f-sesion').value, disciplina: parseInt(document.getElementById('f-disciplina')?.value) || null,
+    impulsos: parseInt(document.getElementById('f-impulsos')?.value) || null, errores: getSelectedTags(),
+    notas: document.getElementById('f-notas')?.value || '', estado: estadoCheck,
     cuenta: document.getElementById('f-cuenta').value||null, img_apertura: imgAperturaUrl||null, img_cierre: imgCierreUrl||null,
   };
   try {
