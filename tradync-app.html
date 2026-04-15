@@ -4301,6 +4301,683 @@ function renderMonthCompare() {
   ).join('');
 }
 
+
+// ─── RECOVERED FUNCTIONS ────────────────────────────────────────
+let diaryEntries = JSON.parse(localStorage.getItem('tj_diary') || '{}');
+let diaryCalYear = new Date().getFullYear();
+let diaryCalMonth = new Date().getMonth();
+let diarySelectedEmos = [];
+
+function addHabit() {
+  const name = document.getElementById('new-habit-name').value.trim();
+  const icon = document.getElementById('new-habit-icon').value.trim() || '⭐';
+  if (!name) { toast('Escribe un nombre para el hábito', 'error'); return; }
+  const id = 'h_' + Date.now();
+  customHabits.push({ id, icon, name });
+  saveCustomHabits();
+  document.getElementById('new-habit-name').value = '';
+  document.getElementById('new-habit-icon').value = '';
+  initHabits();
+  toast('Hábito añadido ✓', 'success');
+  saveConfigToNotion('customHabits', customHabits).catch(e => console.error('Habits config sync error:', e));
+}
+
+function appendAiMsg(text, role) {
+  const chat = document.getElementById('ai-chat');
+  const icon = role === 'user' ? '👤' : '🤖';
+  chat.innerHTML += `<div class="ai-msg ${role}">
+    <div class="ai-avatar ${role}">${icon}</div>
+    <div class="ai-bubble ${role}">${text}</div>
+  </div>`;
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function calcPosition() {
+  const capital = parseFloat(document.getElementById('calc-capital').value);
+  const entrada = parseFloat(document.getElementById('calc-entrada').value);
+  const sl = parseFloat(document.getElementById('calc-sl').value);
+  const tp = parseFloat(document.getElementById('calc-tp').value);
+  const riskPct = riskSettings.riskPct || 1;
+
+  if (!capital || !entrada || !sl) { document.getElementById('calc-result').style.display = 'none'; return; }
+
+  const maxRisk = capital * riskPct / 100;
+  const distSL = Math.abs(entrada - sl);
+  const distTP = tp ? Math.abs(tp - entrada) : 0;
+  const size = distSL > 0 ? Math.floor(maxRisk / distSL) : 0;
+  const reward = distTP > 0 ? size * distTP : 0;
+  const rr = distTP > 0 && distSL > 0 ? (distTP / distSL) : 0;
+
+  document.getElementById('calc-result').style.display = 'block';
+  document.getElementById('cr-risk').textContent = '$' + maxRisk.toFixed(2);
+  document.getElementById('cr-size').textContent = size + ' contratos';
+  document.getElementById('cr-reward').textContent = reward > 0 ? '+$' + reward.toFixed(2) : '—';
+  document.getElementById('cr-rr').textContent = rr > 0 ? rr.toFixed(2) + ':1' : '—';
+}
+
+async function callAi(userMsg) {
+  showTyping();
+  const context = getTradeContext();
+  const systemPrompt = `Eres un coach de trading experto y psicólogo especializado en traders. Tienes acceso a los datos reales del trader. Responde en español, de forma concisa y directa. Analiza los datos y da consejos específicos basados en ellos. No seas genérico. Máximo 3-4 frases por respuesta salvo que pidan un análisis detallado.
+
+${context}`;
+
+  try {
+    const apiKey = localStorage.getItem('tj_ai_key') || document.getElementById('ai-api-key')?.value || '';
+    if (!apiKey) {
+      document.getElementById('ai-typing')?.remove();
+      appendAiMsg('⚠️ Introduce tu API key de Anthropic en el panel de la derecha para activar el Coach IA.', 'bot');
+      return;
+    }
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+    const data = await res.json();
+    document.getElementById('ai-typing')?.remove();
+    const reply = data.content?.[0]?.text || 'No se pudo obtener respuesta. Comprueba tu API key de Anthropic.';
+    appendAiMsg(reply, 'bot');
+  } catch(e) {
+    document.getElementById('ai-typing')?.remove();
+    appendAiMsg('Error al conectar con la IA. Necesitas añadir tu API key de Anthropic en el código (busca x-api-key).', 'bot');
+  }
+}
+
+function changeDiaryMonth(dir) {
+  diaryCalMonth += dir;
+  if (diaryCalMonth > 11) { diaryCalMonth = 0; diaryCalYear++; }
+  if (diaryCalMonth < 0) { diaryCalMonth = 11; diaryCalYear--; }
+  renderDiaryCalendar();
+}
+
+function changeHabitMonth(dir) {
+  habitCalMonth += dir;
+  if (habitCalMonth > 11) { habitCalMonth = 0; habitCalYear++; }
+  if (habitCalMonth < 0) { habitCalMonth = 11; habitCalYear--; }
+  renderHabitCalendar();
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function changePmMonth(dir) {
+  pmCalMonth += dir;
+  if (pmCalMonth > 11) { pmCalMonth = 0; pmCalYear++; }
+  if (pmCalMonth < 0) { pmCalMonth = 11; pmCalYear--; }
+  renderPmCalendar();
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal-overlay').classList.remove('open');
+  document.getElementById('edit-save-status').textContent = '';
+  editImgCierreBase64 = null;
+}
+
+function editHabit(id) {
+  const h = customHabits.find(h => h.id === id);
+  if (!h) return;
+  const newName = prompt('Nuevo nombre:', h.name);
+  if (newName) h.name = newName.trim();
+  const newIcon = prompt('Nuevo emoji:', h.icon);
+  if (newIcon) h.icon = newIcon.trim();
+  saveCustomHabits();
+  initHabits();
+}
+
+async function generateWeeklySummary() {
+  const today = new Date();
+  const weekStart = new Date(today); weekStart.setDate(today.getDate() - today.getDay() + 1);
+  const weekTrades = allTrades.filter(t => {
+    const d = new Date(t.fecha || '');
+    return d >= weekStart && d <= today;
+  });
+  if (!weekTrades.length) { toast('Sin operaciones esta semana', 'info'); return; }
+
+  appendAiMsg('Genera mi resumen semanal completo', 'user');
+  const pnl = weekTrades.reduce((s,t)=>s+(t.resultado||0),0);
+  const wins = weekTrades.filter(t=>(t.resultado||0)>0).length;
+  const context = `Esta semana: ${weekTrades.length} operaciones, ${wins} wins, P&L: ${pnl>=0?'+':''}$${pnl.toFixed(2)}. Detalles: ${weekTrades.map(t=>`${t.instrumento} ${t.direccion} $${t.resultado} emo:${t.emocion}`).join(', ')}`;
+  await callAi('Genera un resumen semanal detallado de mi trading. ' + context + ' Incluye: qué hice bien, qué mejorar, patrones detectados, y 3 objetivos para la próxima semana.');
+}
+
+function getHabitScore(dateStr) {
+  const data = JSON.parse(localStorage.getItem('tj_habits_' + dateStr) || '{}');
+  const done = customHabits.filter(h => (data[h.id] || 0) >= 3).length;
+  return customHabits.length > 0 ? done / customHabits.length : 0;
+}
+
+function getTradeContext() {
+  if (!allTrades.length) return 'Sin operaciones registradas aún.';
+  const wins = allTrades.filter(t=>(t.resultado||0)>0);
+  const losses = allTrades.filter(t=>(t.resultado||0)<0);
+  const pnl = allTrades.reduce((s,t)=>s+(t.resultado||0),0);
+  const wr = (wins.length/allTrades.length*100).toFixed(1);
+  const sessions = {};
+  allTrades.forEach(t => {
+    const s = t.sesion || t.emocion || 'Sin sesión';
+    if (!sessions[s]) sessions[s] = {pnl:0,count:0};
+    sessions[s].pnl += (t.resultado||0);
+    sessions[s].count++;
+  });
+  const bestSession = Object.entries(sessions).sort((a,b)=>b[1].pnl-a[1].pnl)[0];
+  const setupMap = {};
+  allTrades.forEach(t => {
+    if (!setupMap[t.setup]) setupMap[t.setup] = {pnl:0,count:0};
+    setupMap[t.setup].pnl += (t.resultado||0);
+    setupMap[t.setup].count++;
+  });
+  const bestSetup = Object.entries(setupMap).sort((a,b)=>b[1].pnl-a[1].pnl)[0];
+  const recentTrades = allTrades.slice(0,10).map(t =>
+    `${fmtDate(t.fecha)} ${t.instrumento} ${t.direccion} resultado:${t.resultado>0?'+':''}$${t.resultado} emocion:${t.emocion} setup:${t.setup}`
+  ).join('\n');
+
+  return `DATOS DEL TRADER:
+- Total operaciones: ${allTrades.length}
+- Win rate: ${wr}%
+- P&L total: ${pnl>=0?'+':''}$${pnl.toFixed(2)}
+- Mejor sesión: ${bestSession ? bestSession[0] + ' ($'+bestSession[1].pnl.toFixed(0)+')' : 'Sin datos'}
+- Mejor setup: ${bestSetup ? bestSetup[0] + ' ($'+bestSetup[1].pnl.toFixed(0)+')' : 'Sin datos'}
+- Operaciones recientes:
+${recentTrades}`;
+}
+
+function initDiario() {
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('diario-fecha').value = today;
+  document.getElementById('diario-fecha').addEventListener('change', loadDiaryEntry);
+  updateDiarioFechaLabel();
+  loadDiaryEntry();
+  renderDiaryCalendar();
+  renderDiaryRecent();
+  renderDiaryStats();
+}
+
+function loadDiaryEntry() {
+  const date = document.getElementById('diario-fecha').value;
+  updateDiarioFechaLabel();
+  const entry = diaryEntries[date] || {};
+  document.getElementById('diario-texto').value = entry.texto || '';
+  document.getElementById('diario-leccion').value = entry.leccion || '';
+  document.getElementById('diario-energia').value = entry.energia || 7;
+  document.getElementById('diario-energia-val').textContent = entry.energia || 7;
+  diarySelectedEmos = entry.emociones || [];
+  document.querySelectorAll('#diario-emociones .survey-option').forEach(btn => {
+    btn.classList.toggle('selected', diarySelectedEmos.includes(btn.textContent.trim()));
+  });
+}
+
+function loadDiaryForDate(dateStr) {
+  document.getElementById('diario-fecha').value = dateStr;
+  loadDiaryEntry();
+  document.querySelector('[onclick*="diario"]')?.click();
+}
+
+function loadPlan() {
+  const today = new Date().toISOString().slice(0,10);
+  const plan = JSON.parse(localStorage.getItem('tj_plan_' + today) || '{}');
+  if (plan.sesgo) document.getElementById('plan-sesgo').value = plan.sesgo;
+  if (plan.maxops) document.getElementById('plan-maxops').value = plan.maxops;
+  if (plan.niveles) document.getElementById('plan-niveles').value = plan.niveles;
+  if (plan.no) document.getElementById('plan-no').value = plan.no;
+  if (plan.notas) document.getElementById('plan-notas').value = plan.notas;
+}
+
+function openAccountDetail(id) {
+  const acc = accounts.find(a => a.id === id);
+  if (!acc) return;
+  const trades = allTrades.filter(t => t.cuenta === acc.nombre);
+  const pnl = trades.reduce((s,t) => s+(t.resultado||0), 0);
+  const wins = trades.filter(t => (t.resultado||0)>0);
+  const losses = trades.filter(t => (t.resultado||0)<0);
+  const wr = trades.length ? (wins.length/trades.length*100).toFixed(1) : 0;
+  const sumWins = wins.reduce((s,t)=>s+(t.resultado||0),0);
+  const sumLoss = Math.abs(losses.reduce((s,t)=>s+(t.resultado||0),0));
+  const pf = sumLoss > 0 ? (sumWins/sumLoss).toFixed(2) : '∞';
+  const best = wins.length ? Math.max(...wins.map(t=>t.resultado||0)) : 0;
+  const worst = losses.length ? Math.min(...losses.map(t=>t.resultado||0)) : 0;
+  const avgRR = trades.filter(t=>t.entrada&&t.sl&&t.tp).map(t=>Math.abs(t.tp-t.entrada)/Math.abs(t.entrada-t.sl));
+  const rrAvg = avgRR.length ? (avgRR.reduce((a,b)=>a+b,0)/avgRR.length).toFixed(2) : '—';
+  const instrs = {};
+  trades.forEach(t => { instrs[t.instrumento] = (instrs[t.instrumento]||0) + (t.resultado||0); });
+  const topInstr = Object.entries(instrs).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById('account-modal-title').textContent = acc.nombre;
+  document.getElementById('account-modal-body').innerHTML = `
+    <div class="day-summary" style="grid-template-columns:repeat(4,1fr);">
+      <div class="day-summary-item"><div class="day-summary-label">P&L TOTAL</div><div class="day-summary-value" style="color:${pnl>=0?'var(--green)':'var(--red)'}">${pnl>=0?'+':''}$${pnl.toFixed(2)}</div></div>
+      <div class="day-summary-item"><div class="day-summary-label">WIN RATE</div><div class="day-summary-value" style="color:var(--blue)">${wr}%</div></div>
+      <div class="day-summary-item"><div class="day-summary-label">PROFIT FACTOR</div><div class="day-summary-value" style="color:var(--amber)">${pf}</div></div>
+      <div class="day-summary-item"><div class="day-summary-label">OPERACIONES</div><div class="day-summary-value" style="color:var(--purple)">${trades.length}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div class="day-summary-item"><div class="day-summary-label">MAYOR GANANCIA</div><div class="day-summary-value" style="color:var(--green);font-size:16px">+$${best.toFixed(2)}</div></div>
+      <div class="day-summary-item"><div class="day-summary-label">MAYOR PÉRDIDA</div><div class="day-summary-value" style="color:var(--red);font-size:16px">$${worst.toFixed(2)}</div></div>
+      <div class="day-summary-item"><div class="day-summary-label">RR PROMEDIO</div><div class="day-summary-value" style="color:var(--blue);font-size:16px">${rrAvg}:1</div></div>
+      <div class="day-summary-item"><div class="day-summary-label">MEJOR INSTRUMENTO</div><div class="day-summary-value" style="color:var(--amber);font-size:14px">${topInstr ? topInstr[0] : '—'}</div></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);font-family:monospace;margin-bottom:10px;letter-spacing:1px;">ÚLTIMAS OPERACIONES</div>
+    ${trades.slice(0,8).map(t => `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;font-family:monospace;">
+        <span style="color:var(--text3)">${fmtDate(t.fecha)}</span>
+        <span class="${t.tipo==='Futuro'?'badge-fut':'badge-cfd'}" style="font-size:9px">${t.instrumento}</span>
+        <span class="${t.direccion==='LONG'?'badge-long':'badge-short'}" style="font-size:9px">${t.direccion}</span>
+        <span style="color:${(t.resultado||0)>=0?'var(--green)':'var(--red)'};font-weight:600">${(t.resultado||0)>=0?'+':''}$${Math.abs(t.resultado||0).toFixed(2)}</span>
+      </div>`).join('')}
+  `;
+  document.getElementById('account-modal-overlay').classList.add('open');
+}
+
+function openEditModal(pageId) {
+  const t = allTrades.find(t => t.pageId === pageId);
+  if (!t) return;
+  editImgCierreBase64 = null;
+
+  document.getElementById('edit-page-id').value = pageId;
+  document.getElementById('edit-modal-title').textContent = 'Editar — ' + t.instrumento + ' ' + fmtDate(t.fecha);
+  document.getElementById('edit-estado').value = t.estado || 'Finalizada';
+  document.getElementById('edit-resultado').value = t.resultado || '';
+  document.getElementById('edit-entrada').value = t.entrada || '';
+  document.getElementById('edit-sl').value = t.sl || '';
+  document.getElementById('edit-tp').value = t.tp || '';
+  document.getElementById('edit-contratos').value = t.contratos || '';
+  document.getElementById('edit-notas').value = t.notas || '';
+
+  const instrSelect = document.getElementById('edit-instrumento');
+  for (let o of instrSelect.options) if (o.value === t.instrumento) { instrSelect.value = o.value; break; }
+  const dirSelect = document.getElementById('edit-direccion');
+  dirSelect.value = t.direccion || 'LONG';
+  const setupSelect = document.getElementById('edit-setup');
+  for (let o of setupSelect.options) if (o.value === t.setup) { setupSelect.value = o.value; break; }
+  const emoSelect = document.getElementById('edit-emocion');
+  for (let o of emoSelect.options) if (o.value === t.emocion) { emoSelect.value = o.value; break; }
+
+  toggleEditResultado();
+  document.getElementById('edit-modal-overlay').classList.add('open');
+}
+
+function openHabitDayDetail(dateStr) {
+  const data = JSON.parse(localStorage.getItem('tj_habits_' + dateStr) || '{}');
+  const survey = JSON.parse(localStorage.getItem('tj_survey_' + dateStr) || '{}');
+  const date = new Date(dateStr);
+  const label = date.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
+  const score = getHabitScore(dateStr);
+
+  const habitsHTML = customHabits.map(h => {
+    const val = data[h.id] || 0;
+    const stars = [1,2,3,4,5].map(s => `<span style="color:${s<=val?'var(--amber)':'var(--bg4)'};font-size:14px;">★</span>`).join('');
+    return `<div class="stat-row">
+      <span class="stat-name">${h.icon} ${h.name}</span>
+      <span>${stars} <span style="font-size:11px;color:var(--text3);font-family:monospace;margin-left:4px;">${val>0?val+'/5':'No registrado'}</span></span>
+    </div>`;
+  }).join('');
+
+  const surveyLabels = ['Ejecución','Seguí el plan','Control emocional','Revenge trading','Valoración global'];
+  const surveyHTML = Object.keys(survey).length ? surveyLabels.map((q, i) =>
+    survey[i] ? `<div class="stat-row"><span class="stat-name">${q}</span><span class="stat-val" style="font-size:11px;color:var(--text2)">${survey[i]}</span></div>` : ''
+  ).join('') : '<div style="color:var(--text3);font-size:12px;font-family:monospace">Sin encuesta registrada</div>';
+
+  const R = 20, C = 2 * Math.PI * R;
+  const ringColor = score >= 1 ? '#00d4a0' : score >= 0.5 ? '#f5a623' : '#4d9fff';
+
+  document.getElementById('habit-day-modal-title').textContent = label.charAt(0).toUpperCase() + label.slice(1);
+  document.getElementById('habit-day-modal-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+      <svg width="60" height="60" viewBox="0 0 60 60">
+        <circle cx="30" cy="30" r="${R}" fill="none" stroke="var(--bg4)" stroke-width="4"/>
+        <circle cx="30" cy="30" r="${R}" fill="none" stroke="${ringColor}" stroke-width="4"
+          stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}"
+          stroke-dashoffset="${(C - score*C).toFixed(1)}"
+          transform="rotate(-90 30 30)"/>
+        <text x="30" y="35" text-anchor="middle" font-size="13" font-weight="bold" fill="${ringColor}">${Math.round(score*100)}%</text>
+      </svg>
+      <div>
+        <div style="font-size:18px;font-weight:800;color:${score>=1?'var(--green)':score>=0.5?'var(--amber)':'var(--red)'}">
+          ${score>=1?'¡Todos los hábitos completados!':score>=0.5?'Buen día':'Día con margen de mejora'}
+        </div>
+        <div style="font-size:12px;color:var(--text3);font-family:monospace;margin-top:3px;">
+          ${Math.round(score*customHabits.length)} / ${customHabits.length} hábitos · ${Math.round(score*100)}% completado
+        </div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:10px;">HÁBITOS</div>
+    ${habitsHTML}
+    <div style="height:1px;background:var(--border);margin:14px 0;"></div>
+    <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:10px;">ENCUESTA POST-SESIÓN</div>
+    ${surveyHTML}
+  `;
+  document.getElementById('habit-day-modal').classList.add('open');
+}
+
+function openImgPreview(src) {
+  document.getElementById('img-preview-full').src = src;
+  document.getElementById('img-preview-overlay').classList.add('open');
+}
+
+function openPmDayDetail(dateStr) {
+  const plan = JSON.parse(localStorage.getItem('tj_plan_' + dateStr) || '{}');
+  const cl = JSON.parse(localStorage.getItem('tj_checklist_' + dateStr) || '{}');
+  const clDone = Object.values(cl).filter(Boolean).length;
+  const date = new Date(dateStr);
+  const label = date.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
+  const pct = Math.round(clDone / CHECKLIST_ITEMS.length * 100);
+  const dayTrades = allTrades.filter(t => (t.fecha||'').slice(0,10) === dateStr);
+  const pnl = dayTrades.reduce((s,t) => s+(t.resultado||0), 0);
+  document.getElementById('day-modal-title').textContent = '📋 ' + label.charAt(0).toUpperCase() + label.slice(1);
+  document.getElementById('day-modal-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div class="day-summary-item"><div class="day-summary-label">CHECKLIST</div><div class="day-summary-value" style="color:${pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--red)'};">${pct}%</div></div>
+      <div class="day-summary-item"><div class="day-summary-label">P&L DEL DÍA</div><div class="day-summary-value" style="color:${pnl>=0?'var(--green)':'var(--red)'}">${pnl>=0?'+':''}$${pnl.toFixed(2)}</div></div>
+    </div>
+    ${plan.sesgo ? `<div class="stat-row"><span class="stat-name">Sesgo</span><span class="stat-val">${plan.sesgo}</span></div>` : ''}
+    ${plan.niveles ? `<div class="stat-row"><span class="stat-name">Niveles clave</span><span class="stat-val" style="font-size:11px;color:var(--text2)">${plan.niveles}</span></div>` : ''}
+    ${plan.no ? `<div class="stat-row"><span class="stat-name">No hacer</span><span class="stat-val" style="font-size:11px;color:var(--text2)">${plan.no}</span></div>` : ''}
+    ${plan.notas ? `<div style="background:var(--bg3);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;color:var(--text2);font-family:monospace;line-height:1.6;">${plan.notas}</div>` : ''}
+    <div style="height:1px;background:var(--border);margin:14px 0;"></div>
+    <div style="font-size:10px;color:var(--text3);font-family:monospace;letter-spacing:1px;margin-bottom:8px;">CHECKLIST (${clDone}/${CHECKLIST_ITEMS.length})</div>
+    ${CHECKLIST_ITEMS.map((item,i) => `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;color:${cl[i]?'var(--green)':'var(--text3)'};">
+      <span>${cl[i]?'✓':'○'}</span><span>${item}</span></div>`).join('')}
+  `;
+  document.getElementById('day-modal-overlay').classList.add('open');
+}
+
+function previewEditImg(input, zoneId, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+  const zone = document.getElementById(zoneId);
+  const reader = new FileReader();
+  reader.onload = e => {
+    editImgCierreBase64 = e.target.result;
+    zone.classList.add('has-image');
+    document.getElementById(previewId).innerHTML = `
+      <img class="img-preview" src="${e.target.result}">
+      <div class="img-remove" onclick="removeEditImg(event)">✕ Quitar imagen</div>`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function quickAsk(msg) {
+  appendAiMsg(msg, 'user');
+  callAi(msg);
+}
+
+function removeEditImg(e) {
+  e.stopPropagation();
+  editImgCierreBase64 = null;
+  document.getElementById('edit-zone-cierre').classList.remove('has-image');
+  document.getElementById('edit-preview-cierre').innerHTML = '<div class="img-upload-icon">📉</div><div class="img-upload-label">Añadir captura de cierre</div>';
+  document.getElementById('edit-img-cierre').value = '';
+}
+
+function removeHabit(id) {
+  customHabits = customHabits.filter(h => h.id !== id);
+  saveCustomHabits();
+  initHabits();
+}
+
+function renderDiaryCalendar() {
+  const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const label = document.getElementById('diary-cal-label');
+  if (label) label.textContent = months[diaryCalMonth] + ' ' + diaryCalYear;
+  const grid = document.getElementById('diary-cal-grid');
+  const header = document.getElementById('diary-cal-header');
+  if (!grid) return;
+  const days = ['L','M','X','J','V','S','D'];
+  header.innerHTML = days.map(d => `<div style="font-size:9px;color:var(--text3);text-align:center;font-family:'DM Mono',monospace;">${d}</div>`).join('');
+  const firstDay = new Date(diaryCalYear, diaryCalMonth, 1).getDay();
+  const offset = firstDay === 0 ? 6 : firstDay - 1;
+  const daysInMonth = new Date(diaryCalYear, diaryCalMonth + 1, 0).getDate();
+  const today = new Date();
+  let html = '';
+  for (let i = 0; i < offset; i++) html += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = diaryCalYear + '-' + String(diaryCalMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const hasEntry = !!diaryEntries[dateStr];
+    const isToday = today.getDate()===d && today.getMonth()===diaryCalMonth && today.getFullYear()===diaryCalYear;
+    const emo = hasEntry && diaryEntries[dateStr].emociones?.[0] ? diaryEntries[dateStr].emociones[0].split(' ')[0] : '';
+    html += `<div onclick="${hasEntry ? `loadDiaryForDate('${dateStr}')` : `document.getElementById('diario-fecha').value='${dateStr}';loadDiaryEntry();`}"
+      style="aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;
+      background:${hasEntry ? 'var(--purple-bg)' : 'var(--bg3)'};
+      border:1px solid ${isToday ? 'var(--green)' : hasEntry ? 'rgba(167,139,250,0.3)' : 'var(--border)'};
+      font-size:${emo ? '14px' : '10px'};gap:1px;transition:transform 0.1s;"
+      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+      ${emo ? `<span>${emo}</span>` : ''}
+      <span style="font-size:9px;color:${isToday?'var(--green)':hasEntry?'var(--purple)':'var(--text3)'};font-family:monospace;">${d}</span>
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function renderDiaryRecent() {
+  const container = document.getElementById('diary-recent-list');
+  if (!container) return;
+  const sorted = Object.entries(diaryEntries).sort((a,b) => b[0].localeCompare(a[0])).slice(0,5);
+  if (!sorted.length) { container.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace;">Sin entradas aún</div>'; return; }
+  container.innerHTML = sorted.map(([date, e]) => `
+    <div onclick="loadDiaryForDate('${date}')" style="padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+        <span style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;">${new Date(date+'T12:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'short'})}</span>
+        <span style="font-size:12px;">${(e.emociones||[]).slice(0,2).map(em=>em.split(' ')[0]).join('')}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.texto ? e.texto.slice(0,60) + '...' : e.leccion || 'Sin texto'}</div>
+    </div>`).join('');
+}
+
+function renderDiaryStats() {
+  const entries = Object.values(diaryEntries);
+  const totalEl = document.getElementById('diary-stat-total');
+  const streakEl = document.getElementById('diary-stat-streak');
+  const emoEl = document.getElementById('diary-stat-emo');
+  if (!totalEl) return;
+  totalEl.textContent = entries.length;
+  // Streak
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const ds = d.toISOString().slice(0,10);
+    if (diaryEntries[ds]) streak++;
+    else if (i > 0) break;
+  }
+  streakEl.textContent = streak + ' días';
+  // Most common emotion
+  const emoCount = {};
+  entries.forEach(e => (e.emociones||[]).forEach(em => { emoCount[em] = (emoCount[em]||0)+1; }));
+  const topEmo = Object.entries(emoCount).sort((a,b)=>b[1]-a[1])[0];
+  emoEl.textContent = topEmo ? topEmo[0] : '—';
+}
+
+function renderSessionStats() {
+  const sessions = ['Pre-market','Apertura NY','Media sesión','Cierre','Asia','Londres'];
+  const container = document.getElementById('session-stats');
+  if (!allTrades.length) return;
+
+  const html = sessions.map(ses => {
+    const trades = allTrades.filter(t => t.sesion === ses || t.emocion === ses);
+    if (!trades.length) return '';
+    const pnl = trades.reduce((s,t) => s + (t.resultado||0), 0);
+    const wins = trades.filter(t => (t.resultado||0) > 0).length;
+    const wr = (wins/trades.length*100).toFixed(0);
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;">
+      <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:6px;">${ses.toUpperCase()}</div>
+      <div style="font-size:16px;font-weight:700;color:${pnl>=0?'var(--green)':'var(--red)'}">${pnl>=0?'+':''}$${pnl.toFixed(0)}</div>
+      <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:3px;">${trades.length} ops · ${wr}% WR</div>
+    </div>`;
+  }).filter(Boolean).join('');
+
+  container.innerHTML = html || '<div style="color:var(--text3);font-size:12px;font-family:monospace;grid-column:1/-1;">Sin datos de sesión suficientes</div>';
+}
+
+function resetChecklist() {
+  checklistState = {};
+  localStorage.setItem('tj_checklist_' + new Date().toISOString().slice(0,10), '{}');
+  initChecklist();
+}
+
+function saveCustomHabits() { localStorage.setItem('tj_custom_habits', JSON.stringify(customHabits)); }
+
+function saveDiaryEntry() {
+  const date = document.getElementById('diario-fecha').value;
+  const entry = {
+    fecha: date,
+    texto: document.getElementById('diario-texto').value,
+    leccion: document.getElementById('diario-leccion').value,
+    energia: parseInt(document.getElementById('diario-energia').value),
+    emociones: [...diarySelectedEmos],
+    savedAt: new Date().toISOString(),
+  };
+  diaryEntries[date] = entry;
+  localStorage.setItem('tj_diary', JSON.stringify(diaryEntries));
+  const st = document.getElementById('diario-save-status');
+  st.textContent = '✓ Guardado localmente';
+  renderDiaryCalendar();
+  renderDiaryRecent();
+  renderDiaryStats();
+  saveDiaryToNotion(date, entry).then(() => {
+    st.textContent = '✓ Guardado en Notion';
+    setTimeout(() => st.textContent = '', 3000);
+  }).catch(() => {
+    setTimeout(() => st.textContent = '', 3000);
+  });
+}
+
+function saveHabits() {
+  const today = new Date().toISOString().slice(0,10);
+  localStorage.setItem('tj_habits_' + today, JSON.stringify(habitsToday));
+  saveHabitsToNotion(today).catch(e => console.error('Habit sync error:', e));
+}
+
+function savePlan() {
+  const today = new Date().toISOString().slice(0,10);
+  const plan = {
+    sesgo: document.getElementById('plan-sesgo').value,
+    maxops: document.getElementById('plan-maxops').value,
+    niveles: document.getElementById('plan-niveles').value,
+    no: document.getElementById('plan-no').value,
+    notas: document.getElementById('plan-notas').value,
+    date: today
+  };
+  localStorage.setItem('tj_plan_' + today, JSON.stringify(plan));
+  const s = document.getElementById('plan-saved');
+  s.textContent = '¡Guardando...';
+  renderPmCalendar();
+  savePlanToNotion(today, plan).then(() => {
+    s.textContent = '¡Guardado en Notion!';
+    setTimeout(() => s.textContent = '', 2500);
+  }).catch(() => {
+    s.textContent = '¡Guardado localmente!';
+    setTimeout(() => s.textContent = '', 2500);
+  });
+}
+
+function saveSurvey() {
+  const today = new Date().toISOString().slice(0,10);
+  localStorage.setItem('tj_survey_' + today, JSON.stringify(surveyAnswers));
+  toast('Encuesta guardada ✓', 'success');
+  renderConsistencyScore();
+  saveHabitsToNotion(today).catch(e => console.error('Survey sync error:', e));
+}
+
+function selectSurvey(qi, val, btn) {
+  surveyAnswers[qi] = val;
+  btn.closest('.survey-options').querySelectorAll('.survey-option').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+async function sendAiMessage() {
+  const input = document.getElementById('ai-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  appendAiMsg(msg, 'user');
+  await callAi(msg);
+}
+
+function setHabitRating(id, val) {
+  habitsToday[id] = val;
+  saveHabits();
+  initHabits();
+}
+
+function showTyping() {
+  const chat = document.getElementById('ai-chat');
+  chat.innerHTML += `<div class="ai-msg" id="ai-typing">
+    <div class="ai-avatar bot">🤖</div>
+    <div class="ai-bubble bot"><div class="ai-typing"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div></div>
+  </div>`;
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function toggleCheck(i) {
+  checklistState[i] = !checklistState[i];
+  localStorage.setItem('tj_checklist_' + new Date().toISOString().slice(0,10), JSON.stringify(checklistState));
+  initChecklist();
+}
+
+function toggleDiaryEmo(btn, emo) {
+  const idx = diarySelectedEmos.indexOf(emo);
+  if (idx > -1) { diarySelectedEmos.splice(idx,1); btn.classList.remove('selected'); }
+  else { diarySelectedEmos.push(emo); btn.classList.add('selected'); }
+}
+
+function toggleEditResultado() {
+  const estado = document.getElementById('edit-estado').value;
+  document.getElementById('edit-resultado-wrap').style.display = estado === 'Pendiente' ? 'none' : 'flex';
+}
+
+function toggleHabit(id) {
+  habitsToday[id] = habitsToday[id] ? 0 : 3;
+  saveHabits();
+  initHabits();
+}
+
+function toggleResultadoField() {
+  const estado = document.getElementById('f-estado').value;
+  document.getElementById('resultado-field').style.display = estado === 'Pendiente' ? 'none' : 'flex';
+}
+
+function updateAiContext() {
+  const trades = allTrades;
+  const wins = trades.filter(t=>(t.resultado||0)>0);
+  const pnl = trades.reduce((s,t)=>s+(t.resultado||0),0);
+  const wr = trades.length ? (wins.length/trades.length*100).toFixed(1) : '—';
+  const sessions = {};
+  trades.forEach(t => {
+    const s = t.sesion || 'Sin sesión';
+    if (!sessions[s]) sessions[s] = {pnl:0};
+    sessions[s].pnl += (t.resultado||0);
+  });
+  const bestS = Object.entries(sessions).sort((a,b)=>b[1].pnl-a[1].pnl)[0];
+  document.getElementById('ai-ops-count').textContent = trades.length;
+  document.getElementById('ai-wr').textContent = wr + '%';
+  document.getElementById('ai-pnl').textContent = (pnl>=0?'+':'') + '$' + pnl.toFixed(2);
+  document.getElementById('ai-best-session').textContent = bestS ? bestS[0] : '—';
+}
+
+function updateChecklistProgress() {
+  const done = Object.values(checklistState).filter(Boolean).length;
+  const total = CHECKLIST_ITEMS.length;
+  const pct = Math.round(done / total * 100);
+  document.getElementById('checklist-bar').style.width = pct + '%';
+  document.getElementById('checklist-pct').textContent = pct + '%';
+}
+
+function updateDiarioFechaLabel() {
+  const val = document.getElementById('diario-fecha').value;
+  const d = new Date(val + 'T12:00:00');
+  document.getElementById('diario-fecha-label').textContent =
+    d.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
+}
+
 </script>
 
 
