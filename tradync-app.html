@@ -552,7 +552,7 @@
   @media (max-width: 480px) {
     .metrics-grid { grid-template-columns: 1fr 1fr !important; }
     .nav-item span:not(.nav-icon) { display: none; }
-    .header-actions .btn:not(#sync-btn):not(#logout-btn):not(#theme-btn) { display: none; }
+    .header-actions .btn:not(#logout-btn):not(#theme-btn) { display: none; }
   }
 
   /* ── RESPONSIVE MOBILE ──────────────────────────────────────── */
@@ -585,8 +585,7 @@
     .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
     /* HIDE less important header buttons on mobile */
-    .header-actions .btn:not(#sync-btn):not(#theme-btn):not(#logout-btn) { display: none !important; }
-    #sync-btn { font-size: 11px !important; padding: 6px 10px !important; }
+    .header-actions .btn:not(#theme-btn):not(#logout-btn) { display: none !important; }
     #theme-btn { font-size: 14px !important; padding: 6px 8px !important; }
     #logout-btn { font-size: 11px !important; padding: 6px 10px !important; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -752,7 +751,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn" onclick="loadTrades()" id="sync-btn" title="Sincronizar" style="font-size:13px;padding:8px 12px;">↻ Sync</button>
+        
         <button class="btn" id="theme-btn" onclick="toggleTheme()" style="font-size:16px;padding:8px 10px;" title="Cambiar tema">🌙</button>
         <button class="btn" onclick="openModal()" style="font-size:13px;padding:8px 12px;">+ Cuenta</button>
         <button class="btn btn-primary" onclick="goTab('nueva', document.querySelector('[onclick*=nueva]'))" style="font-size:13px;padding:8px 14px;">+ Operación</button>
@@ -1712,8 +1711,7 @@ function setStatus(type, text) {
 async function loadTrades() {
   if (!requireAuth()) return;
   setStatus('syncing', 'Cargando...');
-  const btn = document.getElementById('sync-btn');
-  if (btn) btn.disabled = true;
+
   try {
     const { data, error } = await sb
       .from('operaciones').select('*')
@@ -1728,7 +1726,7 @@ async function loadTrades() {
     setStatus('disconnected', 'Error');
     toast('Error: ' + e.message, 'error');
   }
-  if (btn) btn.disabled = false;
+
 }
 
 function parseSupabaseRow(row) {
@@ -2044,6 +2042,24 @@ async function doInlineLogin() {
     await loadAccountsFromNotion().catch(()=>{});
     await loadConfigFromNotion().catch(()=>{});
   }
+}
+
+// Auto-sync every 5 minutes silently
+function startAutoSync() {
+  setInterval(async () => {
+    if (!currentUser) return;
+    try {
+      const { data, error } = await sb
+        .from('operaciones').select('*')
+        .eq('user_id', currentUser.id)
+        .order('fecha', { ascending: false }).limit(500);
+      if (!error && data) {
+        allTrades = data.map(parseSupabaseRow);
+        renderAll();
+        setStatus('connected', 'Sync · ' + new Date().toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'}));
+      }
+    } catch(e) {}
+  }, 5 * 60 * 1000); // every 5 min
 }
 
 function updateUserUI(user) {
@@ -4158,6 +4174,7 @@ window.addEventListener('load', async () => {
   } else {
     currentUser = session.user;
     updateUserUI(session.user);
+    startAutoSync();
     setStatus('syncing', 'Cargando...');
     await loadTrades();
     const today = new Date().toISOString().slice(0,10);
