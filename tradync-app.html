@@ -69,7 +69,7 @@
   .notion-status-text { font-size: 12px; color: var(--text2); }
 
   /* MAIN */
-  .main { margin-left: 220px; flex: 1; padding: 28px 32px; min-width: 0; overflow-x: hidden; max-width: calc(100vw - 220px); }
+  .main { margin-left: 220px; flex: 1; padding: 28px 32px 60px; min-width: 0; overflow-x: hidden; max-width: calc(100vw - 220px); box-sizing: border-box; }
   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
   .header-left h1 { font-size: 26px; font-weight: 800; letter-spacing: -1px; }
   .header-left h1 span { color: var(--green); }
@@ -88,7 +88,7 @@
   .tabs { display: flex; gap: 4px; margin-bottom: 28px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 4px; width: fit-content; }
   .tab-btn { padding: 7px 18px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text2); font-family: 'Syne', sans-serif; transition: all 0.15s; }
   .tab-btn.active { background: var(--bg4); color: var(--text); }
-  .tab-panel { display: none; }
+  .tab-panel { display: none; width: 100%; max-width: 100%; }
   .tab-panel.active { display: block; }
 
   /* CARDS */
@@ -452,6 +452,29 @@
   .pm-cal-pct { font-size:9px; opacity:0.8; }
 
 
+
+
+  /* ── PANEL LAYOUT FIXES ─────────────────────────────────────── */
+  .tab-panel.active { display: block; width: 100%; }
+  .tab-panel > div[style*="grid"] { max-width: 100%; }
+  .tab-panel > .card { max-width: 100%; }
+  .section-title { margin-bottom: 20px; }
+  
+  /* Fix inline grid styles overflowing on medium screens */
+  @media (max-width: 1200px) {
+    .tab-panel > div[style*="grid-template-columns:1fr 1fr 1fr"] { 
+      grid-template-columns: 1fr 1fr !important; 
+    }
+    .tab-panel > div[style*="grid-template-columns:repeat(3"] { 
+      grid-template-columns: 1fr 1fr !important; 
+    }
+  }
+  @media (max-width: 900px) {
+    .tab-panel > div[style*="grid-template-columns"] { 
+      grid-template-columns: 1fr !important; 
+    }
+    .main { padding: 20px 20px 60px; }
+  }
 
   /* ── OVERFLOW FIX ────────────────────────────────────────────── */
   *, *::before, *::after { box-sizing: border-box; }
@@ -1268,7 +1291,7 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
         <div class="card">
           <div class="card-title">P&L por instrumento</div>
-          <div id="instr-stats"></div>
+          <div id="stats-instr-bars"></div>
         </div>
         <div class="card">
           <div class="card-title">Comparativa mensual</div>
@@ -2058,8 +2081,9 @@ function updateUserUI(user) {
     const logoutBtn = document.createElement('button');
     logoutBtn.id = 'logout-btn';
     logoutBtn.className = 'btn';
-    logoutBtn.style.cssText = 'font-size:12px;cursor:pointer;white-space:nowrap;padding:8px 12px;';
-    logoutBtn.textContent = name + ' · Cerrar sesión';
+    logoutBtn.style.cssText = 'font-size:12px;cursor:pointer;white-space:nowrap;padding:8px 14px;display:flex;align-items:center;gap:6px;';
+    logoutBtn.textContent = 'Cerrar sesión';
+    logoutBtn.title = 'Conectado como ' + (user.email || '');
     logoutBtn.title = 'Cerrar sesión';
     logoutBtn.addEventListener('click', async function() {
       this.textContent = 'Cerrando sesión...';
@@ -2226,6 +2250,7 @@ function renderAll() {
   renderEquity();
   renderDashboardCharts();
   renderPsych();
+  renderPsychCharts();
   renderAccounts();
   renderCalendar();
   renderRiskPanel();
@@ -2236,6 +2261,7 @@ function renderAll() {
   renderHabitCalendar();
   renderPmCalendar();
   updateAiContext();
+  populateOpsFilters();
   initDiario();
   const savedKey = localStorage.getItem('tj_ai_key');
   if (savedKey) {
@@ -3156,6 +3182,7 @@ function renderConsistencyScore() {
 // ─── ESTADÍSTICAS AVANZADAS ───────────────────────────────────────
 function renderInstrumentStats() {
   const container = document.getElementById('instr-stats');
+  const container2 = document.getElementById('stats-instr-bars');
   if (!allTrades.length) { container.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace">Sin datos</div>'; return; }
   const instrMap = {};
   allTrades.forEach(t => {
@@ -4253,8 +4280,6 @@ window.addEventListener('load', async () => {
       saveConfigToNotion('riskSettings', riskSettings).catch(()=>{});
     });
   });
-  setStatus('disconnected', 'Proxy necesario — ver guía');
-  toast('Abre el README para configurar el proxy gratuito', 'info');
 });
 
 // ─── DASHBOARD & ACCOUNT CHARTS ──────────────────────────────────
