@@ -1201,7 +1201,7 @@
     <div class="tab-panel" id="panel-estadisticas">
       <div class="section-title">Análisis avanzado</div>
 
-      <!-- ROW 1: P&L instrumento + Mensual + Proyección -->
+      <!-- ROW 1: P&L instrumento + Mensual -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
         <div class="card">
           <div class="card-title">P&L por instrumento</div>
@@ -1257,32 +1257,7 @@
         </div>
       </div>
 
-      <!-- ROW 5: KPIs TABLE + PROJECTION -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-        <div class="card">
-          <div class="card-title">KPIs completos</div>
-          <div id="stats-kpis-table"></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Proyección de cuenta <span class="card-title-badge">Basada en historial</span></div>
-          <div style="display:grid;grid-template-columns:160px 1fr;gap:12px;align-items:start;margin-top:8px;">
-            <div>
-              <div class="form-field" style="margin-bottom:10px;">
-                <label class="form-label">Capital ($)</label>
-                <input class="form-input" type="number" id="proj-capital" placeholder="10000" oninput="renderProjection()">
-              </div>
-              <div class="form-field" style="margin-bottom:10px;">
-                <label class="form-label">Meses</label>
-                <input class="form-input" type="number" id="proj-meses" value="12" min="1" max="36" oninput="renderProjection()">
-              </div>
-              <div id="proj-summary" style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"></div>
-            </div>
-            <div style="position:relative;height:140px;"><canvas id="stats-proj-chart"></canvas></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ROW 6: Instr detailed bars -->
+            <!-- ROW 6: Instr detailed bars -->
       <div class="card" style="margin-bottom:16px;">
         <div class="card-title">Detalle por instrumento — barras de rendimiento</div>
         <div id="instr-stats"></div>
@@ -1300,25 +1275,7 @@
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:18px;">
-        <div class="card-title">Proyección de crecimiento de cuenta <span class="card-title-badge">Basada en tu historial</span></div>
-        <div style="display:grid;grid-template-columns:200px 1fr;gap:18px;align-items:start;">
-          <div>
-            <div class="form-field" style="margin-bottom:12px;">
-              <label class="form-label">Capital actual ($)</label>
-              <input class="form-input" type="number" id="proj-capital" placeholder="10000" oninput="renderProjection()">
-            </div>
-            <div class="form-field" style="margin-bottom:12px;">
-              <label class="form-label">Meses a proyectar</label>
-              <input class="form-input" type="number" id="proj-meses" value="12" min="1" max="36" oninput="renderProjection()">
-            </div>
-            <div id="proj-summary"></div>
-          </div>
-          <svg class="proj-svg" id="proj-svg" viewBox="0 0 400 160" preserveAspectRatio="none">
-            <text x="200" y="85" text-anchor="middle" fill="#555870" font-size="11" font-family="monospace">Introduce tu capital para proyectar</text>
-          </svg>
-        </div>
-      </div>
+      
     </div>
 
     <!-- CUENTAS -->
@@ -2096,14 +2053,15 @@ function updateUserUI(user) {
     const logoutBtn = document.createElement('button');
     logoutBtn.id = 'logout-btn';
     logoutBtn.className = 'btn';
-    logoutBtn.style.cssText = 'font-size:12px;cursor:pointer;white-space:nowrap;padding:8px 14px;display:flex;align-items:center;gap:6px;';
-    logoutBtn.textContent = 'Cerrar sesión';
-    logoutBtn.title = 'Conectado como ' + (user.email || '');
-    logoutBtn.title = 'Cerrar sesión';
-    logoutBtn.addEventListener('click', async function() {
-      this.textContent = 'Cerrando sesión...';
+    logoutBtn.setAttribute('style', 'font-size:12px;cursor:pointer;padding:8px 14px;pointer-events:all;position:relative;z-index:10;');
+    logoutBtn.textContent = '🚪 Cerrar sesión';
+    logoutBtn.type = 'button';
+    logoutBtn.addEventListener('click', async function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      this.textContent = 'Cerrando...';
       this.disabled = true;
-      await sb.auth.signOut();
+      try { await sb.auth.signOut(); } catch(err) {}
       currentUser = null;
       allTrades = [];
       window.location.replace(
@@ -3251,49 +3209,6 @@ function renderMonthCompare() {
   ).join('');
 }
 
-function renderProjection() {
-  const capital = parseFloat(document.getElementById('proj-capital').value);
-  const meses = parseInt(document.getElementById('proj-meses').value) || 12;
-  if (!capital || !allTrades.length) return;
-
-  const monthMap = {};
-  allTrades.forEach(t => {
-    if (!t.fecha) return;
-    const key = t.fecha.slice(0,7);
-    if (!monthMap[key]) monthMap[key] = 0;
-    monthMap[key] += (t.resultado||0);
-  });
-  const monthVals = Object.values(monthMap);
-  const avgMonthly = monthVals.length ? monthVals.reduce((a,b)=>a+b,0)/monthVals.length : 0;
-  const avgPct = capital > 0 ? avgMonthly/capital : 0;
-
-  const points = [capital];
-  for (let i = 1; i <= meses; i++) points.push(points[i-1] * (1 + avgPct));
-
-  const minV = Math.min(...points), maxV = Math.max(...points);
-  const range = maxV - minV || 1;
-  const W = 400, H = 140, padX = 10, padY = 10;
-  const xs = points.map((_, i) => padX + i/(points.length-1)*(W-padX*2));
-  const ys = points.map(p => H - padY - (p-minV)/range*(H-padY*2));
-  const d = xs.map((x,i) => (i===0?'M':'L')+x.toFixed(1)+','+ys[i].toFixed(1)).join(' ');
-  const fill = d + ` L${xs[xs.length-1]},${H} L${xs[0]},${H} Z`;
-
-  document.getElementById('proj-svg').innerHTML = `
-    <defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#00d4a0" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="#00d4a0" stop-opacity="0"/>
-    </linearGradient></defs>
-    <path d="${fill}" fill="url(#pg)"/>
-    <path d="${d}" fill="none" stroke="#00d4a0" stroke-width="2" stroke-linejoin="round"/>
-    <text x="${xs[xs.length-1]}" y="${ys[ys.length-1]-8}" text-anchor="end" fill="#00d4a0" font-size="11" font-family="monospace">$${points[points.length-1].toFixed(0)}</text>`;
-
-  const finalCapital = points[points.length-1];
-  const growth = ((finalCapital - capital) / capital * 100);
-  document.getElementById('proj-summary').innerHTML = `
-    <div class="stat-row"><span class="stat-name">Promedio/mes</span><span class="stat-val" style="color:${avgMonthly>=0?'var(--green)':'var(--red)'}">${avgMonthly>=0?'+':''}$${avgMonthly.toFixed(0)}</span></div>
-    <div class="stat-row"><span class="stat-name">En ${meses} meses</span><span class="stat-val" style="color:var(--green)">$${finalCapital.toFixed(0)}</span></div>
-    <div class="stat-row"><span class="stat-name">Crecimiento</span><span class="stat-val" style="color:${growth>=0?'var(--green)':'var(--red)'}">${growth>=0?'+':''}${growth.toFixed(1)}%</span></div>`;
-}
 
 // ─── ACCOUNT DETAIL ───────────────────────────────────────────────
 function openAccountDetail(id) {
@@ -4833,40 +4748,6 @@ function renderStatsCharts() {
   renderProjection();
 }
 
-function renderProjection() {
-  const capital = parseFloat(document.getElementById('proj-capital')?.value) || 0;
-  const months = parseInt(document.getElementById('proj-meses')?.value) || 12;
-  if (!capital || !allTrades.length) return;
-  const finTrades = allTrades.filter(t=>t.resultado!==null&&t.estado!=='Pendiente');
-  if (!finTrades.length) return;
-  const totalPnl = finTrades.reduce((s,t)=>s+(t.resultado||0),0);
-  const days = [...new Set(finTrades.map(t=>(t.fecha||'').slice(0,10)))].length;
-  const avgPerDay = days > 0 ? totalPnl/days : 0;
-  const avgPerMonth = avgPerDay * 20;
-  const th = getChartTheme();
-  const projPts = [capital];
-  for(let i=1;i<=months;i++) projPts.push(parseFloat((capital + avgPerMonth*i).toFixed(2)));
-  const projEl = document.getElementById('proj-summary');
-  if(projEl) {
-    const finalVal = projPts[projPts.length-1];
-    const gain = finalVal - capital;
-    const gainColor = gain >= 0 ? 'var(--green)' : 'var(--red)';
-    projEl.innerHTML = '<div style="font-size:11px;color:var(--text3);font-family:monospace;">' +
-      '<div>Final: <span style="color:' + gainColor + ';font-weight:600">' + (gain>=0?'+':'') + '$' + gain.toFixed(0) + '</span></div>' +
-      '<div style="margin-top:4px;">Media/mes: <span style="color:var(--amber)">' + (avgPerMonth>=0?'+':'') + '$' + avgPerMonth.toFixed(0) + '</span></div>' +
-      '</div>';
-  }
-  if(statsProjInst) statsProjInst.destroy();
-  const color = (projPts[projPts.length-1]-capital)>=0?'#00d4a0':'#ff4d6d';
-  statsProjInst = mkChart('stats-proj-chart', {type:'line',
-    data:{labels:Array.from({length:months+1},(_,i)=>i===0?'Hoy':'M'+i),
-      datasets:[{data:projPts,borderColor:color,backgroundColor:color==='#00d4a0'?'rgba(0,212,160,0.08)':'rgba(255,77,109,0.08)',
-        borderWidth:2,pointRadius:0,tension:0.4,fill:true}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
-      tooltip:{backgroundColor:th.bg,bodyColor:th.text,callbacks:{label:ctx=>'$'+ctx.raw.toFixed(0)}}},
-      scales:{x:{grid:{display:false},ticks:{color:th.tick,font:{size:9}}},
-        y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},callback:v=>'$'+v},border:{display:false}}}}});
-}
 
 </script>
 
