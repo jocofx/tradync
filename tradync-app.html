@@ -2696,11 +2696,7 @@ function renderPsych() {
 }
 
 // Notion status
-function setStatus(type, text) {
-  const el = document.getElementById('notion-status');
-  el.className = 'notion-status ' + type;
-  document.getElementById('notion-status-text').textContent = text;
-}
+// setStatus: handled by Supabase version above
 
 // ─── CONTROL DE RIESGO ───────────────────────────────────────────
 function updateRiskConfig() {
