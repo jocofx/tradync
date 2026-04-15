@@ -2360,7 +2360,21 @@ const PAGE_TITLES = {
 };
 
 function goTab(id, el) {
-  document.querySelectorAll('
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+  if (el) el.classList.add('active');
+
+  // Update page title
+  const titleEl = document.getElementById('page-title');
+  if (titleEl && PAGE_TITLES[id]) {
+    const title = PAGE_TITLES[id];
+    const parts = title.split(' ');
+    titleEl.innerHTML = parts.length > 1
+      ? parts[0] + ' <span>' + parts.slice(1).join(' ') + '</span>'
+      : '<span>' + title + '</span>';
+  }
 
   // Refresh risk inputs when navigating to riesgo
   if (id === 'riesgo') {
@@ -2373,14 +2387,10 @@ function goTab(id, el) {
     if (ob) ob.value = riskSettings.objetivo || '';
     if (rp) rp.value = riskSettings.riskPct || 1;
   }
-  // Render stats charts when navigating to estadisticas
-  if (id === 'estadisticas') setTimeout(renderStatsCharts, 50);
-  // Render ops charts when navigating to operaciones
-  if (id === 'operaciones') setTimeout(renderOpsCharts, 50);
-  // Render account charts when navigating to cuentas
-  if (id === 'cuentas') setTimeout(renderAccountCharts, 50);
-  // Render psych charts when navigating to psicologia
-  if (id === 'psicologia') setTimeout(renderPsychCharts, 50);
+  if (id === 'estadisticas') setTimeout(() => { try { renderStatsCharts(); } catch(e){} }, 50);
+  if (id === 'operaciones') setTimeout(() => { try { renderOpsCharts(); } catch(e){} }, 50);
+  if (id === 'cuentas') setTimeout(() => { try { renderAccountCharts(); } catch(e){} }, 50);
+  if (id === 'psicologia') setTimeout(() => { try { renderPsychCharts(); } catch(e){} }, 50);
 }
 
 // Toggle tag
