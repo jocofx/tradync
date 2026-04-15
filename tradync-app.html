@@ -912,13 +912,13 @@
     </nav>
 
     <!-- NOTION STATUS -->
-    <div id="notion-status" class="notion-status disconnected" style="margin-top:auto;">
-      <div class="notion-status-label">SYNC</div>
-      <div class="notion-status-text" id="notion-status-text">Conectando...</div>
-      <div class="parent-input-wrap">
-        <input id="parent-page-input" type="text" placeholder="URL página padre Notion"
-          style="font-size:10px;padding:5px 8px;border-radius:6px;border:1px solid var(--border2);background:rgba(255,255,255,0.05);color:var(--text2);font-family:monospace;width:100%;">
-        <button onclick="setParentPage()" style="font-size:10px;padding:5px;border-radius:6px;border:1px solid rgba(0,212,160,0.3);background:rgba(0,212,160,0.08);color:var(--green);cursor:pointer;font-family:monospace;width:100%;">Guardar página</button>
+    
+    <!-- USER INFO -->
+    <div id="sidebar-user-info" style="padding:12px 16px;border-top:1px solid var(--border);margin-top:auto;display:flex;align-items:center;gap:10px;">
+      <div style="width:30px;height:30px;border-radius:8px;background:var(--green-bg);border:1px solid rgba(0,212,160,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">👤</div>
+      <div style="min-width:0;flex:1;">
+        <div id="sidebar-user-name" style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+        <div id="sidebar-user-email" style="font-size:10px;color:var(--text3);font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
       </div>
     </div>
   </aside>
@@ -1101,165 +1101,181 @@
 
     <!-- NUEVA OPERACIÓN -->
     <div class="tab-panel" id="panel-nueva">
-      <div class="section-title">Registrar operación</div>
-      <div class="card" style="max-width:680px;">
-        <div class="card-title">Nueva operación → se guardará en Notion</div>
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;">
 
-        <div class="form-grid">
-          <div class="form-field">
-            <label class="form-label">Instrumento</label>
-            <select class="form-select" id="f-instrumento">
-              <option>MES</option><option>MNQ</option><option>ES</option><option>NQ</option>
-              <option>GC (Oro)</option><option>CL (Crudo)</option><option>EUR/USD</option>
-              <option>GBP/USD</option><option>US30</option><option>Otro</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Tipo</label>
-            <select class="form-select" id="f-tipo">
-              <option>Futuro</option><option>CFD</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Dirección</label>
-            <select class="form-select" id="f-direccion">
-              <option>LONG</option><option>SHORT</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Fecha y hora</label>
-            <input class="form-input" type="datetime-local" id="f-fecha">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Precio entrada</label>
-            <input class="form-input" type="number" id="f-entrada" placeholder="5240.25" step="0.01">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Stop Loss</label>
-            <input class="form-input" type="number" id="f-sl" placeholder="5232.00" step="0.01">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Take Profit</label>
-            <input class="form-input" type="number" id="f-tp" placeholder="5260.00" step="0.01">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Contratos / Lotes</label>
-            <input class="form-input" type="number" id="f-contratos" placeholder="1" min="1" value="1">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Estado</label>
-            <select class="form-select" id="f-estado" onchange="toggleResultadoField()">
-              <option value="Pendiente">🟡 Pendiente (operación abierta)</option>
-              <option value="Finalizada">✅ Finalizada</option>
-            </select>
-          </div>
-          <div class="form-field" id="resultado-field">
-            <label class="form-label">Resultado ($)</label>
-            <input class="form-input" type="number" id="f-resultado" placeholder="+150.00" step="0.01">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Setup / Estrategia</label>
-            <select class="form-select" id="f-setup">
-              <option>Breakout</option><option>Reversión</option><option>Tendencia</option>
-              <option>Soporte/Resistencia</option><option>Order Flow</option>
-              <option>SMC / ICT</option><option>Scalping</option><option>Otro</option>
-            </select>
-          </div>
-        </div>
+        <!-- LEFT: MAIN FORM -->
+        <div class="card">
+          <div class="card-title">Datos de la operación</div>
 
-        <div style="height:1px;background:var(--border);margin:16px 0;"></div>
-        <div class="section-title">Psicología</div>
-
-        <div class="form-grid">
-          <div class="form-field">
-            <label class="form-label">Estado emocional</label>
-            <select class="form-select" id="f-emocion">
-              <option>😌 Calmado</option><option>💪 Enfocado</option>
-              <option>😤 Ansioso</option><option>😰 Con miedo</option>
-              <option>🤑 Eufórico</option><option>😞 Frustrado</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Sesión</label>
-            <select class="form-select" id="f-sesion">
-              <option>Pre-market</option><option>Apertura NY</option>
-              <option>Media sesión</option><option>Cierre</option>
-              <option>Asia</option><option>Londres</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Disciplina (1-10): <span id="disc-val">7</span></label>
-            <input type="range" min="1" max="10" value="7" id="f-disciplina" oninput="document.getElementById('disc-val').textContent=this.value" style="width:100%;accent-color:var(--green);">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Control impulsos (1-10): <span id="imp-val">7</span></label>
-            <input type="range" min="1" max="10" value="7" id="f-impulsos" oninput="document.getElementById('imp-val').textContent=this.value" style="width:100%;accent-color:var(--green);">
-          </div>
-        </div>
-
-        <div class="form-field" style="margin-bottom:14px;">
-          <label class="form-label" style="margin-bottom:8px;">Errores psicológicos</label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <span class="tag revenge" onclick="toggleTag(this)">Revenge trading</span>
-            <span class="tag fomo" onclick="toggleTag(this)">FOMO</span>
-            <span class="tag overtrading" onclick="toggleTag(this)">Overtrading</span>
-            <span class="tag neutral" onclick="toggleTag(this)">Mover SL</span>
-            <span class="tag neutral" onclick="toggleTag(this)">Cerrar antes de TP</span>
-            <span class="tag discipline" onclick="toggleTag(this)">Seguí el plan ✓</span>
-          </div>
-        </div>
-
-        <div class="form-field" style="margin-bottom:14px; grid-column: 1 / -1;">
-          <label class="form-label">Cuenta</label>
-          <select class="form-select" id="f-cuenta">
-            <option value="">— Sin cuenta asignada —</option>
-          </select>
-        </div>
-
-        <div style="height:1px;background:var(--border);margin:4px 0 16px; grid-column: 1 / -1;"></div>
-        <div class="section-title" style="grid-column: 1 / -1;">Capturas del gráfico</div>
-
-        <div class="form-field" style="grid-column: 1 / -1;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div>
-              <label class="form-label" style="margin-bottom:8px;display:block;">Apertura de la operación</label>
-              <div class="img-upload-zone" id="zone-apertura" onclick="document.getElementById('img-apertura').click()">
-                <input type="file" id="img-apertura" accept="image/*" style="display:none" onchange="previewImg(this,'zone-apertura','preview-apertura')">
-                <div id="preview-apertura-wrap">
-                  <div class="img-upload-icon">📈</div>
-                  <div class="img-upload-label">Haz clic para subir captura</div>
-                  <div class="img-upload-label" style="font-size:10px;margin-top:2px;">PNG, JPG, WEBP</div>
-                </div>
-              </div>
+          <div class="form-grid" style="grid-template-columns:repeat(3,1fr);">
+            <div class="form-field">
+              <label class="form-label">Instrumento</label>
+              <select class="form-select" id="f-instrumento">
+                <option>MES</option><option>MNQ</option><option>ES</option><option>NQ</option>
+                <option>GC (Oro)</option><option>CL (Crudo)</option><option>EUR/USD</option>
+                <option>GBP/USD</option><option>US30</option><option>Otro</option>
+              </select>
             </div>
-            <div>
-              <label class="form-label" style="margin-bottom:8px;display:block;">Cierre de la operación</label>
-              <div class="img-upload-zone" id="zone-cierre" onclick="document.getElementById('img-cierre').click()">
-                <input type="file" id="img-cierre" accept="image/*" style="display:none" onchange="previewImg(this,'zone-cierre','preview-cierre')">
-                <div id="preview-cierre-wrap">
-                  <div class="img-upload-icon">📉</div>
-                  <div class="img-upload-label">Haz clic para subir captura</div>
-                  <div class="img-upload-label" style="font-size:10px;margin-top:2px;">PNG, JPG, WEBP</div>
-                </div>
-              </div>
+            <div class="form-field">
+              <label class="form-label">Tipo</label>
+              <select class="form-select" id="f-tipo">
+                <option>Futuro</option><option>CFD</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Dirección</label>
+              <select class="form-select" id="f-direccion">
+                <option>LONG</option><option>SHORT</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Fecha y hora</label>
+              <input class="form-input" type="datetime-local" id="f-fecha">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Precio entrada</label>
+              <input class="form-input" type="number" id="f-entrada" placeholder="5240.25" step="0.01" oninput="calcRR()">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Contratos / Lotes</label>
+              <input class="form-input" type="number" id="f-contratos" placeholder="1" min="1" value="1">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Stop Loss</label>
+              <input class="form-input" type="number" id="f-sl" placeholder="5232.00" step="0.01" oninput="calcRR()">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Take Profit</label>
+              <input class="form-input" type="number" id="f-tp" placeholder="5260.00" step="0.01" oninput="calcRR()">
+            </div>
+            <div class="form-field">
+              <label class="form-label">RR estimado</label>
+              <input class="form-input" type="text" id="f-rr-display" placeholder="—" readonly style="background:var(--bg4);cursor:default;">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Estado</label>
+              <select class="form-select" id="f-estado" onchange="toggleResultadoField()">
+                <option value="Pendiente">🟡 Pendiente</option>
+                <option value="Finalizada">✅ Finalizada</option>
+              </select>
+            </div>
+            <div class="form-field" id="resultado-field">
+              <label class="form-label">Resultado ($)</label>
+              <input class="form-input" type="number" id="f-resultado" placeholder="+150.00" step="0.01">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Sesión</label>
+              <select class="form-select" id="f-sesion">
+                <option>Apertura NY</option><option>Mañana NY</option><option>Tarde NY</option>
+                <option>Apertura Londres</option><option>Asia</option><option>Otra</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Setup / Estrategia</label>
+              <select class="form-select" id="f-setup">
+                <option>Breakout</option><option>Reversión</option><option>Tendencia</option>
+                <option>Soporte/Resistencia</option><option>Order Flow</option>
+                <option>SMC / ICT</option><option>Scalping</option><option>Otro</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Emoción</label>
+              <select class="form-select" id="f-emocion">
+                <option>😌 Calmado</option><option>💪 Enfocado</option>
+                <option>😤 Ansioso</option><option>😰 Con miedo</option>
+                <option>🤑 Eufórico</option><option>😞 Frustrado</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Cuenta</label>
+              <select class="form-select" id="f-cuenta">
+                <option value="">— Sin cuenta —</option>
+              </select>
             </div>
           </div>
+
+          <div style="height:1px;background:var(--border);margin:16px 0;"></div>
+
+          <!-- ERRORES PSICOLÓGICOS -->
+          <div class="form-field" style="margin-bottom:14px;">
+            <label class="form-label">Errores cometidos</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;" id="tags-container">
+              <span class="tag revenge" onclick="toggleTag(this,'Revenge trading')">Revenge trading</span>
+              <span class="tag fomo" onclick="toggleTag(this,'FOMO')">FOMO</span>
+              <span class="tag overtrading" onclick="toggleTag(this,'Overtrading')">Overtrading</span>
+              <span class="tag discipline" onclick="toggleTag(this,'Disciplina')">Disciplina ✓</span>
+              <span class="tag neutral" onclick="toggleTag(this,'Sin plan')">Sin plan</span>
+              <span class="tag neutral" onclick="toggleTag(this,'Mover SL')">Mover SL</span>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+            <div class="form-field">
+              <label class="form-label">Disciplina (1-5)</label>
+              <input class="form-input" type="range" min="1" max="5" value="3" id="f-disciplina"
+                oninput="document.getElementById('f-disc-val').textContent=this.value" style="accent-color:var(--green);">
+              <div style="font-size:11px;color:var(--text3);font-family:monospace;margin-top:2px;">Nivel: <span id="f-disc-val">3</span>/5</div>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Control impulsos (1-5)</label>
+              <input class="form-input" type="range" min="1" max="5" value="3" id="f-impulsos"
+                oninput="document.getElementById('f-imp-val').textContent=this.value" style="accent-color:var(--blue);">
+              <div style="font-size:11px;color:var(--text3);font-family:monospace;margin-top:2px;">Nivel: <span id="f-imp-val">3</span>/5</div>
+            </div>
+          </div>
+
+          <div class="form-field" style="margin-bottom:0;">
+            <label class="form-label">Notas</label>
+            <textarea class="form-textarea" id="f-notas" style="min-height:80px;" placeholder="¿Qué viste? ¿Por qué entraste? ¿Qué aprendiste?"></textarea>
+          </div>
         </div>
 
-        <div style="height:1px;background:var(--border);margin:4px 0 16px; grid-column: 1 / -1;"></div>
+        <!-- RIGHT: IMAGES + SAVE -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
 
-        <div class="form-field" style="margin-bottom:20px; grid-column: 1 / -1;">
-          <label class="form-label">Notas y reflexión</label>
-          <textarea class="form-textarea" id="f-notas" placeholder="¿Qué salió bien? ¿Qué mejorarías?..."></textarea>
+          <!-- CALC RR -->
+          <div class="card">
+            <div class="card-title">Calculadora de posición</div>
+            <div class="stat-row"><span class="stat-name">RR estimado</span><span class="stat-val" id="calc-rr" style="color:var(--amber);">—</span></div>
+            <div class="stat-row"><span class="stat-name">Riesgo en $</span><span class="stat-val" id="calc-risk" style="color:var(--red);">—</span></div>
+            <div class="stat-row"><span class="stat-name">Potencial ganancia</span><span class="stat-val" id="calc-gain" style="color:var(--green);">—</span></div>
+          </div>
+
+          <!-- CAPTURA APERTURA -->
+          <div class="card">
+            <div class="card-title">Captura de apertura</div>
+            <div class="img-upload-zone" id="zone-apertura" onclick="document.getElementById('f-img-apertura').click()">
+              <input type="file" id="f-img-apertura" accept="image/*" style="display:none" onchange="previewImg(this,'zone-apertura','preview-apertura')">
+              <div id="preview-apertura">
+                <div class="img-upload-icon">📈</div>
+                <div class="img-upload-label">Añadir captura de entrada</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CAPTURA CIERRE -->
+          <div class="card">
+            <div class="card-title">Captura de cierre</div>
+            <div class="img-upload-zone" id="zone-cierre" onclick="document.getElementById('f-img-cierre').click()">
+              <input type="file" id="f-img-cierre" accept="image/*" style="display:none" onchange="previewImg(this,'zone-cierre','preview-cierre')">
+              <div id="preview-cierre">
+                <div class="img-upload-icon">📉</div>
+                <div class="img-upload-label">Añadir captura de cierre</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SAVE BUTTON -->
+          <div class="card" style="background:var(--green-bg);border-color:rgba(0,212,160,0.2);">
+            <button class="btn btn-primary" onclick="guardarOperacion()" id="save-btn"
+              style="width:100%;padding:14px;font-size:15px;font-weight:700;border-radius:10px;">
+              💾 Guardar operación
+            </button>
+            <div id="save-status" style="font-size:12px;color:var(--green);font-family:monospace;text-align:center;margin-top:8px;min-height:16px;"></div>
+          </div>
         </div>
 
-        <div style="display:flex;gap:10px;align-items:center;">
-          <button class="btn btn-primary" onclick="guardarOperacion()" id="save-btn">Guardar en Notion</button>
-          <button class="btn" onclick="resetForm()">Limpiar</button>
-          <span id="save-status" style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;"></span>
-        </div>
       </div>
-    </div>
 
     <!-- RIESGO -->
     <div class="tab-panel" id="panel-riesgo">
@@ -2259,6 +2275,11 @@ function startAutoSync() {
 
 function updateUserUI(user) {
   const name = user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'Trader';
+  // Update sidebar user info
+  const sidebarName = document.getElementById('sidebar-user-name');
+  const sidebarEmail = document.getElementById('sidebar-user-email');
+  if (sidebarName) sidebarName.textContent = user.user_metadata?.full_name || name;
+  if (sidebarEmail) sidebarEmail.textContent = user.email || '';
   const headerActions = document.querySelector('.header-actions');
   if (headerActions && !document.getElementById('logout-btn')) {
     const logoutBtn = document.createElement('button');
@@ -3621,6 +3642,25 @@ async function generateWeeklySummary() {
 
 // ─── EDITAR OPERACIÓN ────────────────────────────────────────────
 let editImgCierreBase64 = null;
+
+function calcRR() {
+  const entrada = parseFloat(document.getElementById('f-entrada')?.value);
+  const sl = parseFloat(document.getElementById('f-sl')?.value);
+  const tp = parseFloat(document.getElementById('f-tp')?.value);
+  const contratos = parseFloat(document.getElementById('f-contratos')?.value) || 1;
+  if (!entrada || !sl || !tp) return;
+  const risk = Math.abs(entrada - sl) * contratos;
+  const gain = Math.abs(tp - entrada) * contratos;
+  const rr = risk > 0 ? (gain / risk).toFixed(2) : '—';
+  const rrEl = document.getElementById('f-rr-display');
+  const calcRrEl = document.getElementById('calc-rr');
+  const calcRiskEl = document.getElementById('calc-risk');
+  const calcGainEl = document.getElementById('calc-gain');
+  if (rrEl) rrEl.value = rr + ':1';
+  if (calcRrEl) calcRrEl.textContent = rr + ':1';
+  if (calcRiskEl) calcRiskEl.textContent = '-$' + risk.toFixed(2);
+  if (calcGainEl) calcGainEl.textContent = '+$' + gain.toFixed(2);
+}
 
 function toggleResultadoField() {
   const estado = document.getElementById('f-estado').value;
