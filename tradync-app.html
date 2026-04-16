@@ -59,15 +59,6 @@
   .nav-item.active { background: var(--green-bg); color: var(--green); }
 
   /* NOTION STATUS */
-  .notion-status { margin: auto 16px 16px; border-radius: 10px; padding: 12px 14px; border: 1px solid; }
-  .notion-status.connected { background: var(--green-bg); border-color: rgba(0,212,160,0.2); }
-  .notion-status.disconnected { background: var(--red-bg); border-color: rgba(255,77,109,0.2); }
-  .notion-status.syncing { background: var(--amber-bg); border-color: rgba(245,166,35,0.2); }
-  .notion-status-label { font-size: 9px; letter-spacing: 2px; font-family: 'DM Mono', monospace; margin-bottom: 4px; }
-  .notion-status.connected .notion-status-label { color: var(--green); }
-  .notion-status.disconnected .notion-status-label { color: var(--red); }
-  .notion-status.syncing .notion-status-label { color: var(--amber); }
-  .notion-status-text { font-size: 12px; color: var(--text2); }
 
   /* MAIN */
   .main { margin-left: 220px; flex: 1; padding: 32px 36px; transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1), max-width 0.3s cubic-bezier(0.4,0,0.2,1); }
@@ -546,16 +537,7 @@ if (typeof supabase === 'undefined') {
         Psicología
       </div>
     </div>
-    <div id="notion-status" class="notion-status disconnected" style="margin-top: auto;">
-      <div class="notion-status-label">NOTION SYNC</div>
-      <div class="notion-status-text" id="notion-status-text">Conectando...</div>
-      <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
-        <input id="parent-page-input" type="text" placeholder="URL página padre Notion"
-          style="font-size:10px;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--text2);font-family:monospace;width:100%;"
-          id="parent-page-input" type="text" placeholder="URL página padre Notion" style="font-size:10px;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--text2);font-family:monospace;width:100%;">
-        <button onclick="setParentPage()" style="font-size:10px;padding:5px;border-radius:6px;border:1px solid rgba(0,212,160,0.3);background:rgba(0,212,160,0.08);color:var(--green);cursor:pointer;font-family:monospace;">Guardar página padre</button>
-      </div>
-    </div>
+    
   </aside>
 
   <main class="main">
@@ -1477,24 +1459,16 @@ function requireAuth() {
   return true;
 }
 
-function setStatus(type, text) {
-  const el = document.getElementById('notion-status');
-  if (el) el.className = 'notion-status ' + type;
-  const tel = document.getElementById('notion-status-text');
-  if (tel) tel.textContent = text;
-}
+
 
 async function loadTrades() {
   if (!requireAuth()) return;
-  setStatus('syncing', 'Cargando...');
   try {
     const { data, error } = await sb.from('operaciones').select('*')
       .eq('user_id', currentUser.id).order('fecha', { ascending: false }).limit(500);
     if (error) throw error;
     allTrades = data.map(parseSupabaseRow);
-    setStatus('connected', 'Sincronizado · ' + allTrades.length + ' ops.');
   } catch(e) {
-    setStatus('disconnected', 'Error de conexión');
     toast('Error al cargar datos: ' + e.message, 'error');
     return;
   }
@@ -2104,12 +2078,6 @@ function renderPsych() {
   document.getElementById('error-stats').innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace">Datos psicológicos en construcción — registra más operaciones</div>';
 }
 
-// Notion status
-function setStatus(type, text) {
-  const el = document.getElementById('notion-status');
-  el.className = 'notion-status ' + type;
-  document.getElementById('notion-status-text').textContent = text;
-}
 
 // ─── CONTROL DE RIESGO ───────────────────────────────────────────
 function updateRiskConfig() {
@@ -3826,7 +3794,7 @@ function setParentPage() {
   // Extract ID from URL or use directly
   const match = input.match(/([a-f0-9]{32})/i);
   const id = match ? match[1] : input.replace(/-/g,'');
-  if (id.length < 32) { toast('URL o ID no válido', 'error'); return; }
+  if (id.length < 32) {  return; }
   PARENT_PAGE_ID = id;
   localStorage.setItem('tj_parent_page', id);
   toast('Página padre guardada. Iniciando bases de datos...', 'success');
@@ -3895,7 +3863,6 @@ window.addEventListener('load', async () => {
   } else {
     currentUser = session.user;
     updateUserUI(session.user);
-    setStatus('syncing', 'Cargando...');
     await loadTrades();
     const today = new Date().toISOString().slice(0,10);
     Promise.all([
