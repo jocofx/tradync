@@ -1177,47 +1177,58 @@ if (typeof supabase === 'undefined') {
     <div class="tab-panel" id="panel-habitos">
       <div class="section-title">Tracker de hábitos y bienestar</div>
 
-      <!-- HABITS GRID - addable cards like errores psicológicos -->
-      <div class="card" style="margin-bottom:18px;">
-        <div class="card-title">
-          Hábitos de hoy
-          <span class="card-title-badge" id="habit-date-label"></span>
-        </div>
-        <div id="habits-today-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin:14px 0;"></div>
-        <!-- Add habit -->
-        <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">
-          <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:10px;">AÑADIR HÁBITO</div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <input class="form-input" id="new-habit-icon" placeholder="🏃" style="width:56px;padding:7px 10px;font-size:18px;text-align:center;">
-            <input class="form-input" id="new-habit-name" placeholder="Nombre del hábito..." style="flex:1;min-width:140px;padding:7px 12px;font-size:13px;" onkeydown="if(event.key==='Enter')addHabitFromPanel()">
-            <button class="btn btn-primary" onclick="addHabitFromPanel()" style="font-size:12px;padding:7px 16px;white-space:nowrap;">+ Añadir</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+
+        <!-- TOP LEFT: Hábitos de hoy -->
+        <div class="card">
+          <div class="card-title">Hábitos de hoy <span class="card-title-badge" id="habit-date-label"></span></div>
+          <div id="habits-today-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;"></div>
+          <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input class="form-input" id="new-habit-icon" placeholder="🏃" style="width:48px;padding:6px 8px;font-size:16px;text-align:center;">
+              <input class="form-input" id="new-habit-name" placeholder="Añadir hábito..." style="flex:1;padding:6px 10px;font-size:12px;" onkeydown="if(event.key==='Enter')addHabitFromPanel()">
+              <button class="btn btn-primary" onclick="addHabitFromPanel()" style="font-size:11px;padding:6px 12px;white-space:nowrap;">+ Añadir</button>
+            </div>
           </div>
         </div>
+
+        <!-- TOP RIGHT: Encuesta post-sesión -->
+        <div class="card">
+          <div class="card-title">Encuesta post-sesión</div>
+          <div id="survey-container" style="margin-top:10px;"></div>
+        </div>
+
       </div>
 
-      <!-- ENCUESTA POST-SESIÓN -->
-      <div class="card" style="margin-bottom:18px;">
-        <div class="card-title">Encuesta post-sesión</div>
-        <div id="survey-container"></div>
-      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
 
-      <!-- CALENDAR HISTORY -->
-      <div class="card">
-        <div class="card-title">
-          Historial de hábitos
-          <div style="display:flex;gap:8px;">
-            <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changeHabitMonth(-1)">←</button>
-            <span class="card-title-badge" id="habit-cal-month" style="display:flex;align-items:center;"></span>
-            <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changeHabitMonth(1)">→</button>
+        <!-- BOTTOM LEFT: Racha y estadísticas -->
+        <div class="card">
+          <div class="card-title">Resumen de hábitos</div>
+          <div id="habit-stats-container" style="margin-top:10px;">
+            <div style="color:var(--text3);font-size:12px;font-family:monospace;">Registra hábitos para ver tu racha y estadísticas</div>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;" id="habit-cal-header"></div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" id="habit-cal-grid"></div>
-        <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);opacity:0.8;"></div>Todos cumplidos</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--amber);opacity:0.8;"></div>Parcial</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--red);opacity:0.5;"></div>Sin cumplir</div>
+
+        <!-- BOTTOM RIGHT: Historial de hábitos (calendar) -->
+        <div class="card">
+          <div class="card-title">
+            Historial de hábitos
+            <div style="display:flex;gap:8px;">
+              <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changeHabitMonth(-1)">←</button>
+              <span class="card-title-badge" id="habit-cal-month" style="display:flex;align-items:center;"></span>
+              <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changeHabitMonth(1)">→</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px;" id="habit-cal-header"></div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;" id="habit-cal-grid"></div>
+          <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);opacity:0.8;"></div>Todos</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--amber);opacity:0.8;"></div>Parcial</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--border);opacity:1;"></div>Sin datos</div>
+          </div>
         </div>
+
       </div>
     </div>
     <div class="tab-panel" id="panel-ia">
@@ -2601,6 +2612,7 @@ function initHabits() {
   }).join('');
 
   renderSurvey();
+  try { renderHabitStats(); } catch(e) {}
 }
 
 function toggleHabit(id) {
@@ -2630,7 +2642,7 @@ function changeHabitMonth(dir) {
 
 function renderHabitCalendar() {
   const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  document.getElementById('habit-cal-month-label').textContent = months[habitCalMonth] + ' ' + habitCalYear;
+  const _hcml = document.getElementById('habit-cal-month') || document.getElementById('habit-cal-month-label'); if(_hcml) _hcml.textContent = months[habitCalMonth] + ' ' + habitCalYear;
   const grid = document.getElementById('habit-cal-grid');
   const days = ['L','M','X','J','V','S','D'];
   let html = days.map(d => `<div class="habit-cal-label">${d}</div>`).join('');
@@ -3958,6 +3970,55 @@ function renderSurvey() {
         ${q.opts.map(o => `<button onclick="setSurveyAnswer('${q.id}','${o}')" style="padding:5px 12px;border-radius:20px;border:1px solid ${saved[q.id]===o?'var(--green)':'var(--border)'};background:${saved[q.id]===o?'var(--green-bg)':'transparent'};color:${saved[q.id]===o?'var(--green)':'var(--text2)'};font-size:12px;cursor:pointer;transition:all 0.15s;">${o}</button>`).join('')}
       </div>
     </div>`).join('');
+}
+
+function renderHabitStats() {
+  const container = document.getElementById('habit-stats-container');
+  if (!container) return;
+  
+  // Calculate streak and stats from localStorage
+  let streak = 0;
+  let totalDays = 0;
+  let completeDays = 0;
+  const today = new Date();
+  
+  for (let i = 0; i < 90; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().slice(0,10);
+    const habits = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + dateStr)) || '{}');
+    const count = Object.values(habits).filter(v => v > 0).length;
+    const total = customHabits.length || 1;
+    if (count > 0) totalDays++;
+    if (count >= total) {
+      completeDays++;
+      if (i === streak) streak++;
+    } else if (i === 0 || i === streak) {
+      if (i > 0) break;
+    }
+  }
+  
+  const pct = totalDays > 0 ? Math.round(completeDays / Math.max(totalDays, 1) * 100) : 0;
+  
+  container.innerHTML = \`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:28px;font-weight:700;color:var(--green);font-family:'DM Mono',monospace;">\${streak}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;letter-spacing:1px;">RACHA ACTUAL</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:28px;font-weight:700;color:var(--blue);font-family:'DM Mono',monospace;">\${totalDays}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;letter-spacing:1px;">DÍAS ACTIVOS</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:28px;font-weight:700;color:var(--amber);font-family:'DM Mono',monospace;">\${completeDays}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;letter-spacing:1px;">DÍAS COMPLETOS</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:28px;font-weight:700;color:var(--purple);font-family:'DM Mono',monospace;">\${pct}%</div>
+        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;letter-spacing:1px;">CONSISTENCIA</div>
+      </div>
+    </div>\`;
 }
 
 window.addEventListener('load', async () => {
