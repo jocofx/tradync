@@ -1814,7 +1814,7 @@ function goTab(id, el) {
   if (id === 'estadisticas') setTimeout(() => { try { renderStatsCharts(); } catch(e){} }, 50);
   if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); } catch(e){} }, 50);
   if (id === 'psicologia') setTimeout(() => { try { renderPsych(); renderPsychCharts(); } catch(e){} }, 50);
-  if (id === 'habitos') setTimeout(() => { try { renderHabitCalendar(); renderConsistencyScore(); renderHabitsCorrelation(); } catch(e){} }, 50);
+  if (id === 'habitos') setTimeout(() => { try { initHabits(); renderHabitCalendar(); renderConsistencyScore(); } catch(e){} }, 50);
   if (id === 'calendario') setTimeout(() => { try { renderCalendar(); } catch(e){} }, 50);
   if (id === 'premarket') setTimeout(() => { try { renderPmCalendar(); } catch(e){} }, 50);
   if (id === 'diario') setTimeout(() => { try { initDiario(); } catch(e){} }, 50);
@@ -4112,6 +4112,7 @@ window.addEventListener('load', async () => {
       loadAccountsFromNotion().catch(()=>{}),
       loadConfigFromNotion().catch(()=>{}),
     ]);
+    try { initHabits(); } catch(e) {}
   }
 });
 
