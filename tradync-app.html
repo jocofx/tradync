@@ -1492,13 +1492,14 @@ async function loadTrades() {
       .eq('user_id', currentUser.id).order('fecha', { ascending: false }).limit(500);
     if (error) throw error;
     allTrades = data.map(parseSupabaseRow);
-    renderAll();
     setStatus('connected', 'Sincronizado · ' + allTrades.length + ' ops.');
-    toast('Datos cargados ✓', 'success');
   } catch(e) {
-    setStatus('disconnected', 'Error');
-    toast('Error: ' + e.message, 'error');
+    setStatus('disconnected', 'Error de conexión');
+    toast('Error al cargar datos: ' + e.message, 'error');
+    return;
   }
+  // Render separately - errors here don't affect data loading
+  try { renderAll(); } catch(e) { console.warn('Render error:', e.message); }
 }
 
 function parseSupabaseRow(row) {
