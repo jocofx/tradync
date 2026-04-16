@@ -2585,28 +2585,37 @@ function getHabitScore(dateStr) {
 }
 
 function initHabits() {
-  const dateLabel = document.getElementById('habit-date-label');
+  var dateLabel = document.getElementById('habit-date-label');
   if (dateLabel) dateLabel.textContent = new Date().toLocaleDateString('es-ES', {day:'numeric', month:'short'});
 
-  const grid = document.getElementById('habits-today-grid');
+  var grid = document.getElementById('habits-today-grid');
   if (!grid) return;
-
   grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
 
-  // Always show habits (customHabits defaults to DEFAULT_HABITS)
-  grid.innerHTML = customHabits.map(function(h, idx) {
-    const active = (habitsToday[h.id] || 0) > 0;
-    const isDefault = DEFAULT_HABITS.some(function(d){ return d.id === h.id; });
-    return '<div onclick="toggleHabit('' + h.id + '')" id="hc-' + h.id + '" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:18px 10px;border-radius:12px;border:1px solid ' + (active ? 'rgba(0,212,160,0.4)' : 'var(--border)') + ';background:' + (active ? 'rgba(0,212,160,0.12)' : 'var(--bg3)') + ';cursor:pointer;transition:all 0.2s;position:relative;user-select:none;">' +
-      '<div style="font-size:26px;">' + h.icon + '</div>' +
-      '<div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.5px;color:' + (active ? 'var(--green)' : 'var(--text2)') + ';text-align:center;">' + h.name.toUpperCase() + '</div>' +
-      (active ? '<div style="font-size:11px;color:var(--green);">✓</div>' : '') +
-      '<div style="position:absolute;top:4px;right:4px;display:flex;gap:2px;">' +
-        '<button onclick="event.stopPropagation();editHabitInline(' + idx + ')" title="Editar" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--text3);padding:2px 4px;border-radius:3px;">✏️</button>' +
-        (isDefault ? '' : '<button onclick="event.stopPropagation();removeHabitFromPanel(' + idx + ')" title="Eliminar" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--red);padding:2px 4px;border-radius:3px;">✕</button>') +
-      '</div>' +
-    '</div>';
-  }).join('');
+  if (!customHabits.length) {
+    grid.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace;grid-column:1/-1;">Añade hábitos abajo...</div>';
+    return;
+  }
+
+  var html = '';
+  for (var idx = 0; idx < customHabits.length; idx++) {
+    var h = customHabits[idx];
+    var active = (habitsToday[h.id] || 0) > 0;
+    var isDefault = DEFAULT_HABITS.some(function(d){ return d.id === h.id; });
+    var bg = active ? 'rgba(0,212,160,0.12)' : 'var(--bg3)';
+    var border = active ? 'rgba(0,212,160,0.4)' : 'var(--border)';
+    var txtColor = active ? 'var(--green)' : 'var(--text2)';
+    var checkMark = active ? '<div style="font-size:11px;color:var(--green);">&#10003;</div>' : '';
+    var delBtn = isDefault ? '' : '<button onclick="event.stopPropagation();removeHabitFromPanel(' + idx + ')" title="Eliminar" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--red);padding:2px 4px;">&#x2715;</button>';
+    var editBtn = '<button onclick="event.stopPropagation();editHabitInline(' + idx + ')" title="Editar" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--text3);padding:2px 4px;">&#x270F;&#xFE0F;</button>';
+    html += '<div onclick="toggleHabit('' + h.id + '')" id="hc-' + h.id + '" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:18px 10px;border-radius:12px;border:1px solid ' + border + ';background:' + bg + ';cursor:pointer;transition:all 0.2s;position:relative;user-select:none;">';
+    html += '<div style="font-size:26px;">' + h.icon + '</div>';
+    html += '<div style="font-size:11px;font-weight:700;font-family:monospace;letter-spacing:0.5px;color:' + txtColor + ';text-align:center;">' + h.name.toUpperCase() + '</div>';
+    html += checkMark;
+    html += '<div style="position:absolute;top:4px;right:4px;display:flex;gap:2px;">' + editBtn + delBtn + '</div>';
+    html += '</div>';
+  }
+  grid.innerHTML = html;
 
   renderSurvey();
   try { renderHabitStats(); } catch(e) {}
