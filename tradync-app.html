@@ -1184,7 +1184,7 @@ if (typeof supabase === 'undefined') {
           <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
             <div style="display:flex;gap:8px;align-items:center;">
               <input class="form-input" id="new-habit-name" placeholder="Añadir hábito..." style="flex:1;padding:6px 10px;font-size:12px;" onkeydown="if(event.key==='Enter')addHabitFromPanel()">
-              <button class="btn btn-primary" onclick="addHabitFromPanel()" style="font-size:11px;padding:6px 12px;white-space:nowrap;">+ Añadir</button>
+              <button id="add-habit-btn" class="btn btn-primary" onclick="addHabitFromPanel()" style="font-size:11px;padding:6px 12px;white-space:nowrap;">+ Añadir</button>
             </div>
           </div>
         </div>
@@ -1217,7 +1217,7 @@ if (typeof supabase === 'undefined') {
               <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changeHabitMonth(1)">→</button>
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px;" id="habit-cal-header"></div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;" id="habit-cal-header"></div>
           <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;" id="habit-cal-grid"></div>
           <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;">
             <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);opacity:0.8;"></div>Todos</div>
@@ -2644,37 +2644,52 @@ function changeHabitMonth(dir) {
 }
 
 function renderHabitCalendar() {
-  const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const _hcml = document.getElementById('habit-cal-month') || document.getElementById('habit-cal-month-label'); if(_hcml) _hcml.textContent = months[habitCalMonth] + ' ' + habitCalYear;
-  const grid = document.getElementById('habit-cal-grid');
-  const days = ['L','M','X','J','V','S','D'];
-  let html = days.map(d => `<div class="habit-cal-label">${d}</div>`).join('');
-  const firstDay = new Date(habitCalYear, habitCalMonth, 1).getDay();
-  const offset = firstDay === 0 ? 6 : firstDay - 1;
-  const daysInMonth = new Date(habitCalYear, habitCalMonth + 1, 0).getDate();
-  const today = new Date();
-  const R = 14, C = 2 * Math.PI * R;
-
-  for (let i = 0; i < offset; i++) html += '<div class="habit-cal-day empty"></div>';
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = habitCalYear + '-' + String(habitCalMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-    const score = getHabitScore(dateStr);
-    const hasData = score > 0;
-    const isToday = today.getDate()===d && today.getMonth()===habitCalMonth && today.getFullYear()===habitCalYear;
-    const dashOffset = C - (score * C);
-    const ringColor = score >= 1 ? '#00d4a0' : score >= 0.5 ? '#f5a623' : '#4d9fff';
-    const click = hasData ? `onclick="openHabitDayDetail('${dateStr}')"` : '';
-    html += `<div class="habit-cal-day ${hasData?'has-data':''} ${isToday?'today':''}" ${click}>
-      <svg width="32" height="32" viewBox="0 0 32 32">
-        <circle class="habit-ring-bg" cx="16" cy="16" r="${R}" />
-        <circle class="habit-ring-fill habit-ring" cx="16" cy="16" r="${R}"
-          stroke="${hasData ? ringColor : 'transparent'}"
-          stroke-dasharray="${C.toFixed(1)}"
-          stroke-dashoffset="${hasData ? dashOffset.toFixed(1) : C.toFixed(1)}" />
-        <text x="16" y="20" text-anchor="middle" font-size="10" font-family="monospace"
-          fill="${isToday ? '#00d4a0' : '#8b8fa8'}">${d}</text>
-      </svg>
-    </div>`;
+  var months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var labelEl = document.getElementById('habit-cal-month') || document.getElementById('habit-cal-month-label');
+  if (labelEl) labelEl.textContent = months[habitCalMonth] + ' ' + habitCalYear;
+  var grid = document.getElementById('habit-cal-grid');
+  var header = document.getElementById('habit-cal-header');
+  if (!grid) return;
+  var days = ['L','M','X','J','V','S','D'];
+  if (header) {
+    header.innerHTML = days.map(function(d) {
+      return '<div style="font-size:9px;color:var(--text3);text-align:center;font-family:monospace;padding-bottom:4px;">' + d + '</div>';
+    }).join('');
+  }
+  var firstDay = new Date(habitCalYear, habitCalMonth, 1).getDay();
+  var offset = firstDay === 0 ? 6 : firstDay - 1;
+  var daysInMonth = new Date(habitCalYear, habitCalMonth + 1, 0).getDate();
+  var today = new Date();
+  var html = '';
+  for (var i = 0; i < offset; i++) html += '<div style="aspect-ratio:1;"></div>';
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dateStr = habitCalYear + '-' + String(habitCalMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    var habits = {};
+    try { habits = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + dateStr)) || '{}'); } catch(e) {}
+    var survey = {};
+    try { survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + dateStr)) || '{}'); } catch(e) {}
+    var habitCount = Object.values(habits).filter(function(v){ return v > 0; }).length;
+    var surveyCount = Object.keys(survey).length;
+    var total = customHabits.length || 1;
+    var hasHabits = habitCount > 0;
+    var hasSurvey = surveyCount > 0;
+    var hasData = hasHabits || hasSurvey;
+    var isToday = today.getDate()===d && today.getMonth()===habitCalMonth && today.getFullYear()===habitCalYear;
+    var pct = hasHabits ? Math.round(habitCount / total * 100) : 0;
+    var bg = 'transparent';
+    var cls = '';
+    if (hasData) {
+      if (pct >= 100) { bg = 'var(--green)'; cls = 'complete'; }
+      else if (pct >= 50 || hasSurvey) { bg = 'var(--amber)'; cls = 'partial'; }
+      else { bg = 'rgba(77,159,255,0.7)'; cls = 'planned'; }
+    }
+    var borderStyle = isToday ? '2px solid var(--green)' : '1px solid var(--border)';
+    var textClr = hasData ? '#000' : (isToday ? 'var(--green)' : 'var(--text3)');
+    var pctLabel = hasData ? '<div style="font-size:8px;font-family:monospace;margin-top:1px;">' + pct + '%</div>' : '';
+    html += '<div style="aspect-ratio:1;border-radius:6px;border:' + borderStyle + ';background:' + bg + ';display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:' + (hasData?'pointer':'default') + ';transition:all 0.15s;" ' + (hasData ? 'onclick="openHabitDayDetail('' + dateStr + '')"' : '') + '>' +
+      '<span style="font-size:11px;font-weight:600;color:' + textClr + ';font-family:monospace;">' + d + '</span>' +
+      pctLabel +
+      '</div>';
   }
   grid.innerHTML = html;
 }
@@ -4006,31 +4021,35 @@ function renderHabitStats() {
 }
 
 function editHabitInline(idx) {
-  const h = customHabits[idx];
+  var h = customHabits[idx];
   if (!h) return;
-  const iconEl = document.getElementById('new-habit-icon');
-  const nameEl = document.getElementById('new-habit-name');
-  const btn = document.querySelector('#panel-habitos .btn-primary');
-  if (!iconEl || !nameEl || !btn) return;
-  iconEl.value = h.icon;
+  var nameEl = document.getElementById('new-habit-name');
+  var btn = document.getElementById('add-habit-btn');
+  if (!nameEl || !btn) return;
   nameEl.value = h.name;
   nameEl.focus();
-  btn.textContent = '✓ Guardar';
-  btn.dataset.editIdx = idx;
+  btn.textContent = 'Guardar';
   btn.onclick = function() {
-    const newIcon = iconEl.value.trim() || h.icon;
-    const newName = nameEl.value.trim();
+    var newName = nameEl.value.trim();
     if (!newName) return;
-    customHabits[idx] = { id: h.id, icon: newIcon, name: newName };
+    customHabits[idx] = { id: h.id, icon: h.icon, name: newName };
     saveCustomHabits();
     saveConfigToNotion('customHabits', customHabits).catch(function(){});
-    iconEl.value = '';
     nameEl.value = '';
     btn.textContent = '+ Añadir';
-    btn.dataset.editIdx = '';
     btn.onclick = addHabitFromPanel;
+    nameEl.onkeydown = function(e) { if(e.key==='Enter') addHabitFromPanel(); };
     initHabits();
     toast(newName + ' actualizado ✓', 'success');
+  };
+  nameEl.onkeydown = function(e) {
+    if (e.key === 'Enter') btn.onclick();
+    if (e.key === 'Escape') {
+      nameEl.value = '';
+      btn.textContent = '+ Añadir';
+      btn.onclick = addHabitFromPanel;
+      nameEl.onkeydown = function(ev) { if(ev.key==='Enter') addHabitFromPanel(); };
+    }
   };
 }
 
