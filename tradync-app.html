@@ -3097,7 +3097,6 @@ async function generateWeeklySummary() {
 }
 
 // ─── EDITAR OPERACIÓN ────────────────────────────────────────────
-let editImgCierreBase64 = null;
 
 function toggleResultadoField() {
   const estado = document.getElementById('f-estado').value;
@@ -3334,12 +3333,7 @@ function toggleTheme() {
   localStorage.setItem('tj_theme', isLight ? 'light' : 'dark');
 }
 
-function saveApiKey(key) {
-  if (key && key.startsWith('sk-ant')) {
-    localStorage.setItem('tj_ai_key', key);
-    toast('API key guardada ✓', 'success');
-  }
-}
+
 
 function toggleSidebar() {
   const sidebar = document.querySelector('.sidebar');
@@ -3646,8 +3640,8 @@ function updateCuentaSelector() {
 }
 
 // ─── IMÁGENES ─────────────────────────────────────────────────────
-let imgAperturaBase64 = null;
-let imgCierreBase64 = null;
+
+
 
 function previewImg(input, zoneId, previewId) {
   const file = input.files[0];
