@@ -473,6 +473,12 @@
   .tab-panel.active { display: block !important; width: 100%; }
 </style>
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// Fallback CDN if unpkg blocked (Edge tracking prevention)
+if (typeof supabase === 'undefined') {
+  document.write('<scr' + 'ipt src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></scr' + 'ipt>');
+}
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
 <body>
@@ -1447,8 +1453,16 @@
 // ═══════════════════════════════════════════════════════════════
 const SUPABASE_URL = 'https://oeznlehxublyvivzvuab.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lem5sZWh4dWJseXZpdnp2dWFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjUzMDQsImV4cCI6MjA5MTc0MTMwNH0.OJQRGgV0W64tJcrgQIos_C5e3RD8gsUtEm09LTtEhpE';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+let sb;
+try {
+  const { createClient } = supabase;
+  sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log('Supabase initialized ✓');
+} catch(e) {
+  console.error('Supabase init failed:', e);
+  // Create dummy sb to prevent crashes
+  sb = { from: () => ({ select: () => Promise.resolve({data:[], error: new Error('Supabase no disponible')}), insert: () => Promise.resolve({error: new Error('Supabase no disponible')}), upsert: () => Promise.resolve({error: null}), update: () => ({ eq: () => ({ eq: () => Promise.resolve({error: null}) }) }) }), auth: { getSession: () => Promise.resolve({data:{session:null}}), signInWithPassword: () => Promise.resolve({error: new Error('No disponible')}), signOut: () => Promise.resolve({}) }, storage: { from: () => ({ upload: () => Promise.resolve({error:null}), getPublicUrl: () => ({data:{publicUrl:null}}) }) } };
+}
 
 let currentUser = null;
 let allTrades = [];
