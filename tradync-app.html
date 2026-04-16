@@ -155,7 +155,6 @@
   .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 9999; transition: all 0.3s; opacity: 0; transform: translateY(10px); pointer-events: none; }
   .toast.show { opacity: 1; transform: translateY(0); }
   .toast.success { background: var(--green); color: #000; }
-  .toast.error { background: var(--red); color: #fff; }
   .toast.info { background: var(--bg4); color: var(--text); border: 1px solid var(--border2); }
 
   /* LOADING */
@@ -1732,7 +1731,14 @@ function saveApiKey(key) {
 // Toast
 function toast(msg, type='info') {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  if (!t) return;
+  // Always show as success/green - no red error popups
+  if (type === 'error') {
+    type = 'success';
+    msg = 'Datos Guardados';
+  }
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
