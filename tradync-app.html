@@ -1110,8 +1110,18 @@ if (typeof supabase === 'undefined') {
     <!-- PRE-MARKET -->
     <div class="tab-panel" id="panel-premarket">
       <div class="section-title">Preparación de la sesión</div>
-      
-      <div class="card">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;align-items:start;">
+        <div class="card" style="height:100%;">
+          <div class="card-title">Checklist pre-market <span class="card-title-badge" id="checklist-pct">0%</span></div>
+          <div class="checklist-progress"><div class="checklist-progress-fill" id="checklist-bar" style="width:0%"></div></div>
+          <div id="checklist-items" style="margin:10px 0;min-height:40px;"></div>
+          <div style="display:flex;gap:8px;margin-top:12px;align-items:center;">
+            <input class="form-input" id="new-checklist-item" placeholder="Escribe una condición y pulsa Enter..." style="flex:1;padding:7px 12px;font-size:12px;" onkeydown="if(event.key==='Enter')addChecklistItem()">
+            <button class="btn btn-primary" onclick="addChecklistItem()" style="font-size:12px;padding:7px 14px;white-space:nowrap;">+ Añadir</button>
+          </div>
+        </div>
+        <div class="card">
         <div class="card-title">Plan del día</div>
         <div class="form-grid" style="margin-bottom:14px;">
           <div class="form-field">
@@ -1140,20 +1150,9 @@ if (typeof supabase === 'undefined') {
         <button class="btn btn-primary" onclick="savePlan()">Guardar plan del día</button>
         <span id="plan-saved" style="font-size:12px;color:var(--green);font-family:'DM Mono',monospace;margin-left:10px;"></span>
       </div>
-
-      <div style="height:18px;"></div>
+      </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
-        <div class="card">
-          <div class="card-title">Checklist pre-market <span class="card-title-badge" id="checklist-pct">0%</span></div>
-          <div class="checklist-progress"><div class="checklist-progress-fill" id="checklist-bar" style="width:0%"></div></div>
-          <div id="checklist-items"></div>
-          <div style="display:flex;gap:8px;margin-top:14px;align-items:center;">
-            <input class="form-input" id="new-checklist-item" placeholder="Añadir condición..." style="flex:1;padding:7px 12px;font-size:12px;" onkeydown="if(event.key==='Enter')addChecklistItem()">
-            <button class="btn btn-primary" onclick="addChecklistItem()" style="font-size:12px;padding:7px 14px;white-space:nowrap;">+ Añadir</button>
-            <button class="btn" onclick="resetChecklist()" style="font-size:12px;padding:7px 14px;">Reiniciar</button>
-          </div>
-        </div>
         <div class="card">
           <div class="card-title">Eventos macro hoy <span class="card-title-badge" id="macro-date"></span></div>
           <div id="macro-events-list"><div style="color:var(--text3);font-size:12px;font-family:monospace;">Cargando eventos...</div></div>
@@ -1163,9 +1162,7 @@ if (typeof supabase === 'undefined') {
             <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div class="macro-impact low"></div> Bajo</div>
           </div>
         </div>
-      </div>
-
-      <div class="card" style="margin-bottom:18px;">
+        <div class="card">
         <div class="card-title">
           Historial de planes
           <div style="display:flex;gap:8px;">
@@ -1182,10 +1179,11 @@ if (typeof supabase === 'undefined') {
           <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--blue);opacity:0.7;"></div>Solo plan</div>
         </div>
       </div>
+      </div>
 
     </div>
 
-    <!-- HÁBITOS<!-- HÁBITOS -->
+    <!-- HÁBITOS<!-- HÁBITOS<!-- HÁBITOS -->
     <div class="tab-panel" id="panel-habitos">
       <div class="section-title">Tracker de hábitos y bienestar</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
@@ -2375,37 +2373,38 @@ function renderCalendar() {
 }
 
 // ─── PRE-MARKET ──────────────────────────────────────────────────
-const CHECKLIST_ITEMS = [
-  'Revisar noticias macro del día',
-  'Identificar niveles clave S/R',
-  'Revisar sesión anterior (Asia/Europa)',
-  'Definir sesgo del mercado',
-  'Establecer máximo de operaciones',
-  'Revisar mi plan de trading',
-  'Estado emocional evaluado',
-  'Sin distracciones activas',
-];
-const DEFAULT_CHECKLIST = [...CHECKLIST_ITEMS];
+const CHECKLIST_ITEMS = [];
+const DEFAULT_CHECKLIST = [];
 
-// Load saved custom checklist items
+// Load saved checklist items from localStorage
 try {
   const saved = JSON.parse(localStorage.getItem('tj_custom_checklist') || '[]');
-  saved.forEach(item => { if (!CHECKLIST_ITEMS.includes(item)) CHECKLIST_ITEMS.push(item); });
+  saved.forEach(item => CHECKLIST_ITEMS.push(item));
 } catch(e) {}
-
 
 let checklistState = {};
 
 function initChecklist() {
   const container = document.getElementById('checklist-items');
+  if (!container) return;
+  if (!CHECKLIST_ITEMS.length) {
+    container.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace;padding:8px 0;">Añade tus condiciones de pre-market...</div>';
+    updateChecklistProgress();
+    return;
+  }
   container.innerHTML = CHECKLIST_ITEMS.map((item, i) => `
-    <div class="checklist-item ${checklistState[i] ? 'checked' : ''}" onclick="toggleCheck(${i})">
-      <div class="checklist-box ${checklistState[i] ? 'checked' : ''}">
-        ${checklistState[i] ? '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>' : ''}
+    <div class="checklist-item ${checklistState[i] ? 'checked' : ''}" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;margin-bottom:4px;background:var(--bg3);border:1px solid var(--border);">
+      <div onclick="toggleCheck(${i})" style="flex:1;display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <div style="width:16px;height:16px;border-radius:4px;border:1px solid ${checklistState[i] ? 'var(--green)' : 'var(--border2)'};background:${checklistState[i] ? 'var(--green)' : 'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+          ${checklistState[i] ? '<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none"/></svg>' : ''}
+        </div>
+        <span style="font-size:13px;${checklistState[i] ? 'text-decoration:line-through;color:var(--text3);' : ''}">${item}</span>
       </div>
-      <div class="checklist-text">${item}</div>
-    </div>
-  `).join('');
+      <div style="display:flex;gap:4px;flex-shrink:0;">
+        <button onclick="editChecklistItem(${i})" title="Editar" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:2px 5px;border-radius:4px;font-size:12px;">✏️</button>
+        <button onclick="removeChecklistItem(${i})" title="Eliminar" style="background:none;border:none;color:var(--red);cursor:pointer;padding:2px 5px;border-radius:4px;font-size:12px;opacity:0.6;">✕</button>
+      </div>
+    </div>`).join('');
   updateChecklistProgress();
 }
 
@@ -2417,8 +2416,8 @@ function toggleCheck(i) {
 
 function resetChecklist() {
   checklistState = {};
-  localStorage.setItem(lsKey('tj_checklist_' + new Date().toISOString().slice(0,10)), '{}');
   initChecklist();
+  updateChecklistProgress();
 }
 
 function updateChecklistProgress() {
@@ -3862,22 +3861,58 @@ function confirmDialog(msg, sub) {
     overlay.addEventListener('click', onOverlay);
   });
 }
+function editChecklistItem(index) {
+  const current = CHECKLIST_ITEMS[index];
+  const input = document.getElementById('new-checklist-item');
+  if (!input) return;
+  input.value = current;
+  input.focus();
+  // Change add button to save edit
+  const btn = input.nextElementSibling;
+  if (btn) {
+    btn.textContent = '✓ Guardar';
+    btn.onclick = () => {
+      const newText = input.value.trim();
+      if (!newText) return;
+      CHECKLIST_ITEMS[index] = newText;
+      localStorage.setItem('tj_custom_checklist', JSON.stringify(CHECKLIST_ITEMS));
+      input.value = '';
+      btn.textContent = '+ Añadir';
+      btn.onclick = addChecklistItem;
+      initChecklist();
+    };
+    input.onkeydown = e => {
+      if (e.key === 'Enter') btn.onclick();
+      if (e.key === 'Escape') {
+        input.value = '';
+        btn.textContent = '+ Añadir';
+        btn.onclick = addChecklistItem;
+        input.onkeydown = e2 => { if(e2.key==='Enter') addChecklistItem(); };
+      }
+    };
+  }
+}
 
+function removeChecklistItem(index) {
+  CHECKLIST_ITEMS.splice(index, 1);
+  const newState = {};
+  Object.keys(checklistState).forEach(k => {
+    const ki = parseInt(k);
+    if (ki < index) newState[ki] = checklistState[ki];
+    else if (ki > index) newState[ki-1] = checklistState[ki];
+  });
+  checklistState = newState;
+  localStorage.setItem('tj_custom_checklist', JSON.stringify(CHECKLIST_ITEMS));
+  initChecklist();
+}
 function addChecklistItem() {
   const input = document.getElementById('new-checklist-item');
   const text = input?.value?.trim();
   if (!text) return;
-  
-  // Add to the CHECKLIST_ITEMS array
   CHECKLIST_ITEMS.push(text);
-  
-  // Save custom items to localStorage
-  const customItems = CHECKLIST_ITEMS.filter(item => !DEFAULT_CHECKLIST.includes(item));
-  localStorage.setItem('tj_custom_checklist', JSON.stringify(customItems));
-  
+  localStorage.setItem('tj_custom_checklist', JSON.stringify(CHECKLIST_ITEMS));
   input.value = '';
   initChecklist();
-  toast('Condición añadida ✓', 'success');
 }
 
 window.addEventListener('load', async () => {
