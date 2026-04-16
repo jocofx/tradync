@@ -1546,10 +1546,18 @@ async function guardarOperacion() {
   try {
     const { error } = await sb.from('operaciones').insert(row);
     if (error) throw error;
-    toast('Operación guardada ✓', 'success'); status.textContent = '¡Guardado!';
-    resetForm(); await loadTrades();
-  } catch(e) { toast('Error: '+e.message,'error'); status.textContent='Error'; }
-  btn.disabled=false; setTimeout(()=>status.textContent='',3000);
+    // Insert succeeded
+    toast('Operación guardada ✓', 'success');
+    status.textContent = '¡Guardado!';
+    resetForm();
+    // Reload trades separately - don't let render errors affect success message
+    try { await loadTrades(); } catch(e2) { console.warn('Reload error:', e2); }
+  } catch(e) {
+    toast('Error al guardar: ' + e.message, 'error');
+    status.textContent = 'Error';
+  }
+  btn.disabled = false;
+  setTimeout(() => status.textContent = '', 3000);
 }
 
 async function saveEditedTrade() {
@@ -1881,40 +1889,16 @@ function resetForm() {
 
 // ─── RENDERIZAR TODO ─────────────────────────────────────────────
 function renderAll() {
-  renderMetrics();
-  renderRecentTrades();
-  renderAllTrades();
-  renderEquity();
-  renderDashboardCharts();
-  renderPsych();
-  renderAccounts();
-  renderCalendar();
-  renderRiskPanel();
-  renderInstrumentStats();
-  renderMonthCompare();
-  renderHabitsCorrelation();
-  renderConsistencyScore();
-  renderHabitCalendar();
-  renderPmCalendar();
-  updateAiContext();
-  initDiario();
+  const fns = [
+    renderMetrics, renderRecentTrades, renderAllTrades, renderEquity,
+    renderDashboardCharts, renderPsych, renderAccounts, renderCalendar,
+    renderRiskPanel, renderInstrumentStats, renderMonthCompare,
+    renderHabitsCorrelation, renderConsistencyScore, renderHabitCalendar,
+    renderPmCalendar, updateAiContext, initDiario
+  ];
+  fns.forEach(fn => { try { fn(); } catch(e) { console.warn(fn.name + ' error:', e.message); } });
   const savedKey = localStorage.getItem('tj_ai_key');
-  if (savedKey) {
-    const keyInput = document.getElementById('ai-api-key');
-    if (keyInput) keyInput.value = savedKey;
-  }
-  if (localStorage.getItem('tj_theme') === 'light') {
-    document.body.classList.add('light-mode');
-    const btn = document.getElementById('theme-btn');
-    if (btn) btn.textContent = '☀️';
-  } else {
-    const btn = document.getElementById('theme-btn');
-    if (btn) btn.textContent = '🌙';
-  }}
-
-function fmt(n, decimals=2) {
-  if (n === null || n === undefined || isNaN(n)) return '—';
-  return (n >= 0 ? '+' : '') + n.toFixed(decimals);
+  if (savedKey) { const ki = document.getElementById('ai-api-key'); if (ki) ki.value = savedKey; }
 }
 function fmtDate(d) {
   if (!d) return '—';
