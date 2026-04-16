@@ -3897,6 +3897,7 @@ function editChecklistItem(index) {
 }
 
 async function removeChecklistItem(index) {
+  if (!requireAuth()) return;
   CHECKLIST_ITEMS.splice(index, 1);
   const newState = {};
   Object.keys(checklistState).forEach(k => {
@@ -3905,29 +3906,61 @@ async function removeChecklistItem(index) {
     else if (ki > index) newState[ki-1] = checklistState[ki];
   });
   checklistState = newState;
-  await sb.from('configuracion').upsert(
-    { user_id: currentUser.id, clave: 'customChecklist', valor: CHECKLIST_ITEMS, updated_at: new Date().toISOString() },
-    { onConflict: 'user_id,clave' }
-  ).catch(e => console.error('Checklist remove error:', e));
   initChecklist();
+
+  // Save updated list
+  const { data: existing } = await sb.from('configuracion')
+    .select('id').eq('user_id', currentUser.id).eq('clave', 'customChecklist').single();
+  if (existing) {
+    await sb.from('configuracion')
+      .update({ valor: CHECKLIST_ITEMS, updated_at: new Date().toISOString() })
+      .eq('user_id', currentUser.id).eq('clave', 'customChecklist');
+  } else {
+    await sb.from('configuracion')
+      .insert({ user_id: currentUser.id, clave: 'customChecklist', valor: CHECKLIST_ITEMS, updated_at: new Date().toISOString() });
+  }
+  console.log('Checklist after remove:', CHECKLIST_ITEMS.length, 'items');
 }
 async function addChecklistItem() {
   const input = document.getElementById('new-checklist-item');
   const text = input?.value?.trim();
   if (!text) return;
-  if (!currentUser) { toast('Inicia sesión para guardar', 'error'); return; }
+  if (!requireAuth()) return;
+
   CHECKLIST_ITEMS.push(text);
   input.value = '';
   initChecklist();
-  // Save to Supabase directly (not via saveConfigToNotion which shows error toasts)
-  const { error } = await sb.from('configuracion').upsert(
-    { user_id: currentUser.id, clave: 'customChecklist', valor: CHECKLIST_ITEMS, updated_at: new Date().toISOString() },
-    { onConflict: 'user_id,clave' }
-  );
+
+  console.log('Saving checklist for user:', currentUser.id, 'items:', CHECKLIST_ITEMS);
+
+  // First try to update existing row
+  const { data: existing } = await sb.from('configuracion')
+    .select('id')
+    .eq('user_id', currentUser.id)
+    .eq('clave', 'customChecklist')
+    .single();
+
+  let error;
+  if (existing) {
+    // Row exists - update it
+    const result = await sb.from('configuracion')
+      .update({ valor: CHECKLIST_ITEMS, updated_at: new Date().toISOString() })
+      .eq('user_id', currentUser.id)
+      .eq('clave', 'customChecklist');
+    error = result.error;
+  } else {
+    // Row doesn't exist - insert it
+    const result = await sb.from('configuracion')
+      .insert({ user_id: currentUser.id, clave: 'customChecklist', valor: CHECKLIST_ITEMS, updated_at: new Date().toISOString() });
+    error = result.error;
+  }
+
   if (error) {
     console.error('Checklist save error:', error);
+    toast('Error al guardar: ' + error.message, 'error');
   } else {
-    console.log('Checklist saved:', CHECKLIST_ITEMS.length, 'items');
+    console.log('Checklist saved ✓', CHECKLIST_ITEMS.length, 'items');
+    toast('Condición guardada ✓', 'success');
   }
 }
 
