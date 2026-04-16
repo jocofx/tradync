@@ -644,7 +644,7 @@ if (typeof supabase === 'undefined') {
         <div class="card-title">Últimas operaciones <span class="card-title-badge" style="cursor:pointer" onclick="goTab('operaciones',null)">Ver todas →</span></div>
         <div style="overflow-x:auto;">
           <table class="trade-table">
-            <thead><tr><th>Fecha</th><th>Instrumento</th><th>Tipo</th><th>Dir.</th><th>Entrada</th><th>SL</th><th>TP</th><th>Contratos</th><th>Resultado</th><th>Emoción</th><th>Estado</th><th></th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Instrumento</th><th>Tipo</th><th>Dir.</th><th>Entrada</th><th>SL</th><th>TP</th><th>Contratos</th><th>Resultado</th><th>Emoción</th><th>Estado</th><th></th><th style="text-align:center;font-size:10px;"></th></tr></thead>
             <tbody id="recent-trades-body"><tr class="loading-row"><td colspan="12"><span class="spinner"></span>Cargando desde Notion...</td></tr></tbody>
           </table>
         </div>
@@ -1989,6 +1989,7 @@ function tradeRow(t, full=false) {
     const imgs = [t.imgApertura, t.imgCierre].filter(Boolean);
     row += `<td>${imgs.map(img => `<img src="${img}" style="width:36px;height:28px;object-fit:cover;border-radius:4px;margin-right:3px;cursor:pointer;" onclick="openImgPreview('${img}')">`).join('') || '—'}</td>`;
   }
+  row += `<td style="text-align:center;padding:4px 8px;"><button onclick="event.stopPropagation();deleteTrade('${t.id}')" style="background:none;border:1px solid rgba(255,77,109,0.4);color:var(--red);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px;" title="Eliminar operación">✕</button></td>`;
   row += '</tr>';
   return row;
 }
@@ -3504,14 +3505,30 @@ async function saveAccount() {
   toast('Cuenta "' + nombre + '" guardada ✓', 'success');
 }
 
+
+async function deleteTrade(id) {
+  if (!confirm('¿Eliminar esta operación?')) return;
+  const { error } = await sb.from('operaciones')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', currentUser.id);
+  if (error) { console.error('deleteTrade error:', error); toast('Error al eliminar', 'error'); return; }
+  allTrades = allTrades.filter(t => t.id !== id && t.pageId !== id);
+  renderAll();
+  toast('Operación eliminada ✓', 'success');
+}
+
 async function deleteAccount(id) {
   if (!confirm('¿Eliminar esta cuenta?')) return;
-  // Mark as inactive in Supabase
-  await sb.from('cuentas').update({ activa: false }).eq('id', id).eq('user_id', currentUser.id).catch(()=>{});
-  accounts = accounts.filter(a => a.id !== id && a.notionId !== id);
+  const { error } = await sb.from('cuentas')
+    .update({ activa: false })
+    .eq('id', id)
+    .eq('user_id', currentUser.id);
+  if (error) { console.error('deleteAccount error:', error); toast('Error al eliminar', 'error'); return; }
+  accounts = accounts.filter(a => String(a.notionId) !== String(id) && String(a.id) !== String(id));
   renderAccounts();
   updateCuentaSelector();
-  toast('Cuenta eliminada', 'success');
+  toast('Cuenta eliminada ✓', 'success');
 }
 
 function renderAccounts() {
@@ -3528,7 +3545,7 @@ function renderAccounts() {
       <div class="account-card ${a.tipo}" onclick="openAccountDetail(${a.id})">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
           <span class="account-type-badge ${a.tipo}">${a.tipo === 'prop' ? 'PROP FIRM' : 'CAPITAL PROPIO'}</span>
-          <span style="font-size:10px;color:var(--text3);cursor:pointer;font-family:'DM Mono',monospace;" onclick="event.stopPropagation();deleteAccount(${a.id})">✕</span>
+          <span style="font-size:10px;color:var(--text3);cursor:pointer;font-family:'DM Mono',monospace;" onclick="event.stopPropagation();deleteAccount('${a.notionId || a.id}')">✕</span>
         </div>
         <div class="account-name">${a.nombre}</div>
         ${a.tipo === 'prop' ? `<div style="font-size:11px;color:var(--amber);font-family:monospace;margin-bottom:4px;">${a.broker} · ${a.fase}</div>` : ''}
