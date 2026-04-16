@@ -1183,6 +1183,7 @@ if (typeof supabase === 'undefined') {
         <div class="card">
           <div class="card-title">Hábitos de hoy <span class="card-title-badge" id="habit-date-label"></span></div>
           <div id="habits-today-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;"></div>
+          <button class="btn btn-primary" onclick="saveHabits()" style="width:100%;padding:9px;font-size:13px;margin-bottom:10px;">💾 Guardar hábitos de hoy</button>
           <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
             <div style="display:flex;gap:8px;align-items:center;">
               <input class="form-input" id="new-habit-icon" placeholder="🏃" style="width:48px;padding:6px 8px;font-size:16px;text-align:center;">
@@ -2590,25 +2591,21 @@ function initHabits() {
   const grid = document.getElementById('habits-today-grid');
   if (!grid) return;
 
-  // 2-column grid
   grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
 
-  if (!customHabits.length) {
-    grid.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace;grid-column:1/-1;padding:8px 0;">Añade tus hábitos usando el formulario de abajo...</div>';
-    return;
-  }
-
-  grid.innerHTML = customHabits.map((h, idx) => {
+  // Always show habits (customHabits defaults to DEFAULT_HABITS)
+  grid.innerHTML = customHabits.map(function(h, idx) {
     const active = (habitsToday[h.id] || 0) > 0;
-    const isDefault = DEFAULT_HABITS.find(d => d.id === h.id);
-    return `
-      <div onclick="toggleHabit('${h.id}')" id="hc-${h.id}"
-        style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:18px 12px;border-radius:12px;border:1px solid ${active ? 'rgba(0,212,160,0.4)' : 'var(--border)'};background:${active ? 'rgba(0,212,160,0.12)' : 'var(--bg3)'};cursor:pointer;transition:all 0.2s;position:relative;user-select:none;">
-        <div style="font-size:26px;">${h.icon}</div>
-        <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.5px;color:${active ? 'var(--green)' : 'var(--text3)'};text-align:center;">${h.name.toUpperCase()}</div>
-        ${active ? '<div style="font-size:10px;color:var(--green);font-family:monospace;">✓</div>' : ''}
-        ${!isDefault ? `<div onclick="event.stopPropagation();removeHabitFromPanel(${idx})" style="position:absolute;top:5px;right:5px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,77,109,0.15);color:var(--red);font-size:9px;cursor:pointer;opacity:0.7;">✕</div>` : ''}
-      </div>`;
+    const isDefault = DEFAULT_HABITS.some(function(d){ return d.id === h.id; });
+    return '<div onclick="toggleHabit('' + h.id + '')" id="hc-' + h.id + '" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:18px 10px;border-radius:12px;border:1px solid ' + (active ? 'rgba(0,212,160,0.4)' : 'var(--border)') + ';background:' + (active ? 'rgba(0,212,160,0.12)' : 'var(--bg3)') + ';cursor:pointer;transition:all 0.2s;position:relative;user-select:none;">' +
+      '<div style="font-size:26px;">' + h.icon + '</div>' +
+      '<div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.5px;color:' + (active ? 'var(--green)' : 'var(--text2)') + ';text-align:center;">' + h.name.toUpperCase() + '</div>' +
+      (active ? '<div style="font-size:11px;color:var(--green);">✓</div>' : '') +
+      '<div style="position:absolute;top:4px;right:4px;display:flex;gap:2px;">' +
+        '<button onclick="event.stopPropagation();editHabitInline(' + idx + ')" title="Editar" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--text3);padding:2px 4px;border-radius:3px;">✏️</button>' +
+        (isDefault ? '' : '<button onclick="event.stopPropagation();removeHabitFromPanel(' + idx + ')" title="Eliminar" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--red);padding:2px 4px;border-radius:3px;">✕</button>') +
+      '</div>' +
+    '</div>';
   }).join('');
 
   renderSurvey();
@@ -2630,7 +2627,8 @@ function setHabitRating(id, val) {
 function saveHabits() {
   const today = new Date().toISOString().slice(0,10);
   localStorage.setItem(lsKey('tj_habits_' + today), JSON.stringify(habitsToday));
-  saveHabitsToNotion(today).catch(e => console.error('Habit sync error:', e));
+  saveHabitsToNotion(today).catch(function(e){ console.error('Habit sync error:', e); });
+  toast('Hábitos guardados ✓', 'success');
 }
 
 function changeHabitMonth(dir) {
@@ -2763,14 +2761,21 @@ let surveyAnswers = {};
 
 function initSurvey() {
   const container = document.getElementById('survey-container');
-  container.innerHTML = SURVEY_QS.map((q, i) => `
-    <div class="survey-question">
-      <div class="survey-q-text">${i+1}. ${q.q}</div>
-      <div class="survey-options">
-        ${q.opts.map(o => `<button class="survey-option ${surveyAnswers[i]===o?'selected':''}" onclick="selectSurvey(${i},'${o}',this)">${o}</button>`).join('')}
-      </div>
-    </div>
-  `).join('');
+  if (!container) return;
+  const today = new Date().toISOString().slice(0,10);
+  const saved = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + today)) || '{}');
+
+  container.innerHTML = SURVEY_QS.map(function(q, i) {
+    return '<div style="margin-bottom:16px;">' +
+      '<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;">' + (i+1) + '. ' + q.q + '</div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+        q.opts.map(function(o) {
+          const sel = saved[i] === o;
+          return '<button onclick="selectSurveyQ(' + i + ','' + o + '',this)" style="padding:6px 14px;border-radius:20px;border:1px solid ' + (sel ? 'var(--green)' : 'var(--border2)') + ';background:' + (sel ? 'rgba(0,212,160,0.12)' : 'transparent') + ';color:' + (sel ? 'var(--green)' : 'var(--text2)') + ';font-size:12px;cursor:pointer;transition:all 0.15s;font-family:'DM Mono',monospace;">' + o + '</button>';
+        }).join('') +
+      '</div></div>';
+  }).join('') +
+  '<button class="btn btn-primary" onclick="saveSurvey()" style="width:100%;padding:10px;margin-top:8px;font-size:13px;">💾 Guardar encuesta</button>';
 }
 
 function selectSurvey(qi, val, btn) {
@@ -3998,6 +4003,47 @@ function renderHabitStats() {
     statCard(totalDays, "DÍAS ACTIVOS", "var(--blue)") +
     statCard(completeDays, "DÍAS COMPLETOS", "var(--amber)") +
     statCard(pct + "%", "CONSISTENCIA", "var(--purple)") + "</div>";
+}
+
+function editHabitInline(idx) {
+  const h = customHabits[idx];
+  if (!h) return;
+  const iconEl = document.getElementById('new-habit-icon');
+  const nameEl = document.getElementById('new-habit-name');
+  const btn = document.querySelector('#panel-habitos .btn-primary');
+  if (!iconEl || !nameEl || !btn) return;
+  iconEl.value = h.icon;
+  nameEl.value = h.name;
+  nameEl.focus();
+  btn.textContent = '✓ Guardar';
+  btn.dataset.editIdx = idx;
+  btn.onclick = function() {
+    const newIcon = iconEl.value.trim() || h.icon;
+    const newName = nameEl.value.trim();
+    if (!newName) return;
+    customHabits[idx] = { id: h.id, icon: newIcon, name: newName };
+    saveCustomHabits();
+    saveConfigToNotion('customHabits', customHabits).catch(function(){});
+    iconEl.value = '';
+    nameEl.value = '';
+    btn.textContent = '+ Añadir';
+    btn.dataset.editIdx = '';
+    btn.onclick = addHabitFromPanel;
+    initHabits();
+    toast(newName + ' actualizado ✓', 'success');
+  };
+}
+
+function selectSurveyQ(idx, val, btn) {
+  surveyAnswers[idx] = val;
+  // Update button styles in that question's row
+  const parent = btn.parentElement;
+  parent.querySelectorAll('button').forEach(function(b) {
+    const sel = b.textContent === val;
+    b.style.borderColor = sel ? 'var(--green)' : 'var(--border2)';
+    b.style.background = sel ? 'rgba(0,212,160,0.12)' : 'transparent';
+    b.style.color = sel ? 'var(--green)' : 'var(--text2)';
+  });
 }
 
 window.addEventListener('load', async () => {
