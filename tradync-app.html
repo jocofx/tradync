@@ -3785,69 +3785,6 @@ function rotateQuote() {
 }
 
 // ─── NOTION MULTI-DB SYNC ────────────────────────────────────────
-async function initNotionDatabases() {
-  if (!PARENT_PAGE_ID) {
-    toast('Configura la página padre primero en Ajustes', 'error');
-    return false;
-  }
-  try {
-    if (!DB_HABITOS) DB_HABITOS = await createDB('Hábitos Diarios', [
-      { name: 'Fecha', type: 'date' },
-      { name: 'Sueño', type: 'number', format: 'number' },
-      { name: 'Ejercicio', type: 'number', format: 'number' },
-      { name: 'Meditación', type: 'number', format: 'number' },
-      { name: 'Sin alcohol', type: 'number', format: 'number' },
-      { name: 'Hábitos extra', type: 'rich_text' },
-      { name: 'Encuesta', type: 'rich_text' },
-      { name: 'Puntuación', type: 'number', format: 'number' },
-    ]);
-
-    if (!DB_PLANES) DB_PLANES = await createDB('Planes de Trading', [
-      { name: 'Fecha', type: 'date' },
-      { name: 'Sesgo', type: 'select' },
-      { name: 'Niveles clave', type: 'rich_text' },
-      { name: 'No hacer', type: 'rich_text' },
-      { name: 'Notas', type: 'rich_text' },
-      { name: 'Checklist completado', type: 'number', format: 'number' },
-      { name: 'Max operaciones', type: 'number', format: 'number' },
-    ]);
-
-    if (!DB_CUENTAS) DB_CUENTAS = await createDB('Cuentas de Trading', [
-      { name: 'Broker', type: 'rich_text' },
-      { name: 'Tipo', type: 'select' },
-      { name: 'Balance', type: 'number', format: 'number' },
-      { name: 'Fase', type: 'rich_text' },
-      { name: 'Activa', type: 'checkbox' },
-    ]);
-
-    if (!DB_DIARIO) DB_DIARIO = await createDB('Diario de Trading', [
-      { name: 'Fecha', type: 'date' },
-      { name: 'Texto', type: 'rich_text' },
-      { name: 'Lección', type: 'rich_text' },
-      { name: 'Energía', type: 'number', format: 'number' },
-      { name: 'Emociones', type: 'rich_text' },
-    ]);
-
-    if (!DB_CONFIG) DB_CONFIG = await createDB('Configuración Journal', [
-      { name: 'Clave', type: 'rich_text' },
-      { name: 'Valor', type: 'rich_text' },
-    ]);
-
-    localStorage.setItem('tj_db_habitos', DB_HABITOS);
-    localStorage.setItem('tj_db_diario', DB_DIARIO);
-    localStorage.setItem('tj_db_planes', DB_PLANES);
-    localStorage.setItem('tj_db_cuentas', DB_CUENTAS);
-    localStorage.setItem('tj_db_config', DB_CONFIG);
-
-    toast('Bases de datos de Notion listas ✓', 'success');
-    return true;
-  } catch(e) {
-    console.error('Error creando DBs:', e);
-    toast('Error creando bases de datos: ' + e.message, 'error');
-    return false;
-  }
-}
-
 // createDB: removed Notion version
 
 
