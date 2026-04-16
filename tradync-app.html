@@ -725,18 +725,14 @@ if (typeof supabase === 'undefined') {
           <div class="form-grid">
           <div class="form-field">
             <label class="form-label">Instrumento</label>
-            <select class="form-select" id="f-instrumento">
-              <option>MES</option><option>MNQ</option><option>ES</option><option>NQ</option>
-              <option>GC (Oro)</option><option>CL (Crudo)</option><option>EUR/USD</option>
-              <option>GBP/USD</option><option>US30</option><option>Otro</option>
-            </select>
+            <input class="form-input" id="f-instrumento" type="text" placeholder="MES, NQ, EUR/USD, BTC..." autocomplete="off" list="instrumento-list">
+            <datalist id="instrumento-list">
+              <option value="MES"><option value="MNQ"><option value="ES"><option value="NQ">
+              <option value="GC (Oro)"><option value="CL (Crudo)"><option value="EUR/USD">
+              <option value="GBP/USD"><option value="BTC/USD"><option value="ETH/USD">
+            </datalist>
           </div>
-          <div class="form-field">
-            <label class="form-label">Tipo</label>
-            <select class="form-select" id="f-tipo">
-              <option>Futuro</option><option>CFD</option>
-            </select>
-          </div>
+          
           <div class="form-field">
             <label class="form-label">Dirección</label>
             <select class="form-select" id="f-direccion">
@@ -1521,7 +1517,7 @@ async function guardarOperacion() {
   if (imgCierreBase64) imgCierreUrl = await uploadImage(imgCierreBase64,'cierre');
   const row = {
     user_id: currentUser.id, fecha: fechaVal||new Date().toISOString(),
-    instrumento: instr, tipo: document.getElementById('f-tipo').value,
+    instrumento: instr, tipo: '',  // removed field
     direccion: document.getElementById('f-direccion').value, entrada, sl:sl2, tp:tp2, rr:rr2,
     contratos: parseInt(document.getElementById('f-contratos').value)||null,
     resultado: estadoCheck!=='Pendiente'&&!isNaN(resultado)?resultado:null,
