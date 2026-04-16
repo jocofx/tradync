@@ -1110,43 +1110,7 @@ if (typeof supabase === 'undefined') {
     <!-- PRE-MARKET -->
     <div class="tab-panel" id="panel-premarket">
       <div class="section-title">Preparación de la sesión</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
-        <div class="card">
-          <div class="card-title">Checklist pre-market <span class="card-title-badge" id="checklist-pct">0%</span></div>
-          <div class="checklist-progress"><div class="checklist-progress-fill" id="checklist-bar" style="width:0%"></div></div>
-          <div id="checklist-items"></div>
-          <div style="display:flex;gap:8px;margin-top:14px;">
-            <button class="btn" onclick="resetChecklist()" style="font-size:12px;padding:7px 14px;">Reiniciar</button>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Eventos macro hoy <span class="card-title-badge" id="macro-date"></span></div>
-          <div id="macro-events-list"><div style="color:var(--text3);font-size:12px;font-family:monospace;">Cargando eventos...</div></div>
-          <div style="margin-top:14px;display:flex;gap:10px;align-items:center;">
-            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div class="macro-impact high"></div> Alto impacto</div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div class="macro-impact medium"></div> Medio</div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div class="macro-impact low"></div> Bajo</div>
-          </div>
-        </div>
-      </div>
-      <div class="card" style="margin-bottom:18px;">
-        <div class="card-title">
-          Historial de planes
-          <div style="display:flex;gap:8px;">
-            <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changePmMonth(-1)">←</button>
-            <span class="card-title-badge" id="pm-cal-month-label" style="display:flex;align-items:center;"></span>
-            <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changePmMonth(1)">→</button>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;" id="pm-cal-header"></div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" id="pm-cal-grid"></div>
-        <div style="display:flex;gap:14px;margin-top:10px;">
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);opacity:0.7;"></div>Plan completo</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--amber);opacity:0.7;"></div>Parcial</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--blue);opacity:0.7;"></div>Solo plan</div>
-        </div>
-      </div>
-
+      
       <div class="card">
         <div class="card-title">Plan del día</div>
         <div class="form-grid" style="margin-bottom:14px;">
@@ -1176,9 +1140,52 @@ if (typeof supabase === 'undefined') {
         <button class="btn btn-primary" onclick="savePlan()">Guardar plan del día</button>
         <span id="plan-saved" style="font-size:12px;color:var(--green);font-family:'DM Mono',monospace;margin-left:10px;"></span>
       </div>
+
+      <div style="height:18px;"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+        <div class="card">
+          <div class="card-title">Checklist pre-market <span class="card-title-badge" id="checklist-pct">0%</span></div>
+          <div class="checklist-progress"><div class="checklist-progress-fill" id="checklist-bar" style="width:0%"></div></div>
+          <div id="checklist-items"></div>
+          <div style="display:flex;gap:8px;margin-top:14px;align-items:center;">
+            <input class="form-input" id="new-checklist-item" placeholder="Añadir condición..." style="flex:1;padding:7px 12px;font-size:12px;" onkeydown="if(event.key==='Enter')addChecklistItem()">
+            <button class="btn btn-primary" onclick="addChecklistItem()" style="font-size:12px;padding:7px 14px;white-space:nowrap;">+ Añadir</button>
+            <button class="btn" onclick="resetChecklist()" style="font-size:12px;padding:7px 14px;">Reiniciar</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Eventos macro hoy <span class="card-title-badge" id="macro-date"></span></div>
+          <div id="macro-events-list"><div style="color:var(--text3);font-size:12px;font-family:monospace;">Cargando eventos...</div></div>
+          <div style="margin-top:14px;display:flex;gap:10px;align-items:center;">
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div class="macro-impact high"></div> Alto impacto</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div class="macro-impact medium"></div> Medio</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div class="macro-impact low"></div> Bajo</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-title">
+          Historial de planes
+          <div style="display:flex;gap:8px;">
+            <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changePmMonth(-1)">←</button>
+            <span class="card-title-badge" id="pm-cal-month-label" style="display:flex;align-items:center;"></span>
+            <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changePmMonth(1)">→</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;" id="pm-cal-header"></div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" id="pm-cal-grid"></div>
+        <div style="display:flex;gap:14px;margin-top:10px;">
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);opacity:0.7;"></div>Plan completo</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--amber);opacity:0.7;"></div>Parcial</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--blue);opacity:0.7;"></div>Solo plan</div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- HÁBITOS -->
+    <!-- HÁBITOS<!-- HÁBITOS -->
     <div class="tab-panel" id="panel-habitos">
       <div class="section-title">Tracker de hábitos y bienestar</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
@@ -2378,6 +2385,14 @@ const CHECKLIST_ITEMS = [
   'Estado emocional evaluado',
   'Sin distracciones activas',
 ];
+const DEFAULT_CHECKLIST = [...CHECKLIST_ITEMS];
+
+// Load saved custom checklist items
+try {
+  const saved = JSON.parse(localStorage.getItem('tj_custom_checklist') || '[]');
+  saved.forEach(item => { if (!CHECKLIST_ITEMS.includes(item)) CHECKLIST_ITEMS.push(item); });
+} catch(e) {}
+
 
 let checklistState = {};
 
@@ -3846,6 +3861,23 @@ function confirmDialog(msg, sub) {
     cancel.addEventListener('click', onCancel);
     overlay.addEventListener('click', onOverlay);
   });
+}
+
+function addChecklistItem() {
+  const input = document.getElementById('new-checklist-item');
+  const text = input?.value?.trim();
+  if (!text) return;
+  
+  // Add to the CHECKLIST_ITEMS array
+  CHECKLIST_ITEMS.push(text);
+  
+  // Save custom items to localStorage
+  const customItems = CHECKLIST_ITEMS.filter(item => !DEFAULT_CHECKLIST.includes(item));
+  localStorage.setItem('tj_custom_checklist', JSON.stringify(customItems));
+  
+  input.value = '';
+  initChecklist();
+  toast('Condición añadida ✓', 'success');
 }
 
 window.addEventListener('load', async () => {
