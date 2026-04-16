@@ -1600,11 +1600,26 @@ async function uploadImage(base64, type) {
 
 async function saveHabitsToNotion(dateStr) {
   if (!requireAuth()) return;
-  const data = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + dateStr))||'{}');
-  const survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + dateStr))||'{}');
-  const row = { user_id:currentUser.id, fecha:dateStr, sueno:data.sueno||0, ejercicio:data.ejercicio||0,
-    meditacion:data.meditacion||0, alcohol:data.alcohol||0, habitos_extra:{}, encuesta:survey, updated_at:new Date().toISOString() };
-  await sb.from('habitos').upsert(row,{onConflict:'user_id,fecha'}).catch(()=>{});
+  const data = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + dateStr)) || '{}');
+  const survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + dateStr)) || '{}');
+  const extra = {};
+  customHabits.forEach(function(h) {
+    if (!['sueno','ejercicio','meditacion','alcohol'].includes(h.id)) {
+      extra[h.id] = data[h.id] || 0;
+    }
+  });
+  const row = {
+    user_id: currentUser.id, fecha: dateStr,
+    sueno: data.sueno || 0, ejercicio: data.ejercicio || 0,
+    meditacion: data.meditacion || 0, alcohol: data.alcohol || 0,
+    habitos_extra: extra, encuesta: survey,
+    updated_at: new Date().toISOString()
+  };
+  try {
+    await sb.from('habitos').upsert(row, { onConflict: 'user_id,fecha' });
+  } catch(e) {
+    console.error('saveHabitsToNotion error:', e);
+  }
 }
 
 async function loadHabitsFromNotion(dateStr) {
@@ -2873,32 +2888,13 @@ function saveSurvey() {
 }
 
 function renderConsistencyScore() {
-  if (!document.getElementById("consistency-score") && !document.getElementById("habit-cal-grid")) return;
-  let score = 0, max = 0;
-  const today = new Date().toISOString().slice(0,10);
-  const todayTrades = allTrades.filter(t => (t.fecha||'').slice(0,10) === today);
-  const survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + today)) || '{}');
-  const plan = JSON.parse(localStorage.getItem(lsKey('tj_plan_' + today)) || '{}');
-
-  if (Object.keys(checklistState).filter(k=>checklistState[k]).length >= 6) { score += 20; }
-  max += 20;
-  if (habitsToday.sueno >= 3) { score += 15; } max += 15;
-  if (habitsToday.ejercicio >= 3) { score += 10; } max += 10;
-  if (survey[1] === 'Siempre' || survey[1] === 'Casi siempre') { score += 25; } max += 25;
-  if (survey[3] === 'No') { score += 20; } max += 20;
-  if (plan.sesgo) { score += 10; } max += 10;
-
-  const pct = Math.round(score / max * 100);
-  const color = pct >= 80 ? 'var(--green)' : pct >= 60 ? 'var(--amber)' : 'var(--red)';
-  document.getElementById('score-number').textContent = pct;
-  document.getElementById('score-number').style.color = color;
-  document.getElementById('score-circle').style.borderColor = color;
-
-  document.getElementById('score-breakdown').innerHTML = `
-    <div class="stat-row"><span class="stat-name">Checklist</span><span class="stat-val" style="color:${checklistState[0]?'var(--green)':'var(--text3)'}">+${Object.values(checklistState).filter(Boolean).length*3}pts</span></div>
-    <div class="stat-row"><span class="stat-name">Hábitos</span><span class="stat-val" style="color:var(--blue)">+${(habitsToday.sueno>=3?15:0)+(habitsToday.ejercicio>=3?10:0)}pts</span></div>
-    <div class="stat-row"><span class="stat-name">Encuesta</span><span class="stat-val" style="color:var(--purple)">+${survey[1]?25:0}pts</span></div>
-    <div class="stat-row"><span class="stat-name">Plan del día</span><span class="stat-val" style="color:var(--amber)">+${plan.sesgo?10:0}pts</span></div>`;
+  // Only run if relevant elements exist (old design had consistency-score element)
+  var el = document.getElementById('consistency-score');
+  if (!el) return;
+  var score = 0, max = 0;
+  var today = new Date().toISOString().slice(0,10);
+  var todayTrades = allTrades.filter(function(t){ return (t.fecha||'').slice(0,10) === today; });
+  el.textContent = score;
 }
 
 // ─── ESTADÍSTICAS AVANZADAS ───────────────────────────────────────
