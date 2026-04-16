@@ -1363,6 +1363,18 @@ if (typeof supabase === 'undefined') {
           </div>
         </div>
       </div>
+
+      <!-- DIARY DAY DETAIL -->
+      <div id="diary-detail-panel" style="display:none;background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;margin-top:18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div id="diary-detail-title" style="font-size:15px;font-weight:700;color:var(--text);"></div>
+          <div style="display:flex;gap:8px;">
+            <button id="diary-detail-edit-btn" class="btn btn-primary" style="font-size:12px;padding:6px 14px;">Editar</button>
+            <button onclick="closeDiaryDetail()" style="background:none;border:1px solid var(--border);color:var(--text3);cursor:pointer;font-size:13px;padding:5px 10px;border-radius:6px;">✕</button>
+          </div>
+        </div>
+        <div id="diary-detail-body"></div>
+      </div>
     </div>
 
     <!-- PSICOLOGÍA -->
@@ -3394,9 +3406,75 @@ function renderDiaryCalendar() {
 }
 
 function loadDiaryForDate(dateStr) {
-  document.getElementById('diario-fecha').value = dateStr;
-  loadDiaryEntry();
-  document.querySelector('[onclick*="diario"]')?.click();
+  var entry = diaryEntries[dateStr];
+  if (!entry) return;
+
+  var date = new Date(dateStr + 'T12:00:00');
+  var label = date.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  label = label.charAt(0).toUpperCase() + label.slice(1);
+
+  // Energy bar
+  var energia = entry.energia || 7;
+  var energyColor = energia >= 8 ? 'var(--green)' : energia >= 5 ? 'var(--amber)' : 'var(--red)';
+  var energyBar = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">' +
+    '<span style="font-size:11px;color:var(--text3);font-family:monospace;min-width:80px;">ENERGÍA</span>' +
+    '<div style="flex:1;height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;">' +
+      '<div style="width:' + (energia*10) + '%;height:100%;background:' + energyColor + ';border-radius:4px;"></div>' +
+    '</div>' +
+    '<span style="font-size:12px;font-weight:700;color:' + energyColor + ';font-family:monospace;">' + energia + '/10</span>' +
+    '</div>';
+
+  // Emotions
+  var emosHTML = '';
+  if (entry.emociones && entry.emociones.length) {
+    emosHTML = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">' +
+      entry.emociones.map(function(e) {
+        return '<span style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:12px;">' + e + '</span>';
+      }).join('') +
+    '</div>';
+  }
+
+  // Main text
+  var textoHTML = '';
+  if (entry.texto && entry.texto.trim()) {
+    textoHTML = '<div style="margin-bottom:16px;">' +
+      '<div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:8px;">REFLEXIÓN DEL DÍA</div>' +
+      '<div style="background:var(--bg3);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">' + entry.texto + '</div>' +
+    '</div>';
+  }
+
+  // Lesson
+  var leccionHTML = '';
+  if (entry.leccion && entry.leccion.trim()) {
+    leccionHTML = '<div>' +
+      '<div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:8px;">LECCIÓN APRENDIDA</div>' +
+      '<div style="background:rgba(0,212,160,0.08);border:1px solid rgba(0,212,160,0.2);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--green);line-height:1.6;">' + entry.leccion + '</div>' +
+    '</div>';
+  }
+
+  var panel = document.getElementById('diary-detail-panel');
+  document.getElementById('diary-detail-title').textContent = '📔 ' + label;
+  document.getElementById('diary-detail-body').innerHTML = energyBar + emosHTML + textoHTML + leccionHTML;
+
+  // Edit button
+  var editBtn = document.getElementById('diary-detail-edit-btn');
+  if (editBtn) {
+    editBtn.onclick = function() {
+      document.getElementById('diario-fecha').value = dateStr;
+      loadDiaryEntry();
+      closeDiaryDetail();
+      document.querySelector('.nav-item[onclick*="nueva"]') // scroll to editor top
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    };
+  }
+
+  panel.style.display = 'block';
+  setTimeout(function() { panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
+}
+
+function closeDiaryDetail() {
+  var p = document.getElementById('diary-detail-panel');
+  if (p) p.style.display = 'none';
 }
 
 function renderDiaryRecent() {
