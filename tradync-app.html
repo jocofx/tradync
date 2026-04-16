@@ -1678,7 +1678,18 @@ async function loadAccountsFromNotion() {
 
 async function saveDiaryToNotion(date, entry) {
   if (!requireAuth()) return;
-  await sb.from('diario').upsert({ user_id:currentUser.id, fecha:date, texto:entry.texto?.slice(0,10000)||'', leccion:entry.leccion||'', energia:entry.energia||7, emociones:entry.emociones||[], updated_at:new Date().toISOString() },{onConflict:'user_id,fecha'}).catch(()=>{});
+  try {
+    await sb.from('diario').upsert({
+      user_id: currentUser.id, fecha: date,
+      texto: (entry.texto||'').slice(0,10000),
+      leccion: entry.leccion||'',
+      energia: entry.energia||7,
+      emociones: entry.emociones||[],
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id,fecha' });
+  } catch(e) {
+    console.error('saveDiaryToNotion error:', e);
+  }
 }
 
 async function saveConfigToNotion(key, value) {
@@ -3099,10 +3110,16 @@ function updateAiContext() {
     sessions[s].pnl += (t.resultado||0);
   });
   const bestS = Object.entries(sessions).sort((a,b)=>b[1].pnl-a[1].pnl)[0];
-  document.getElementById('ai-ops-count').textContent = trades.length;
-  document.getElementById('ai-wr').textContent = wr + '%';
-  document.getElementById('ai-pnl').textContent = (pnl>=0?'+':'') + '$' + pnl.toFixed(2);
-  document.getElementById('ai-best-session').textContent = bestS ? bestS[0] : '—';
+  const els = {
+    'ai-ops-count': trades.length,
+    'ai-wr': wr + '%',
+    'ai-pnl': (pnl>=0?'+':'') + '$' + pnl.toFixed(2),
+    'ai-best-session': bestS ? bestS[0] : '—'
+  };
+  Object.entries(els).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  });
 }
 
 async function sendAiMessage() {
@@ -3158,7 +3175,8 @@ async function callAi(userMsg) {
     document.getElementById('ai-typing')?.remove();
 
     if (data.error) {
-      appendAiMsg('Error: ' + data.error, 'bot');
+      const errMsg = typeof data.error === 'object' ? (data.error.message || JSON.stringify(data.error)) : data.error;
+      appendAiMsg('⚠️ ' + errMsg, 'bot');
       return;
     }
 
@@ -3309,26 +3327,26 @@ function loadDiaryEntry() {
 
 function saveDiaryEntry() {
   const date = document.getElementById('diario-fecha').value;
+  if (!date) { toast('Selecciona una fecha', 'error'); return; }
   const entry = {
     fecha: date,
     texto: document.getElementById('diario-texto').value,
     leccion: document.getElementById('diario-leccion').value,
-    energia: parseInt(document.getElementById('diario-energia').value),
+    energia: parseInt(document.getElementById('diario-energia').value) || 7,
     emociones: [...diarySelectedEmos],
     savedAt: new Date().toISOString(),
   };
   diaryEntries[date] = entry;
-  localStorage.setItem(lsKey('tj_diary'), JSON.stringify(diaryEntries));
   const st = document.getElementById('diario-save-status');
-  st.textContent = '✓ Guardado localmente';
+  if (st) st.textContent = '✓ Guardando...';
   renderDiaryCalendar();
   renderDiaryRecent();
   renderDiaryStats();
   saveDiaryToNotion(date, entry).then(() => {
-    st.textContent = '✓ Guardado en Notion';
-    setTimeout(() => st.textContent = '', 3000);
+    if (st) { st.textContent = '✓ Guardado'; setTimeout(() => st.textContent = '', 3000); }
+    toast('Diario guardado ✓', 'success');
   }).catch(() => {
-    setTimeout(() => st.textContent = '', 3000);
+    if (st) setTimeout(() => st.textContent = '', 3000);
   });
 }
 
@@ -4192,6 +4210,28 @@ async function aiAnalysis(type) {
   await callAi(prompts[type]);
 }
 
+async function loadDiaryFromNotion() {
+  if (!requireAuth()) return;
+  const { data, error } = await sb.from('diario').select('*').eq('user_id', currentUser.id);
+  if (error) { console.error('loadDiary error:', error); return; }
+  if (!data || !data.length) return;
+  diaryEntries = {};
+  data.forEach(function(row) {
+    diaryEntries[row.fecha] = {
+      fecha: row.fecha,
+      texto: row.texto || '',
+      leccion: row.leccion || '',
+      energia: row.energia || 7,
+      emociones: row.emociones || [],
+      savedAt: row.updated_at
+    };
+  });
+  console.log('Diary loaded:', Object.keys(diaryEntries).length, 'entries');
+  renderDiaryCalendar();
+  renderDiaryRecent();
+  renderDiaryStats();
+}
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
@@ -4245,7 +4285,7 @@ window.addEventListener('load', async () => {
     showAuthBanner();
   } else {
     currentUser = session.user;
-    accounts = []; allTrades = []; habitsToday = {};
+    accounts = []; allTrades = []; habitsToday = {}; diaryEntries = {};
     CHECKLIST_ITEMS.length = 0;
     customHabits = DEFAULT_HABITS.slice();
     updateUserUI(session.user);
@@ -4258,6 +4298,7 @@ window.addEventListener('load', async () => {
       loadConfigFromNotion().catch(()=>{}),
     ]);
     try { initHabits(); } catch(e) {}
+    loadDiaryFromNotion().catch(()=>{});
   }
 });
 
