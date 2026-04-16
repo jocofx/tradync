@@ -3141,11 +3141,10 @@ function showTyping() {
 async function callAi(userMsg) {
   showTyping();
   const context = getTradeContext();
-  const systemPrompt = 'Eres un coach de trading experto y psicólogo especializado en traders. Tienes acceso a los datos reales del trader. Responde en español, de forma concisa y directa. Analiza los datos y da consejos específicos basados en ellos. No seas genérico. Máximo 3-4 frases por respuesta salvo que pidan un análisis detallado.\n\n' + context;
+  const systemPrompt = 'Eres un coach de trading experto y psicólogo especializado en traders. Tienes acceso a los datos reales del trader. Responde en español, de forma concisa y directa. Analiza los datos y da consejos específicos. No seas genérico.\n\n' + context;
 
   try {
-    // Try server proxy first (production - no API key needed by user)
-    let res = await fetch('/api/chat', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -3154,28 +3153,25 @@ async function callAi(userMsg) {
       })
     });
 
-    // If proxy not available (local dev), use personal API key
-    if (!res.ok) {
-      const apiKey = localStorage.getItem('tj_ai_key') || document.getElementById('ai-api-key')?.value || '';
-      if (!apiKey) {
-        document.getElementById('ai-typing')?.remove();
-        appendAiMsg('⚠️ El Coach IA no está disponible. Si eres el administrador, configura ANTHROPIC_API_KEY en Vercel.', 'bot');
-        return;
-      }
-      res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1024, system: systemPrompt, messages: [{ role: 'user', content: userMsg }] })
-      });
+    const data = await res.json();
+    console.log('AI response:', JSON.stringify(data).slice(0, 200));
+    document.getElementById('ai-typing')?.remove();
+
+    if (data.error) {
+      appendAiMsg('Error: ' + data.error, 'bot');
+      return;
     }
 
-    const data = await res.json();
-    document.getElementById('ai-typing')?.remove();
-    const reply = data.content?.[0]?.text || 'No se pudo obtener respuesta.';
-    appendAiMsg(reply, 'bot');
+    const reply = data.content?.[0]?.text;
+    if (reply) {
+      appendAiMsg(reply, 'bot');
+    } else {
+      appendAiMsg('Sin respuesta. Revisa la consola para más detalles.', 'bot');
+    }
   } catch(e) {
+    console.error('callAi error:', e);
     document.getElementById('ai-typing')?.remove();
-    appendAiMsg('Error al conectar con el Coach IA. Comprueba tu conexión.', 'bot');
+    appendAiMsg('Error de conexión: ' + e.message, 'bot');
   }
 }
 
