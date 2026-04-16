@@ -1590,8 +1590,8 @@ async function uploadImage(base64, type) {
 
 async function saveHabitsToNotion(dateStr) {
   if (!requireAuth()) return;
-  const data = JSON.parse(localStorage.getItem(lsKey('tj_habits_')+dateStr)||'{}');
-  const survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_')+dateStr)||'{}');
+  const data = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + dateStr))||'{}');
+  const survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + dateStr))||'{}');
   const row = { user_id:currentUser.id, fecha:dateStr, sueno:data.sueno||0, ejercicio:data.ejercicio||0,
     meditacion:data.meditacion||0, alcohol:data.alcohol||0, habitos_extra:{}, encuesta:survey, updated_at:new Date().toISOString() };
   await sb.from('habitos').upsert(row,{onConflict:'user_id,fecha'}).catch(()=>{});
@@ -1602,9 +1602,9 @@ async function loadHabitsFromNotion(dateStr) {
   const {data} = await sb.from('habitos').select('*').eq('user_id',currentUser.id).eq('fecha',dateStr).single().catch(()=>({data:null}));
   if (!data) return;
   const habits = { sueno:data.sueno||0, ejercicio:data.ejercicio||0, meditacion:data.meditacion||0, alcohol:data.alcohol||0, ...(data.habitos_extra||{}) };
-  localStorage.setItem(lsKey('tj_habits_')+dateStr, JSON.stringify(habits));
-  if (data.encuesta) localStorage.setItem(lsKey('tj_survey_')+dateStr, JSON.stringify(data.encuesta));
-  habitsToday = JSON.parse(localStorage.getItem(lsKey('tj_habits_')+new Date().toISOString().slice(0,10))||'{}');
+  localStorage.setItem(lsKey('tj_habits_' + dateStr), JSON.stringify(habits));
+  if (data.encuesta) localStorage.setItem(lsKey('tj_survey_' + dateStr), JSON.stringify(data.encuesta));
+  habitsToday = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + new) Date().toISOString().slice(0,10))||'{}');
   initHabits();
 }
 
@@ -1619,7 +1619,7 @@ async function loadPlanFromNotion(dateStr) {
   if (!requireAuth()) return;
   const {data} = await sb.from('planes').select('*').eq('user_id',currentUser.id).eq('fecha',dateStr).single().catch(()=>({data:null}));
   if (!data) return;
-  localStorage.setItem(lsKey('tj_plan_')+dateStr, JSON.stringify({ sesgo:data.sesgo, niveles:data.niveles, no:data.no_hacer, notas:data.notas, maxops:data.max_operaciones, date:dateStr }));
+  localStorage.setItem(lsKey('tj_plan_' + dateStr), JSON.stringify({ sesgo:data.sesgo, niveles:data.niveles, no:data.no_hacer, notas:data.notas, maxops:data.max_operaciones, date:dateStr }));
   loadPlan();
 }
 
@@ -2341,7 +2341,7 @@ const CHECKLIST_ITEMS = [
   'Sin distracciones activas',
 ];
 
-let checklistState = JSON.parse(localStorage.getItem(lsKey('tj_checklist_') + new Date().toISOString().slice(0,10)) || '{}');
+let checklistState = JSON.parse(localStorage.getItem(lsKey('tj_checklist_' + new) Date().toISOString().slice(0,10)) || '{}');
 
 function initChecklist() {
   const container = document.getElementById('checklist-items');
@@ -2358,13 +2358,13 @@ function initChecklist() {
 
 function toggleCheck(i) {
   checklistState[i] = !checklistState[i];
-  localStorage.setItem(lsKey('tj_checklist_') + new Date().toISOString().slice(0,10), JSON.stringify(checklistState));
+  localStorage.setItem(lsKey('tj_checklist_' + new) Date().toISOString().slice(0,10), JSON.stringify(checklistState));
   initChecklist();
 }
 
 function resetChecklist() {
   checklistState = {};
-  localStorage.setItem(lsKey('tj_checklist_') + new Date().toISOString().slice(0,10), '{}');
+  localStorage.setItem(lsKey('tj_checklist_' + new) Date().toISOString().slice(0,10), '{}');
   initChecklist();
 }
 
@@ -2404,8 +2404,8 @@ function renderPmCalendar() {
   for (let i = 0; i < offset; i++) html += '<div class="pm-cal-day empty"></div>';
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = pmCalYear + '-' + String(pmCalMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-    const plan = JSON.parse(localStorage.getItem(lsKey('tj_plan_') + dateStr) || 'null');
-    const cl = JSON.parse(localStorage.getItem(lsKey('tj_checklist_') + dateStr) || '{}');
+    const plan = JSON.parse(localStorage.getItem(lsKey('tj_plan_' + dateStr)) || 'null');
+    const cl = JSON.parse(localStorage.getItem(lsKey('tj_checklist_' + dateStr)) || '{}');
     const clDone = Object.values(cl).filter(Boolean).length;
     const isToday = today.getDate()===d && today.getMonth()===pmCalMonth && today.getFullYear()===pmCalYear;
     let cls = 'pm-cal-day';
@@ -2426,8 +2426,8 @@ function renderPmCalendar() {
 }
 
 function openPmDayDetail(dateStr) {
-  const plan = JSON.parse(localStorage.getItem(lsKey('tj_plan_') + dateStr) || '{}');
-  const cl = JSON.parse(localStorage.getItem(lsKey('tj_checklist_') + dateStr) || '{}');
+  const plan = JSON.parse(localStorage.getItem(lsKey('tj_plan_' + dateStr)) || '{}');
+  const cl = JSON.parse(localStorage.getItem(lsKey('tj_checklist_' + dateStr)) || '{}');
   const clDone = Object.values(cl).filter(Boolean).length;
   const date = new Date(dateStr);
   const label = date.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
@@ -2467,7 +2467,7 @@ function savePlan() {
     notas: document.getElementById('plan-notas').value,
     date: today
   };
-  localStorage.setItem(lsKey('tj_plan_') + today, JSON.stringify(plan));
+  localStorage.setItem(lsKey('tj_plan_' + today), JSON.stringify(plan));
   const s = document.getElementById('plan-saved');
   s.textContent = '¡Guardando...';
   renderPmCalendar();
@@ -2482,7 +2482,7 @@ function savePlan() {
 
 function loadPlan() {
   const today = new Date().toISOString().slice(0,10);
-  const plan = JSON.parse(localStorage.getItem(lsKey('tj_plan_') + today) || '{}');
+  const plan = JSON.parse(localStorage.getItem(lsKey('tj_plan_' + today)) || '{}');
   if (plan.sesgo) document.getElementById('plan-sesgo').value = plan.sesgo;
   if (plan.maxops) document.getElementById('plan-maxops').value = plan.maxops;
   if (plan.niveles) document.getElementById('plan-niveles').value = plan.niveles;
@@ -2524,7 +2524,7 @@ const DEFAULT_HABITS = [
   { id: 'alcohol', icon: '🍺', name: 'Sin alcohol' },
 ];
 let customHabits = JSON.parse(localStorage.getItem('tj_custom_habits') || 'null') || DEFAULT_HABITS;
-let habitsToday = JSON.parse(localStorage.getItem(lsKey('tj_habits_') + new Date().toISOString().slice(0,10)) || '{}');
+let habitsToday = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + new) Date().toISOString().slice(0,10)) || '{}');
 let habitCalYear = new Date().getFullYear();
 let habitCalMonth = new Date().getMonth();
 
@@ -2562,7 +2562,7 @@ function editHabit(id) {
 }
 
 function getHabitScore(dateStr) {
-  const data = JSON.parse(localStorage.getItem(lsKey('tj_habits_') + dateStr) || '{}');
+  const data = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + dateStr)) || '{}');
   const done = customHabits.filter(h => (data[h.id] || 0) >= 3).length;
   return customHabits.length > 0 ? done / customHabits.length : 0;
 }
@@ -2614,7 +2614,7 @@ function setHabitRating(id, val) {
 
 function saveHabits() {
   const today = new Date().toISOString().slice(0,10);
-  localStorage.setItem(lsKey('tj_habits_') + today, JSON.stringify(habitsToday));
+  localStorage.setItem(lsKey('tj_habits_' + today), JSON.stringify(habitsToday));
   saveHabitsToNotion(today).catch(e => console.error('Habit sync error:', e));
 }
 
@@ -2662,8 +2662,8 @@ function renderHabitCalendar() {
 }
 
 function openHabitDayDetail(dateStr) {
-  const data = JSON.parse(localStorage.getItem(lsKey('tj_habits_') + dateStr) || '{}');
-  const survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_') + dateStr) || '{}');
+  const data = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + dateStr)) || '{}');
+  const survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + dateStr)) || '{}');
   const date = new Date(dateStr);
   const label = date.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
   const score = getHabitScore(dateStr);
@@ -2723,7 +2723,7 @@ function renderHabitsCorrelation() {
     for (let i = 0; i < 30; i++) {
       const d = new Date(); d.setDate(d.getDate() - i);
       const ds = d.toISOString().slice(0,10);
-      const h = JSON.parse(localStorage.getItem(lsKey('tj_habits_') + ds) || '{}');
+      const h = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + ds)) || '{}');
       const dayTrades = allTrades.filter(t => (t.fecha||'').slice(0,10) === ds);
       if (h[key] >= 3 && dayTrades.length) {
         const pnl = dayTrades.reduce((s,t) => s+(t.resultado||0), 0);
@@ -2766,7 +2766,7 @@ function selectSurvey(qi, val, btn) {
 
 function saveSurvey() {
   const today = new Date().toISOString().slice(0,10);
-  localStorage.setItem(lsKey('tj_survey_') + today, JSON.stringify(surveyAnswers));
+  localStorage.setItem(lsKey('tj_survey_' + today), JSON.stringify(surveyAnswers));
   toast('Encuesta guardada ✓', 'success');
   renderConsistencyScore();
   saveHabitsToNotion(today).catch(e => console.error('Survey sync error:', e));
@@ -2776,8 +2776,8 @@ function renderConsistencyScore() {
   let score = 0, max = 0;
   const today = new Date().toISOString().slice(0,10);
   const todayTrades = allTrades.filter(t => (t.fecha||'').slice(0,10) === today);
-  const survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_') + today) || '{}');
-  const plan = JSON.parse(localStorage.getItem(lsKey('tj_plan_') + today) || '{}');
+  const survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + today)) || '{}');
+  const plan = JSON.parse(localStorage.getItem(lsKey('tj_plan_' + today)) || '{}');
 
   if (Object.keys(checklistState).filter(k=>checklistState[k]).length >= 6) { score += 20; }
   max += 20;
@@ -3445,12 +3445,9 @@ function closeDayModal() {
 }
 
 // ─── CUENTAS ─────────────────────────────────────────────────────
-let accounts = []; // loaded from Supabase per user
+let accounts = [];
 
-function saveAccountsLocal() {
-  // Supabase is source of truth - localStorage only as cache with user prefix
-  if (currentUser) localStorage.setItem('tj_accounts_' + currentUser.id, JSON.stringify(accounts));
-}
+function saveAccountsLocal() { /* no-op: Supabase is source of truth */ }
 
 function openModal() {
   document.getElementById('modal-overlay').classList.add('open');
@@ -3874,10 +3871,11 @@ window.addEventListener('load', async () => {
     showAuthBanner();
   } else {
     currentUser = session.user;
+    accounts = []; allTrades = []; habitsToday = {};
     updateUserUI(session.user);
     await loadTrades();
     const today = new Date().toISOString().slice(0,10);
-    Promise.all([
+    await Promise.all([
       loadHabitsFromNotion(today).catch(()=>{}),
       loadPlanFromNotion(today).catch(()=>{}),
       loadAccountsFromNotion().catch(()=>{}),
