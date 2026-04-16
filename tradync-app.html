@@ -3976,10 +3976,7 @@ function renderHabitStats() {
   const container = document.getElementById('habit-stats-container');
   if (!container) return;
   
-  // Calculate streak and stats from localStorage
-  let streak = 0;
-  let totalDays = 0;
-  let completeDays = 0;
+  let streak = 0, totalDays = 0, completeDays = 0;
   const today = new Date();
   
   for (let i = 0; i < 90; i++) {
@@ -3993,32 +3990,24 @@ function renderHabitStats() {
     if (count >= total) {
       completeDays++;
       if (i === streak) streak++;
-    } else if (i === 0 || i === streak) {
-      if (i > 0) break;
     }
   }
   
-  const pct = totalDays > 0 ? Math.round(completeDays / Math.max(totalDays, 1) * 100) : 0;
+  const pct = totalDays > 0 ? Math.round(completeDays / Math.max(totalDays,1) * 100) : 0;
   
-  container.innerHTML = \`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:28px;font-weight:700;color:var(--green);font-family:'DM Mono',monospace;">\${streak}</div>
-        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;letter-spacing:1px;">RACHA ACTUAL</div>
-      </div>
-      <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:28px;font-weight:700;color:var(--blue);font-family:'DM Mono',monospace;">\${totalDays}</div>
-        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;letter-spacing:1px;">DÍAS ACTIVOS</div>
-      </div>
-      <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:28px;font-weight:700;color:var(--amber);font-family:'DM Mono',monospace;">\${completeDays}</div>
-        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;letter-spacing:1px;">DÍAS COMPLETOS</div>
-      </div>
-      <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:28px;font-weight:700;color:var(--purple);font-family:'DM Mono',monospace;">\${pct}%</div>
-        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;letter-spacing:1px;">CONSISTENCIA</div>
-      </div>
-    </div>\`;
+  const statCard = (val, label, color) =>
+    '<div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;">' +
+    '<div style="font-size:28px;font-weight:700;color:' + color + ';font-family:'DM Mono',monospace;">' + val + '</div>' +
+    '<div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;letter-spacing:1px;">' + label + '</div>' +
+    '</div>';
+  
+  container.innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+    statCard(streak, 'RACHA ACTUAL', 'var(--green)') +
+    statCard(totalDays, 'DÍAS ACTIVOS', 'var(--blue)') +
+    statCard(completeDays, 'DÍAS COMPLETOS', 'var(--amber)') +
+    statCard(pct + '%', 'CONSISTENCIA', 'var(--purple)') +
+    '</div>';
 }
 
 window.addEventListener('load', async () => {
