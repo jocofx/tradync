@@ -835,35 +835,7 @@ if (typeof supabase === 'undefined') {
             <textarea class="form-input" id="f-notas" rows="3" style="resize:vertical;" placeholder="¿Cómo fue la operación? ¿Qué mejorarías?..."></textarea>
           </div>
 
-        <div class="form-field" style="margin-bottom:14px;">
-          <label class="form-label" style="margin-bottom:10px;">Escoge tus errores psicológicos</label>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-            <div class="error-tag revenge inactive" onclick="toggleTag(this)">
-              <span style="font-size:16px;">😤</span>
-              <span>Revenge trading</span>
-            </div>
-            <div class="error-tag fomo inactive" onclick="toggleTag(this)">
-              <span style="font-size:16px;">😰</span>
-              <span>FOMO</span>
-            </div>
-            <div class="error-tag overtrading inactive" onclick="toggleTag(this)">
-              <span style="font-size:16px;">🔄</span>
-              <span>Overtrading</span>
-            </div>
-            <div class="error-tag sl-move inactive" onclick="toggleTag(this)">
-              <span style="font-size:16px;">📉</span>
-              <span>Mover SL</span>
-            </div>
-            <div class="error-tag early-close inactive" onclick="toggleTag(this)">
-              <span style="font-size:16px;">✂️</span>
-              <span>Cerrar antes de TP</span>
-            </div>
-            <div class="error-tag discipline inactive" onclick="toggleTag(this)">
-              <span style="font-size:16px;">✅</span>
-              <span>Seguí el plan</span>
-            </div>
-          </div>
-        </div>
+        
 
         <div class="form-field" style="margin-bottom:14px; grid-column: 1 / -1;">
           <label class="form-label">Cuenta</label>
@@ -899,6 +871,30 @@ if (typeof supabase === 'undefined') {
                     <div class="img-upload-label" style="font-size:10px;">Añadir captura</div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="padding:16px;">
+            <div class="card-title" style="margin-bottom:12px;">Escoge tus errores psicológicos</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+              <div class="error-tag revenge inactive" onclick="toggleTag(this)">
+                <span style="font-size:16px;">😤</span><span>Revenge trading</span>
+              </div>
+              <div class="error-tag fomo inactive" onclick="toggleTag(this)">
+                <span style="font-size:16px;">😰</span><span>FOMO</span>
+              </div>
+              <div class="error-tag overtrading inactive" onclick="toggleTag(this)">
+                <span style="font-size:16px;">🔄</span><span>Overtrading</span>
+              </div>
+              <div class="error-tag sl-move inactive" onclick="toggleTag(this)">
+                <span style="font-size:16px;">📉</span><span>Mover SL</span>
+              </div>
+              <div class="error-tag early-close inactive" onclick="toggleTag(this)">
+                <span style="font-size:16px;">✂️</span><span>Cerrar antes de TP</span>
+              </div>
+              <div class="error-tag discipline inactive" onclick="toggleTag(this)">
+                <span style="font-size:16px;">✅</span><span>Seguí el plan</span>
               </div>
             </div>
           </div>
