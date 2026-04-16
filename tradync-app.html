@@ -2579,33 +2579,24 @@ function initHabits() {
   const grid = document.getElementById('habits-today-grid');
   if (!grid) return;
 
+  // 2-column grid
+  grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+
   if (!customHabits.length) {
     grid.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace;grid-column:1/-1;padding:8px 0;">Añade tus hábitos usando el formulario de abajo...</div>';
     return;
   }
 
   grid.innerHTML = customHabits.map((h, idx) => {
-    const val = habitsToday[h.id] || 0;
-    const active = val > 0;
-    const colors = {
-      sueno: 'rgba(68,136,255,0.15)', ejercicio: 'rgba(0,212,160,0.15)',
-      meditacion: 'rgba(167,139,250,0.15)', alcohol: 'rgba(255,77,109,0.15)'
-    };
-    const textColors = {
-      sueno: '#4d9fff', ejercicio: 'var(--green)',
-      meditacion: 'var(--purple)', alcohol: 'var(--red)'
-    };
-    const bg = active ? (colors[h.id] || 'rgba(0,212,160,0.12)') : 'var(--bg3)';
-    const color = active ? (textColors[h.id] || 'var(--green)') : 'var(--text3)';
-    const border = active ? (textColors[h.id] || 'var(--green)') : 'var(--border)';
+    const active = (habitsToday[h.id] || 0) > 0;
+    const isDefault = DEFAULT_HABITS.find(d => d.id === h.id);
     return `
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 8px;border-radius:12px;border:1px solid ${border};background:${bg};cursor:pointer;transition:all 0.2s;position:relative;user-select:none;" onclick="toggleHabit('${h.id}')" id="hc-${h.id}">
-        <div style="font-size:22px;">${h.icon}</div>
-        <div style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.5px;color:${color};text-align:center;">${h.name.toUpperCase()}</div>
-        <div style="display:flex;gap:3px;" id="hr-${h.id}">
-          ${[1,2,3,4,5].map(s => `<div style="width:6px;height:6px;border-radius:50%;background:${val>=s ? color : 'var(--border)'};cursor:pointer;" onclick="event.stopPropagation();setHabit('${h.id}',${s})"></div>`).join('')}
-        </div>
-        ${!DEFAULT_HABITS.find(d=>d.id===h.id) ? `<div onclick="event.stopPropagation();removeHabitFromPanel(${idx})" style="position:absolute;top:4px;right:4px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,77,109,0.15);color:var(--red);font-size:9px;cursor:pointer;opacity:0.7;">✕</div>` : ''}
+      <div onclick="toggleHabit('${h.id}')" id="hc-${h.id}"
+        style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:18px 12px;border-radius:12px;border:1px solid ${active ? 'rgba(0,212,160,0.4)' : 'var(--border)'};background:${active ? 'rgba(0,212,160,0.12)' : 'var(--bg3)'};cursor:pointer;transition:all 0.2s;position:relative;user-select:none;">
+        <div style="font-size:26px;">${h.icon}</div>
+        <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.5px;color:${active ? 'var(--green)' : 'var(--text3)'};text-align:center;">${h.name.toUpperCase()}</div>
+        ${active ? '<div style="font-size:10px;color:var(--green);font-family:monospace;">✓</div>' : ''}
+        ${!isDefault ? `<div onclick="event.stopPropagation();removeHabitFromPanel(${idx})" style="position:absolute;top:5px;right:5px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,77,109,0.15);color:var(--red);font-size:9px;cursor:pointer;opacity:0.7;">✕</div>` : ''}
       </div>`;
   }).join('');
 
@@ -2613,9 +2604,9 @@ function initHabits() {
 }
 
 function toggleHabit(id) {
-  habitsToday[id] = habitsToday[id] ? 0 : 3;
-  saveHabits();
+  habitsToday[id] = habitsToday[id] > 0 ? 0 : 1;
   initHabits();
+  saveHabits();
 }
 
 function setHabitRating(id, val) {
