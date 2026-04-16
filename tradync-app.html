@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- v20260416121630 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -2768,23 +2769,32 @@ const SURVEY_QS = [
 let surveyAnswers = {};
 
 function initSurvey() {
-  const container = document.getElementById('survey-container');
+  var container = document.getElementById('survey-container');
   if (!container) return;
-  const today = new Date().toISOString().slice(0,10);
-  const saved = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + today)) || '{}');
+  var today = new Date().toISOString().slice(0,10);
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + today)) || '{}'); } catch(e) {}
 
-  container.innerHTML = SURVEY_QS.map(function(q, i) {
-    return '<div style="margin-bottom:16px;">' +
-      '<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;">' + (i+1) + '. ' + q.q + '</div>' +
-      '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
-        q.opts.map(function(o) {
-          const sel = saved[i] === o;
-          return '<button onclick="selectSurveyQ(' + i + ','' + o + '',this)" style="padding:6px 14px;border-radius:20px;border:1px solid ' + (sel ? 'var(--green)' : 'var(--border2)') + ';background:' + (sel ? 'rgba(0,212,160,0.12)' : 'transparent') + ';color:' + (sel ? 'var(--green)' : 'var(--text2)') + ';font-size:12px;cursor:pointer;transition:all 0.15s;font-family:'DM Mono',monospace;">' + o + '</button>';
-        }).join('') +
-      '</div></div>';
-  }).join('') +
-  '<button class="btn btn-primary" onclick="saveSurvey()" style="width:100%;padding:10px;margin-top:8px;font-size:13px;">💾 Guardar encuesta</button>';
+  var html = '';
+  for (var i = 0; i < SURVEY_QS.length; i++) {
+    var q = SURVEY_QS[i];
+    html += '<div style="margin-bottom:16px;">';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;">' + (i+1) + '. ' + q.q + '</div>';
+    html += '<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+    for (var j = 0; j < q.opts.length; j++) {
+      var o = q.opts[j];
+      var sel = saved[i] === o;
+      var borderClr = sel ? 'var(--green)' : 'var(--border2)';
+      var bgClr = sel ? 'rgba(0,212,160,0.12)' : 'transparent';
+      var txtClr = sel ? 'var(--green)' : 'var(--text2)';
+      html += '<button data-qi="' + i + '" data-val="' + o + '" onclick="selectSurveyQ(parseInt(this.dataset.qi),this.dataset.val,this)" style="padding:6px 14px;border-radius:20px;border:1px solid ' + borderClr + ';background:' + bgClr + ';color:' + txtClr + ';font-size:12px;cursor:pointer;transition:all 0.15s;font-family:monospace;">' + o + '</button>';
+    }
+    html += '</div></div>';
+  }
+  html += '<button class="btn btn-primary" onclick="saveSurvey()" style="width:100%;padding:10px;margin-top:8px;font-size:13px;">&#x1F4BE; Guardar encuesta</button>';
+  container.innerHTML = html;
 }
+
 
 function selectSurvey(qi, val, btn) {
   surveyAnswers[qi] = val;
@@ -3971,19 +3981,7 @@ async function removeHabitFromPanel(index) {
   toast('Hábito eliminado ✓', 'success');
 }
 
-function renderSurvey() {
-  const container = document.getElementById('survey-container');
-  if (!container || !surveyDefs) return;
-  const today = new Date().toISOString().slice(0,10);
-  const saved = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + today)) || '{}');
-  container.innerHTML = surveyDefs.map(q => `
-    <div style="margin-bottom:14px;">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">${q.q}</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        ${q.opts.map(o => `<button onclick="setSurveyAnswer('${q.id}','${o}')" style="padding:5px 12px;border-radius:20px;border:1px solid ${saved[q.id]===o?'var(--green)':'var(--border)'};background:${saved[q.id]===o?'var(--green-bg)':'transparent'};color:${saved[q.id]===o?'var(--green)':'var(--text2)'};font-size:12px;cursor:pointer;transition:all 0.15s;">${o}</button>`).join('')}
-      </div>
-    </div>`).join('');
-}
+function renderSurvey() { initSurvey(); }
 
 function renderHabitStats() {
   var container = document.getElementById("habit-stats-container");
