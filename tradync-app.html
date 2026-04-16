@@ -3507,7 +3507,8 @@ async function saveAccount() {
 
 
 async function deleteTrade(id) {
-  if (!confirm('¿Eliminar esta operación?')) return;
+  const ok = await confirmDialog('¿Eliminar esta operación?', 'Se borrará permanentemente de tu journal.');
+  if (!ok) return;
   const { error } = await sb.from('operaciones')
     .delete()
     .eq('id', id)
@@ -3519,7 +3520,8 @@ async function deleteTrade(id) {
 }
 
 async function deleteAccount(id) {
-  if (!confirm('¿Eliminar esta cuenta?')) return;
+  const ok = await confirmDialog('¿Eliminar esta cuenta?', 'Se eliminará junto con su historial.');
+  if (!ok) return;
   const { error } = await sb.from('cuentas')
     .update({ activa: false })
     .eq('id', id)
@@ -3788,6 +3790,31 @@ function setParentPage() {
       loadPlanFromNotion(today).catch(()=>{});
       loadAccountsFromNotion().catch(()=>{});
     }
+  });
+}
+
+
+function confirmDialog(msg, sub) {
+  return new Promise(resolve => {
+    const overlay = document.getElementById('confirm-overlay');
+    document.getElementById('confirm-msg').textContent = msg || '¿Estás seguro?';
+    document.getElementById('confirm-sub').textContent = sub || 'Esta acción no se puede deshacer.';
+    overlay.style.display = 'flex';
+    const ok = document.getElementById('confirm-ok');
+    const cancel = document.getElementById('confirm-cancel');
+    function cleanup(result) {
+      overlay.style.display = 'none';
+      ok.removeEventListener('click', onOk);
+      cancel.removeEventListener('click', onCancel);
+      overlay.removeEventListener('click', onOverlay);
+      resolve(result);
+    }
+    const onOk = () => cleanup(true);
+    const onCancel = () => cleanup(false);
+    const onOverlay = e => { if (e.target === overlay) cleanup(false); };
+    ok.addEventListener('click', onOk);
+    cancel.addEventListener('click', onCancel);
+    overlay.addEventListener('click', onOverlay);
   });
 }
 
@@ -4343,5 +4370,18 @@ function renderPsychCharts() {
 </div>
 <button id="sidebar-show-btn" onclick="toggleSidebar()" title="Mostrar menú"
   style="position:fixed;top:50%;left:0;transform:translateY(-50%);z-index:101;width:20px;height:56px;background:var(--bg2);border:1px solid var(--border2);border-left:none;border-radius:0 8px 8px 0;cursor:pointer;display:none;align-items:center;justify-content:center;color:var(--text2);font-size:14px;transition:all 0.2s;">›</button>
+
+<!-- CONFIRM MODAL -->
+<div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:10000;align-items:center;justify-content:center;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px 32px;width:340px;max-width:92vw;position:relative;">
+    <div style="font-size:20px;margin-bottom:8px;">⚠️</div>
+    <div id="confirm-msg" style="font-size:15px;font-weight:600;margin-bottom:8px;color:var(--text);">¿Estás seguro?</div>
+    <div id="confirm-sub" style="font-size:13px;color:var(--text3);margin-bottom:24px;">Esta acción no se puede deshacer.</div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button id="confirm-cancel" style="padding:9px 20px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;">Cancelar</button>
+      <button id="confirm-ok" style="padding:9px 20px;border-radius:8px;border:none;background:var(--red);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Eliminar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
