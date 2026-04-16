@@ -1699,7 +1699,9 @@ async function loadConfigFromNotion() {
     if (row.clave==='customHabits'&&row.valor) { customHabits=row.valor; saveCustomHabits(); }
     if (row.clave==='customChecklist'&&row.valor) {
       CHECKLIST_ITEMS.length = 0;
-      (row.valor || []).forEach(item => CHECKLIST_ITEMS.push(item));
+      const items = Array.isArray(row.valor) ? row.valor : (typeof row.valor === 'string' ? JSON.parse(row.valor) : []);
+      items.forEach(item => { if (item) CHECKLIST_ITEMS.push(item); });
+      console.log('Checklist loaded:', CHECKLIST_ITEMS.length, 'items');
       initChecklist();
     }
   });
@@ -3894,7 +3896,7 @@ function editChecklistItem(index) {
   }
 }
 
-function removeChecklistItem(index) {
+async function removeChecklistItem(index) {
   CHECKLIST_ITEMS.splice(index, 1);
   const newState = {};
   Object.keys(checklistState).forEach(k => {
@@ -3903,17 +3905,30 @@ function removeChecklistItem(index) {
     else if (ki > index) newState[ki-1] = checklistState[ki];
   });
   checklistState = newState;
-  saveChecklistItems();
+  await sb.from('configuracion').upsert(
+    { user_id: currentUser.id, clave: 'customChecklist', valor: CHECKLIST_ITEMS, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id,clave' }
+  ).catch(e => console.error('Checklist remove error:', e));
   initChecklist();
 }
-function addChecklistItem() {
+async function addChecklistItem() {
   const input = document.getElementById('new-checklist-item');
   const text = input?.value?.trim();
   if (!text) return;
+  if (!currentUser) { toast('Inicia sesión para guardar', 'error'); return; }
   CHECKLIST_ITEMS.push(text);
-  saveChecklistItems();
   input.value = '';
   initChecklist();
+  // Save to Supabase directly (not via saveConfigToNotion which shows error toasts)
+  const { error } = await sb.from('configuracion').upsert(
+    { user_id: currentUser.id, clave: 'customChecklist', valor: CHECKLIST_ITEMS, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id,clave' }
+  );
+  if (error) {
+    console.error('Checklist save error:', error);
+  } else {
+    console.log('Checklist saved:', CHECKLIST_ITEMS.length, 'items');
+  }
 }
 
 async function saveChecklistItems() {
