@@ -1180,10 +1180,9 @@ if (typeof supabase === 'undefined') {
         <div class="card">
           <div class="card-title">Hábitos de hoy <span class="card-title-badge" id="habit-date-label"></span></div>
           <div id="habits-today-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;"></div>
-          <button class="btn btn-primary" onclick="saveHabits()" style="width:100%;padding:9px;font-size:13px;margin-bottom:10px;">💾 Guardar hábitos de hoy</button>
+          <button class="btn btn-primary" onclick="saveHabits()" style="width:100%;padding:9px;font-size:13px;margin-bottom:10px;">Guardar hábitos de hoy</button>
           <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
             <div style="display:flex;gap:8px;align-items:center;">
-              <input class="form-input" id="new-habit-icon" placeholder="🏃" style="width:48px;padding:6px 8px;font-size:16px;text-align:center;">
               <input class="form-input" id="new-habit-name" placeholder="Añadir hábito..." style="flex:1;padding:6px 10px;font-size:12px;" onkeydown="if(event.key==='Enter')addHabitFromPanel()">
               <button class="btn btn-primary" onclick="addHabitFromPanel()" style="font-size:11px;padding:6px 12px;white-space:nowrap;">+ Añadir</button>
             </div>
@@ -1193,7 +1192,7 @@ if (typeof supabase === 'undefined') {
         <!-- TOP RIGHT: Encuesta post-sesión -->
         <div class="card">
           <div class="card-title">Encuesta post-sesión</div>
-          <div id="survey-container" style="margin-top:10px;"></div>
+          <div id="survey-container" style="margin-top:10px;margin-bottom:0;"></div>
         </div>
 
       </div>
@@ -2634,6 +2633,7 @@ function saveHabits() {
   localStorage.setItem(lsKey('tj_habits_' + today), JSON.stringify(habitsToday));
   saveHabitsToNotion(today).catch(function(e){ console.error('Habit sync error:', e); });
   toast('Hábitos guardados ✓', 'success');
+  try { renderHabitCalendar(); renderHabitStats(); } catch(e) {}
 }
 
 function changeHabitMonth(dir) {
@@ -2787,7 +2787,7 @@ function initSurvey() {
     }
     html += '</div></div>';
   }
-  html += '<button class="btn btn-primary" onclick="saveSurvey()" style="width:100%;padding:10px;margin-top:8px;font-size:13px;">&#x1F4BE; Guardar encuesta</button>';
+  html += '<button class="btn btn-primary" onclick="saveSurvey()" style="width:100%;padding:10px;margin-top:8px;font-size:13px;">Guardar encuesta</button>';
   container.innerHTML = html;
 }
 
@@ -2802,8 +2802,8 @@ function saveSurvey() {
   const today = new Date().toISOString().slice(0,10);
   localStorage.setItem(lsKey('tj_survey_' + today), JSON.stringify(surveyAnswers));
   toast('Encuesta guardada ✓', 'success');
-  renderConsistencyScore();
-  saveHabitsToNotion(today).catch(e => console.error('Survey sync error:', e));
+  saveHabitsToNotion(today).catch(function(e){ console.error('Survey sync error:', e); });
+  try { renderHabitCalendar(); renderHabitStats(); } catch(e) {}
 }
 
 function renderConsistencyScore() {
@@ -3951,15 +3951,13 @@ async function saveChecklistItems() {
 
 async function addHabitFromPanel() {
   if (!requireAuth()) return;
-  const iconEl = document.getElementById('new-habit-icon');
   const nameEl = document.getElementById('new-habit-name');
-  const icon = iconEl?.value?.trim() || '⭐';
   const name = nameEl?.value?.trim();
   if (!name) { toast('Escribe un nombre para el hábito', 'error'); return; }
-
+  const defaultIcons = ['⭐','🎯','📚','🏃','💧','🥗','🌙','💊','🧠','✍️'];
+  const icon = defaultIcons[customHabits.length % defaultIcons.length];
   const id = 'custom_' + Date.now();
   customHabits.push({ id, icon, name });
-  if (iconEl) iconEl.value = '';
   if (nameEl) nameEl.value = '';
   initHabits();
   saveCustomHabits();
