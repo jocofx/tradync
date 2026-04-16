@@ -1813,7 +1813,7 @@ function goTab(id, el) {
   if (id === 'estadisticas') setTimeout(() => { try { renderStatsCharts(); } catch(e){} }, 50);
   if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); } catch(e){} }, 50);
   if (id === 'psicologia') setTimeout(() => { try { renderPsych(); renderPsychCharts(); } catch(e){} }, 50);
-  if (id === 'habitos') setTimeout(() => { try { initHabits(); renderHabitCalendar(); renderConsistencyScore(); } catch(e){} }, 50);
+  if (id === 'habitos') setTimeout(() => { try { initHabits(); renderHabitCalendar(); renderHabitStats(); } catch(e){} }, 50);
   if (id === 'calendario') setTimeout(() => { try { renderCalendar(); } catch(e){} }, 50);
   if (id === 'premarket') setTimeout(() => { try { renderPmCalendar(); } catch(e){} }, 50);
   if (id === 'diario') setTimeout(() => { try { initDiario(); } catch(e){} }, 50);
@@ -2799,6 +2799,7 @@ function openHabitDayDetail(dateStr) {
 
 function renderHabitsCorrelation() {
   const container = document.getElementById('habits-correlation');
+  if (!container) return;
   if (!allTrades.length) { container.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace">Sin datos suficientes</div>'; return; }
   const labels = Object.fromEntries(customHabits.map(h => [h.id, h.icon + ' ' + h.name]));
   const html = Object.entries(labels).map(([key, label]) => {
@@ -2872,6 +2873,7 @@ function saveSurvey() {
 }
 
 function renderConsistencyScore() {
+  if (!document.getElementById("consistency-score") && !document.getElementById("habit-cal-grid")) return;
   let score = 0, max = 0;
   const today = new Date().toISOString().slice(0,10);
   const todayTrades = allTrades.filter(t => (t.fecha||'').slice(0,10) === today);
