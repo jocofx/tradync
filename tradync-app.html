@@ -2341,7 +2341,7 @@ const CHECKLIST_ITEMS = [
   'Sin distracciones activas',
 ];
 
-let checklistState = JSON.parse(localStorage.getItem(lsKey('tj_checklist_' + new Date().toISOString().slice(0,10)) Date().toISOString().slice(0,10)) || '{}');
+let checklistState = {};
 
 function initChecklist() {
   const container = document.getElementById('checklist-items');
@@ -2524,7 +2524,7 @@ const DEFAULT_HABITS = [
   { id: 'alcohol', icon: '🍺', name: 'Sin alcohol' },
 ];
 let customHabits = JSON.parse(localStorage.getItem('tj_custom_habits') || 'null') || DEFAULT_HABITS;
-let habitsToday = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + new Date().toISOString().slice(0,10))) || '{}');
+let habitsToday = {};
 let habitCalYear = new Date().getFullYear();
 let habitCalMonth = new Date().getMonth();
 
@@ -3158,7 +3158,7 @@ function closeEditModal() {
 
 
 // ─── DIARIO ──────────────────────────────────────────────────────
-let diaryEntries = JSON.parse(localStorage.getItem(lsKey('tj_diary')) || '{}');
+let diaryEntries = {};
 let diaryCalYear = new Date().getFullYear();
 let diaryCalMonth = new Date().getMonth();
 let diarySelectedEmos = [];
