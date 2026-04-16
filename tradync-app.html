@@ -2358,13 +2358,13 @@ function initChecklist() {
 
 function toggleCheck(i) {
   checklistState[i] = !checklistState[i];
-  localStorage.setItem(lsKey('tj_checklist_' + new Date().toISOString().slice(0,10)) Date().toISOString().slice(0,10), JSON.stringify(checklistState));
+  localStorage.setItem(lsKey('tj_checklist_' + new Date().toISOString().slice(0,10)), JSON.stringify(checklistState));
   initChecklist();
 }
 
 function resetChecklist() {
   checklistState = {};
-  localStorage.setItem(lsKey('tj_checklist_' + new Date().toISOString().slice(0,10)) Date().toISOString().slice(0,10), '{}');
+  localStorage.setItem(lsKey('tj_checklist_' + new Date().toISOString().slice(0,10)), '{}');
   initChecklist();
 }
 
