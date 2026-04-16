@@ -1604,7 +1604,7 @@ async function loadHabitsFromNotion(dateStr) {
   const habits = { sueno:data.sueno||0, ejercicio:data.ejercicio||0, meditacion:data.meditacion||0, alcohol:data.alcohol||0, ...(data.habitos_extra||{}) };
   localStorage.setItem(lsKey('tj_habits_' + dateStr), JSON.stringify(habits));
   if (data.encuesta) localStorage.setItem(lsKey('tj_survey_' + dateStr), JSON.stringify(data.encuesta));
-  habitsToday = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + new) Date().toISOString().slice(0,10))||'{}');
+  habitsToday = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + new Date().toISOString().slice(0,10)))||'{}');
   initHabits();
 }
 
@@ -2341,7 +2341,7 @@ const CHECKLIST_ITEMS = [
   'Sin distracciones activas',
 ];
 
-let checklistState = JSON.parse(localStorage.getItem(lsKey('tj_checklist_' + new) Date().toISOString().slice(0,10)) || '{}');
+let checklistState = JSON.parse(localStorage.getItem(lsKey('tj_checklist_' + new Date().toISOString().slice(0,10)) Date().toISOString().slice(0,10)) || '{}');
 
 function initChecklist() {
   const container = document.getElementById('checklist-items');
@@ -2358,13 +2358,13 @@ function initChecklist() {
 
 function toggleCheck(i) {
   checklistState[i] = !checklistState[i];
-  localStorage.setItem(lsKey('tj_checklist_' + new) Date().toISOString().slice(0,10), JSON.stringify(checklistState));
+  localStorage.setItem(lsKey('tj_checklist_' + new Date().toISOString().slice(0,10)) Date().toISOString().slice(0,10), JSON.stringify(checklistState));
   initChecklist();
 }
 
 function resetChecklist() {
   checklistState = {};
-  localStorage.setItem(lsKey('tj_checklist_' + new) Date().toISOString().slice(0,10), '{}');
+  localStorage.setItem(lsKey('tj_checklist_' + new Date().toISOString().slice(0,10)) Date().toISOString().slice(0,10), '{}');
   initChecklist();
 }
 
@@ -2524,7 +2524,7 @@ const DEFAULT_HABITS = [
   { id: 'alcohol', icon: '🍺', name: 'Sin alcohol' },
 ];
 let customHabits = JSON.parse(localStorage.getItem('tj_custom_habits') || 'null') || DEFAULT_HABITS;
-let habitsToday = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + new) Date().toISOString().slice(0,10)) || '{}');
+let habitsToday = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + new Date().toISOString().slice(0,10))) || '{}');
 let habitCalYear = new Date().getFullYear();
 let habitCalMonth = new Date().getMonth();
 
