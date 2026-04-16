@@ -1675,7 +1675,7 @@ async function loadConfigFromNotion() {
   if (!data || !data.length) return;
   data.forEach(row => {
     if (row.clave === 'riskSettings' && row.valor) { riskSettings = row.valor; saveRiskSettings(); }
-    if (row.clave === 'customHabits' && row.valor) { customHabits = row.valor; saveCustomHabits(); }
+    if (row.clave === 'customHabits' && row.valor) { customHabits = row.valor; saveCustomHabits(); initHabits(); }
     if (row.clave === 'customChecklist' && row.valor) {
       CHECKLIST_ITEMS.length = 0;
       const items = Array.isArray(row.valor) ? row.valor : (typeof row.valor === 'string' ? JSON.parse(row.valor) : []);
@@ -2537,7 +2537,7 @@ const DEFAULT_HABITS = [
   { id: 'meditacion', icon: '🧘', name: 'Meditación' },
   { id: 'alcohol', icon: '🍺', name: 'Sin alcohol' },
 ];
-let customHabits = JSON.parse(localStorage.getItem('tj_custom_habits') || 'null') || DEFAULT_HABITS;
+let customHabits = JSON.parse(localStorage.getItem('tj_custom_habits') || 'null') || DEFAULT_HABITS.slice();
 let habitsToday = {};
 let habitCalYear = new Date().getFullYear();
 let habitCalMonth = new Date().getMonth();
@@ -2587,33 +2587,33 @@ function initHabits() {
   var grid = document.getElementById('habits-today-grid');
   if (!grid) return;
   grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-  if (!customHabits.length) {
-    grid.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace;grid-column:1/-1;">Añade hábitos abajo...</div>';
+  if (!customHabits || !customHabits.length) {
+    grid.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace;grid-column:1/-1;padding:8px 0;">Cargando habitos...</div>';
     return;
   }
-  var parts = [];
+  var rows = [];
   for (var idx = 0; idx < customHabits.length; idx++) {
     var h = customHabits[idx];
     var active = (habitsToday[h.id] || 0) > 0;
     var isDefault = DEFAULT_HABITS.some(function(d){ return d.id === h.id; });
-    var bg = active ? 'rgba(0,212,160,0.12)' : 'var(--bg3)';
-    var bdr = active ? 'rgba(0,212,160,0.4)' : 'var(--border)';
-    var clr = active ? 'var(--green)' : 'var(--text2)';
-    var card = document.createElement('div');
-    card.id = 'hc-' + h.id;
-    card.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:18px 10px;border-radius:12px;border:1px solid ' + bdr + ';background:' + bg + ';cursor:pointer;transition:all 0.2s;position:relative;user-select:none;';
-    card.onclick = (function(id){ return function(){ toggleHabit(id); }; })(h.id);
-    card.innerHTML = '<div style="font-size:26px;">' + h.icon + '</div>' +
-      '<div style="font-size:11px;font-weight:700;font-family:monospace;color:' + clr + ';text-align:center;">' + h.name.toUpperCase() + '</div>' +
-      (active ? '<div style="font-size:11px;color:var(--green);">&#10003;</div>' : '') +
-      '<div style="position:absolute;top:4px;right:4px;display:flex;gap:2px;">' +
-        '<button data-idx="' + idx + '" onclick="event.stopPropagation();editHabitInline(parseInt(this.dataset.idx))" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text3);padding:2px;">✏️</button>' +
-        (isDefault ? '' : '<button data-idx="' + idx + '" onclick="event.stopPropagation();removeHabitFromPanel(parseInt(this.dataset.idx))" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--red);padding:2px;">✕</button>') +
-      '</div>';
-    parts.push(card.outerHTML);
+    var checkIcon = active
+      ? '<svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="rgba(0,212,160,0.2)" stroke="var(--green)" stroke-width="1.5"/><polyline points="6,11 10,15 16,7" stroke="var(--green)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      : '<svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="transparent" stroke="var(--text3)" stroke-width="1.5"/><polyline points="6,11 10,15 16,7" stroke="var(--text3)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/></svg>';
+    var delBtn = isDefault ? '' : '<button data-didx="' + idx + '" onclick="event.stopPropagation();removeHabitFromPanel(parseInt(this.dataset.didx))" style="position:absolute;top:4px;right:4px;background:none;border:none;cursor:pointer;font-size:10px;color:var(--red);opacity:0.6;padding:2px;">✕</button>';
+    var editBtn = '<button data-eidx="' + idx + '" onclick="event.stopPropagation();editHabitInline(parseInt(this.dataset.eidx))" style="position:absolute;top:4px;right:' + (isDefault ? '4px' : '22px') + ';background:none;border:none;cursor:pointer;font-size:10px;color:var(--text3);opacity:0.6;padding:2px;">✏️</button>';
+    var bg = active ? 'rgba(0,212,160,0.08)' : 'var(--bg3)';
+    var bdr = active ? 'rgba(0,212,160,0.35)' : 'var(--border)';
+    var nameClr = active ? 'var(--green)' : 'var(--text2)';
+    rows.push(
+      '<div data-hid="' + h.id + '" onclick="toggleHabit(this.dataset.hid)" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px 12px;border-radius:12px;border:1px solid ' + bdr + ';background:' + bg + ';cursor:pointer;transition:all 0.2s;position:relative;user-select:none;">' +
+      checkIcon +
+      '<div style="font-size:12px;font-weight:700;font-family:monospace;color:' + nameClr + ';text-align:center;letter-spacing:0.5px;">' + h.name.toUpperCase() + '</div>' +
+      editBtn + delBtn +
+      '</div>'
+    );
   }
-  grid.innerHTML = parts.join('');
-  renderSurvey();
+  grid.innerHTML = rows.join('');
+  try { renderSurvey(); } catch(e) {}
   try { renderHabitStats(); } catch(e) {}
 }
 
