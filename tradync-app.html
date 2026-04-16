@@ -2676,23 +2676,27 @@ function renderHabitCalendar() {
     var hasData = hasHabits || hasSurvey;
     var isToday = today.getDate()===d && today.getMonth()===habitCalMonth && today.getFullYear()===habitCalYear;
     var pct = hasHabits ? Math.round(habitCount / total * 100) : 0;
-    var bg = 'transparent';
-    var cls = '';
+    var bg, borderCol, textClr;
+    if (isToday) { borderCol = 'var(--green)'; }
+    else { borderCol = 'var(--border)'; }
+    if (!hasData) { bg = 'transparent'; textClr = isToday ? 'var(--green)' : 'var(--text3)'; }
+    else if (pct >= 100) { bg = 'rgba(0,212,160,0.7)'; textClr = '#000'; }
+    else if (pct >= 50 || hasSurvey) { bg = 'rgba(245,166,35,0.7)'; textClr = '#000'; }
+    else { bg = 'rgba(77,159,255,0.5)'; textClr = '#000'; }
+    var pctTxt = hasData ? String(pct) + '%' : '';
+    var clickAttr = hasData ? 'style="cursor:pointer;"' : '';
+    var cell = document.createElement('div');
+    cell.style.cssText = 'aspect-ratio:1;border-radius:6px;border:' + (isToday ? '2px' : '1px') + ' solid ' + borderCol + ';background:' + bg + ';display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all 0.15s;' + (hasData ? 'cursor:pointer;' : '');
+    cell.innerHTML = '<span style="font-size:11px;font-weight:600;color:' + textClr + ';font-family:monospace;">' + d + '</span>' +
+      (pctTxt ? '<div style="font-size:8px;font-family:monospace;color:' + textClr + ';margin-top:1px;">' + pctTxt + '</div>' : '');
     if (hasData) {
-      if (pct >= 100) { bg = 'var(--green)'; cls = 'complete'; }
-      else if (pct >= 50 || hasSurvey) { bg = 'var(--amber)'; cls = 'partial'; }
-      else { bg = 'rgba(77,159,255,0.7)'; cls = 'planned'; }
+      (function(ds){ cell.onclick = function(){ openHabitDayDetail(ds); }; })(dateStr);
     }
-    var borderStyle = isToday ? '2px solid var(--green)' : '1px solid var(--border)';
-    var textClr = hasData ? '#000' : (isToday ? 'var(--green)' : 'var(--text3)');
-    var pctLabel = hasData ? '<div style="font-size:8px;font-family:monospace;margin-top:1px;">' + pct + '%</div>' : '';
-    html += '<div style="aspect-ratio:1;border-radius:6px;border:' + borderStyle + ';background:' + bg + ';display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:' + (hasData?'pointer':'default') + ';transition:all 0.15s;" ' + (hasData ? 'onclick="openHabitDayDetail('' + dateStr + '')"' : '') + '>' +
-      '<span style="font-size:11px;font-weight:600;color:' + textClr + ';font-family:monospace;">' + d + '</span>' +
-      pctLabel +
-      '</div>';
+    html += cell.outerHTML;
   }
   grid.innerHTML = html;
 }
+
 
 function openHabitDayDetail(dateStr) {
   const data = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + dateStr)) || '{}');
