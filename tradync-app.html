@@ -1692,16 +1692,19 @@ async function saveConfigToNotion(key, value) {
 
 async function loadConfigFromNotion() {
   if (!requireAuth()) return;
-  const {data} = await sb.from('configuracion').select('*').eq('user_id',currentUser.id).catch(()=>({data:null}));
-  if (!data) return;
+  console.log('Loading config for user:', currentUser.id);
+  const { data, error } = await sb.from('configuracion').select('*').eq('user_id', currentUser.id);
+  if (error) { console.error('loadConfig error:', error); return; }
+  console.log('Config rows loaded:', data?.length, data?.map(r => r.clave));
+  if (!data || !data.length) return;
   data.forEach(row => {
-    if (row.clave==='riskSettings'&&row.valor) { riskSettings=row.valor; saveRiskSettings(); }
-    if (row.clave==='customHabits'&&row.valor) { customHabits=row.valor; saveCustomHabits(); }
-    if (row.clave==='customChecklist'&&row.valor) {
+    if (row.clave === 'riskSettings' && row.valor) { riskSettings = row.valor; saveRiskSettings(); }
+    if (row.clave === 'customHabits' && row.valor) { customHabits = row.valor; saveCustomHabits(); }
+    if (row.clave === 'customChecklist' && row.valor) {
       CHECKLIST_ITEMS.length = 0;
       const items = Array.isArray(row.valor) ? row.valor : (typeof row.valor === 'string' ? JSON.parse(row.valor) : []);
       items.forEach(item => { if (item) CHECKLIST_ITEMS.push(item); });
-      console.log('Checklist loaded:', CHECKLIST_ITEMS.length, 'items');
+      console.log('Checklist loaded from DB:', CHECKLIST_ITEMS);
       initChecklist();
     }
   });
