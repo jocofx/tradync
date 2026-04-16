@@ -1689,7 +1689,11 @@ async function loadConfigFromNotion() {
   if (!data || !data.length) return;
   data.forEach(row => {
     if (row.clave === 'riskSettings' && row.valor) { riskSettings = row.valor; saveRiskSettings(); }
-    if (row.clave === 'customHabits' && row.valor) { customHabits = row.valor; saveCustomHabits(); initHabits(); }
+    if (row.clave === 'customHabits' && row.valor) {
+      customHabits = Array.isArray(row.valor) ? row.valor : DEFAULT_HABITS.slice();
+      if (currentUser) localStorage.setItem('tj_custom_habits_' + currentUser.id, JSON.stringify(customHabits));
+      initHabits();
+    }
     if (row.clave === 'customChecklist' && row.valor) {
       CHECKLIST_ITEMS.length = 0;
       const items = Array.isArray(row.valor) ? row.valor : (typeof row.valor === 'string' ? JSON.parse(row.valor) : []);
@@ -2551,12 +2555,15 @@ const DEFAULT_HABITS = [
   { id: 'meditacion', icon: '🧘', name: 'Meditación' },
   { id: 'alcohol', icon: '🍺', name: 'Sin alcohol' },
 ];
-let customHabits = JSON.parse(localStorage.getItem('tj_custom_habits') || 'null') || DEFAULT_HABITS.slice();
+let customHabits = DEFAULT_HABITS.slice(); // Supabase loads user habits after login
 let habitsToday = {};
 let habitCalYear = new Date().getFullYear();
 let habitCalMonth = new Date().getMonth();
 
-function saveCustomHabits() { localStorage.setItem('tj_custom_habits', JSON.stringify(customHabits)); }
+function saveCustomHabits() {
+  // Save to user-scoped localStorage as cache only
+  if (currentUser) localStorage.setItem('tj_custom_habits_' + currentUser.id, JSON.stringify(customHabits));
+}
 
 function addHabit() {
   const name = document.getElementById('new-habit-name').value.trim();
@@ -2569,7 +2576,7 @@ function addHabit() {
   document.getElementById('new-habit-icon').value = '';
   initHabits();
   toast('Hábito añadido ✓', 'success');
-  saveConfigToNotion('customHabits', customHabits).catch(e => console.error('Habits config sync error:', e));
+  saveHabitsConfig();
 }
 
 function removeHabit(id) {
@@ -4017,7 +4024,7 @@ async function addHabitFromPanel() {
   if (nameEl) nameEl.value = '';
   initHabits();
   saveCustomHabits();
-  await saveConfigToNotion('customHabits', customHabits).catch(()=>{});
+  await saveHabitsConfig();
   toast(name + ' añadido ✓', 'success');
 }
 
@@ -4027,7 +4034,7 @@ async function removeHabitFromPanel(index) {
   customHabits.splice(index, 1);
   initHabits();
   saveCustomHabits();
-  await saveConfigToNotion('customHabits', customHabits).catch(()=>{});
+  await saveHabitsConfig();
   toast('Hábito eliminado ✓', 'success');
 }
 
@@ -4075,7 +4082,7 @@ function editHabitInline(idx) {
     if (!newName) return;
     customHabits[idx] = { id: h.id, icon: h.icon, name: newName };
     saveCustomHabits();
-    saveConfigToNotion('customHabits', customHabits).catch(function(){});
+    saveHabitsConfig();
     nameEl.value = '';
     btn.textContent = '+ Añadir';
     btn.onclick = addHabitFromPanel;
@@ -4107,6 +4114,21 @@ function selectSurveyQ(idx, val, btn) {
 }
 
 
+async function saveHabitsConfig() {
+  if (!currentUser) return;
+  const { data: existing } = await sb.from('configuracion')
+    .select('id').eq('user_id', currentUser.id).eq('clave', 'customHabits').single();
+  if (existing) {
+    await sb.from('configuracion')
+      .update({ valor: customHabits, updated_at: new Date().toISOString() })
+      .eq('user_id', currentUser.id).eq('clave', 'customHabits');
+  } else {
+    await sb.from('configuracion')
+      .insert({ user_id: currentUser.id, clave: 'customHabits', valor: customHabits, updated_at: new Date().toISOString() });
+  }
+  saveCustomHabits(); // update local cache
+  console.log('customHabits saved to Supabase:', customHabits.length, 'habits');
+}
 
 window.addEventListener('load', async () => {
   // Set date field
@@ -4163,6 +4185,7 @@ window.addEventListener('load', async () => {
     currentUser = session.user;
     accounts = []; allTrades = []; habitsToday = {};
     CHECKLIST_ITEMS.length = 0;
+    customHabits = DEFAULT_HABITS.slice();
     updateUserUI(session.user);
     await loadTrades();
     const today = new Date().toISOString().slice(0,10);
