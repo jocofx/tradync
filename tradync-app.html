@@ -1632,10 +1632,17 @@ async function saveAccountToNotion(account) {
 
 async function loadAccountsFromNotion() {
   if (!requireAuth()) return;
-  const {data} = await sb.from('cuentas').select('*').eq('user_id',currentUser.id).eq('activa',true).catch(()=>({data:null}));
+  console.log('Loading accounts for user:', currentUser.id);
+  const { data, error } = await sb.from('cuentas').select('*').eq('user_id', currentUser.id).eq('activa', true);
+  if (error) { console.error('loadAccounts error:', error); return; }
+  console.log('Accounts loaded:', data?.length, data);
   if (!data?.length) return;
-  accounts = data.map(r=>({id:r.id,notionId:r.id,nombre:r.nombre,tipo:r.tipo,balance:r.balance,broker:r.broker,fase:r.fase}));
-  saveAccountsLocal(); renderAccounts(); updateCuentaSelector();
+  accounts = data.map(r => ({
+    id: r.id, notionId: r.id, nombre: r.nombre,
+    tipo: r.tipo, balance: r.balance, broker: r.broker, fase: r.fase, pnl: 0
+  }));
+  renderAccounts();
+  updateCuentaSelector();
 }
 
 async function saveDiaryToNotion(date, entry) {
@@ -3464,31 +3471,33 @@ async function saveAccount() {
   const nombre = document.getElementById('m-nombre').value.trim();
   const balance = parseFloat(document.getElementById('m-balance').value) || 0;
   const tipo = document.getElementById('m-tipo').value;
-  const broker = document.getElementById('m-broker').value;
-  const fase = document.getElementById('m-fase').value;
+  const broker = document.getElementById('m-broker').value || '';
+  const fase = document.getElementById('m-fase').value || '';
 
   if (!nombre) { toast('Escribe un nombre para la cuenta', 'error'); return; }
 
-  const account = { nombre, balance, tipo, broker, fase };
-  
-  // Save to Supabase
+  console.log('Saving account for user:', currentUser.id, {nombre, balance, tipo});
+
   const { data, error } = await sb.from('cuentas').insert({
-    user_id: currentUser.id, nombre, balance, tipo,
-    broker: broker || '', fase: fase || '', activa: true,
+    user_id: currentUser.id,
+    nombre: nombre,
+    balance: balance,
+    tipo: tipo,
+    broker: broker,
+    fase: fase,
+    activa: true,
     updated_at: new Date().toISOString()
   }).select().single();
-  
+
   if (error) {
-    toast('Error al guardar cuenta: ' + error.message, 'error');
+    console.error('saveAccount error:', error);
+    toast('Error: ' + error.message, 'error');
     return;
   }
-  
-  // Add to local array with Supabase ID
-  account.id = data.id;
-  account.notionId = data.id;
-  account.pnl = 0;
+
+  console.log('Account saved:', data);
+  const account = { id: data.id, notionId: data.id, nombre, balance, tipo, broker, fase, pnl: 0 };
   accounts.push(account);
-  
   renderAccounts();
   updateCuentaSelector();
   closeModal();
