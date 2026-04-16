@@ -1697,6 +1697,11 @@ async function loadConfigFromNotion() {
   data.forEach(row => {
     if (row.clave==='riskSettings'&&row.valor) { riskSettings=row.valor; saveRiskSettings(); }
     if (row.clave==='customHabits'&&row.valor) { customHabits=row.valor; saveCustomHabits(); }
+    if (row.clave==='customChecklist'&&row.valor) {
+      CHECKLIST_ITEMS.length = 0;
+      (row.valor || []).forEach(item => CHECKLIST_ITEMS.push(item));
+      initChecklist();
+    }
   });
 }
 
@@ -2376,11 +2381,7 @@ function renderCalendar() {
 const CHECKLIST_ITEMS = [];
 const DEFAULT_CHECKLIST = [];
 
-// Load saved checklist items from localStorage
-try {
-  const saved = JSON.parse(localStorage.getItem('tj_custom_checklist') || '[]');
-  saved.forEach(item => CHECKLIST_ITEMS.push(item));
-} catch(e) {}
+// Checklist loaded from Supabase after login
 
 let checklistState = {};
 
@@ -3875,7 +3876,7 @@ function editChecklistItem(index) {
       const newText = input.value.trim();
       if (!newText) return;
       CHECKLIST_ITEMS[index] = newText;
-      localStorage.setItem('tj_custom_checklist', JSON.stringify(CHECKLIST_ITEMS));
+      saveChecklistItems();
       input.value = '';
       btn.textContent = '+ Añadir';
       btn.onclick = addChecklistItem;
@@ -3902,7 +3903,7 @@ function removeChecklistItem(index) {
     else if (ki > index) newState[ki-1] = checklistState[ki];
   });
   checklistState = newState;
-  localStorage.setItem('tj_custom_checklist', JSON.stringify(CHECKLIST_ITEMS));
+  saveChecklistItems();
   initChecklist();
 }
 function addChecklistItem() {
@@ -3910,9 +3911,15 @@ function addChecklistItem() {
   const text = input?.value?.trim();
   if (!text) return;
   CHECKLIST_ITEMS.push(text);
-  localStorage.setItem('tj_custom_checklist', JSON.stringify(CHECKLIST_ITEMS));
+  saveChecklistItems();
   input.value = '';
   initChecklist();
+}
+
+async function saveChecklistItems() {
+  if (!currentUser) return;
+  localStorage.setItem('tj_custom_checklist_' + currentUser.id, JSON.stringify(CHECKLIST_ITEMS));
+  await saveConfigToNotion('customChecklist', CHECKLIST_ITEMS).catch(() => {});
 }
 
 window.addEventListener('load', async () => {
@@ -3969,6 +3976,7 @@ window.addEventListener('load', async () => {
   } else {
     currentUser = session.user;
     accounts = []; allTrades = []; habitsToday = {};
+    CHECKLIST_ITEMS.length = 0;
     updateUserUI(session.user);
     await loadTrades();
     const today = new Date().toISOString().slice(0,10);
