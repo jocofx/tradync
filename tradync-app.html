@@ -1758,18 +1758,79 @@ function showInlineAuth() {
   if (document.getElementById('inline-auth-modal')) return;
   const overlay = document.createElement('div');
   overlay.id = 'inline-auth-modal';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;';
-  const box = document.createElement('div');
-  box.style.cssText = 'background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:32px;width:380px;max-width:95vw;position:relative;';
-  const title = document.createElement('div'); title.style.cssText='font-size:20px;font-weight:700;margin-bottom:20px;'; title.textContent='Iniciar sesión en Tradync';
-  const emailIn = document.createElement('input'); emailIn.id='inline-email'; emailIn.type='email'; emailIn.className='form-input'; emailIn.placeholder='tu@email.com'; emailIn.style.cssText='width:100%;margin-bottom:12px;';
-  const passIn = document.createElement('input'); passIn.id='inline-pass'; passIn.type='password'; passIn.className='form-input'; passIn.placeholder='••••••••'; passIn.style.cssText='width:100%;margin-bottom:16px;';
-  passIn.addEventListener('keydown', e => { if(e.key==='Enter') doInlineLogin(); });
-  const loginBtn = document.createElement('button'); loginBtn.className='btn btn-primary'; loginBtn.style.cssText='width:100%;padding:12px;'; loginBtn.textContent='Iniciar sesión'; loginBtn.onclick=doInlineLogin;
-  const msg = document.createElement('div'); msg.id='inline-msg'; msg.style.cssText='display:none;margin-top:10px;padding:8px 12px;border-radius:8px;font-size:12px;';
-  const closeBtn = document.createElement('div'); closeBtn.style.cssText='position:absolute;top:16px;right:16px;cursor:pointer;font-size:18px;color:var(--text3);width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border-radius:6px;'; closeBtn.textContent='✕'; closeBtn.onclick=()=>overlay.remove();
-  box.appendChild(title); box.appendChild(emailIn); box.appendChild(passIn); box.appendChild(loginBtn); box.appendChild(msg); box.appendChild(closeBtn);
-  overlay.appendChild(box); overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); }); document.body.appendChild(overlay);
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:9999;display:flex;align-items:center;justify-content:center;';
+
+  overlay.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;padding:36px;width:400px;max-width:95vw;position:relative;">
+      <button onclick="document.getElementById('inline-auth-modal').remove()" style="position:absolute;top:16px;right:16px;background:var(--bg3);border:none;color:var(--text3);cursor:pointer;font-size:16px;width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;">✕</button>
+
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:22px;font-weight:800;background:linear-gradient(135deg,#00d4a0,#4d9fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px;">TRADYNC</div>
+        <div style="font-size:11px;color:var(--text3);letter-spacing:2px;margin-top:2px;">TRADING JOURNAL</div>
+      </div>
+
+      <div style="display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:4px;margin-bottom:24px;">
+        <button id="tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:8px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;background:var(--bg2);color:var(--text);">Iniciar sesión</button>
+        <button id="tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:8px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;background:transparent;color:var(--text3);">Crear cuenta</button>
+      </div>
+
+      <div id="auth-login-form">
+        <input id="inline-email" type="email" class="form-input" placeholder="tu@email.com" style="width:100%;margin-bottom:12px;box-sizing:border-box;">
+        <input id="inline-pass" type="password" class="form-input" placeholder="Contraseña" style="width:100%;margin-bottom:16px;box-sizing:border-box;">
+        <button class="btn btn-primary" style="width:100%;padding:12px;font-size:14px;" onclick="doInlineLogin()">Iniciar sesión</button>
+      </div>
+
+      <div id="auth-register-form" style="display:none;">
+        <input id="reg-email" type="email" class="form-input" placeholder="tu@email.com" style="width:100%;margin-bottom:12px;box-sizing:border-box;">
+        <input id="reg-pass" type="password" class="form-input" placeholder="Contraseña (mín. 6 caracteres)" style="width:100%;margin-bottom:16px;box-sizing:border-box;">
+        <button class="btn btn-primary" style="width:100%;padding:12px;font-size:14px;" onclick="doInlineRegister()">Crear cuenta</button>
+      </div>
+
+      <div id="auth-confirm-msg" style="display:none;text-align:center;padding:20px 0;">
+        <div style="font-size:40px;margin-bottom:12px;">📧</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;">¡Revisa tu email!</div>
+        <div style="font-size:13px;color:var(--text3);line-height:1.6;">Te hemos enviado un enlace de confirmación.<br>Confirma tu cuenta para poder iniciar sesión.</div>
+      </div>
+
+      <div id="inline-msg" style="display:none;margin-top:12px;padding:10px 14px;border-radius:8px;font-size:12px;"></div>
+    </div>`;
+
+  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+  document.getElementById('inline-email')?.focus();
+}
+
+function switchAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('auth-login-form').style.display = isLogin ? 'block' : 'none';
+  document.getElementById('auth-register-form').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('auth-confirm-msg').style.display = 'none';
+  document.getElementById('tab-login').style.background = isLogin ? 'var(--bg2)' : 'transparent';
+  document.getElementById('tab-login').style.color = isLogin ? 'var(--text)' : 'var(--text3)';
+  document.getElementById('tab-register').style.background = isLogin ? 'transparent' : 'var(--bg2)';
+  document.getElementById('tab-register').style.color = isLogin ? 'var(--text3)' : 'var(--text)';
+}
+
+async function doInlineRegister() {
+  const email = document.getElementById('reg-email')?.value?.trim();
+  const pass = document.getElementById('reg-pass')?.value;
+  const msg = document.getElementById('inline-msg');
+  if (!email || !pass) return;
+  if (pass.length < 6) {
+    msg.style.cssText = 'display:block;background:rgba(255,77,109,0.1);color:var(--red);padding:10px 14px;border-radius:8px;font-size:12px;';
+    msg.textContent = 'La contraseña debe tener al menos 6 caracteres';
+    return;
+  }
+  const { error } = await sb.auth.signUp({ email, password: pass });
+  if (error) {
+    msg.style.cssText = 'display:block;background:rgba(255,77,109,0.1);color:var(--red);padding:10px 14px;border-radius:8px;font-size:12px;';
+    msg.textContent = error.message;
+  } else {
+    document.getElementById('auth-login-form').style.display = 'none';
+    document.getElementById('auth-register-form').style.display = 'none';
+    document.getElementById('auth-confirm-msg').style.display = 'block';
+    msg.style.display = 'none';
+  }
 }
 
 async function doInlineLogin() {
