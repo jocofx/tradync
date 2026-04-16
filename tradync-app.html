@@ -1466,6 +1466,9 @@ try {
 
 let currentUser = null;
 let allTrades = [];
+let imgAperturaBase64 = null;
+let imgCierreBase64 = null;
+let editImgCierreBase64 = null;
 let riskSettings = JSON.parse(localStorage.getItem('tj_risk') || '{"maxLoss":200,"maxOps":5,"riskPct":1}');
 function saveRiskSettings() { localStorage.setItem('tj_risk', JSON.stringify(riskSettings)); }
 
