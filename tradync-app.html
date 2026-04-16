@@ -1517,13 +1517,22 @@ async function guardarOperacion() {
   if (!requireAuth()) return;
   const btn = document.getElementById('save-btn');
   const status = document.getElementById('save-status');
+
+  // Validation with specific field messages
   const instr = document.getElementById('f-instrumento').value;
+  if (!instr) { toast('⚠️ Selecciona un instrumento', 'error'); document.getElementById('f-instrumento').focus(); return; }
+
   const estadoCheck = document.getElementById('f-estado').value;
-  const resultado = parseFloat(document.getElementById('f-resultado').value);
-  if (!instr) { toast('Selecciona un instrumento', 'error'); return; }
-  if (estadoCheck === 'Finalizada' && isNaN(resultado)) { toast('Añade el resultado', 'error'); return; }
-  btn.disabled = true; status.textContent = 'Guardando...';
+  const resultadoRaw = document.getElementById('f-resultado').value;
+  const resultado = parseFloat(resultadoRaw);
+  if (estadoCheck === 'Finalizada' && (resultadoRaw === '' || isNaN(resultado))) {
+    toast('⚠️ Añade el resultado (P&L) para una operación finalizada', 'error');
+    document.getElementById('f-resultado').focus(); return;
+  }
+
   const fechaVal = document.getElementById('f-fecha').value;
+  if (!fechaVal) { toast('⚠️ Selecciona la fecha de la operación', 'error'); document.getElementById('f-fecha').focus(); return; }
+  btn.disabled = true; status.textContent = 'Guardando...';
   const entrada = parseFloat(document.getElementById('f-entrada').value)||null;
   const sl2 = parseFloat(document.getElementById('f-sl').value)||null;
   const tp2 = parseFloat(document.getElementById('f-tp').value)||null;
@@ -1547,7 +1556,7 @@ async function guardarOperacion() {
     const { error } = await sb.from('operaciones').insert(row);
     if (error) throw error;
     // Insert succeeded
-    toast('Operación guardada ✓', 'success');
+    toast('✅ Operación guardada correctamente', 'success');
     status.textContent = '¡Guardado!';
     resetForm();
     // Reload trades separately - don't let render errors affect success message
@@ -1888,6 +1897,22 @@ function resetForm() {
 }
 
 // ─── RENDERIZAR TODO ─────────────────────────────────────────────
+
+function fmt(n, decimals=2) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return (n >= 0 ? '+' : '') + n.toFixed(decimals);
+}
+
+function fmtPct(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return n.toFixed(1) + '%';
+}
+
+function fmtCur(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2);
+}
+
 function renderAll() {
   const fns = [
     renderMetrics, renderRecentTrades, renderAllTrades, renderEquity,
