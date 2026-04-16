@@ -613,31 +613,63 @@ if (typeof supabase === 'undefined') {
 
       <!-- EQUITY + DAILY P&L ROW -->
       <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px;">
-        
-          <div style="margin-top:14px;display:flex;gap:10px;align-items:center;">
-            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div class="macro-impact high"></div> Alto impacto</div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div class="macro-impact medium"></div> Medio</div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div class="macro-impact low"></div> Bajo</div>
+        <div class="card">
+          <div class="card-title">Curva de equity <span class="card-title-badge" id="equity-badge">—</span></div>
+          <div style="position:relative;height:160px;"><canvas id="equity-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">P&L hoy <span class="card-title-badge" id="today-badge">—</span></div>
+          <div style="position:relative;height:160px;"><canvas id="today-chart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- WIN/LOSS DONUT + SETUP BAR + CALENDAR MINI -->
+      <div style="display:grid;grid-template-columns:180px 1fr 200px;gap:18px;margin-bottom:18px;">
+        <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div class="card-title" style="text-align:center;width:100%;">Win / Loss</div>
+          <div style="position:relative;height:130px;width:130px;"><canvas id="winloss-chart"></canvas></div>
+          <div style="display:flex;gap:12px;margin-top:8px;">
+            <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);"></div><span id="wl-wins">—W</span></div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--red);"></div><span id="wl-losses">—L</span></div>
           </div>
         </div>
         <div class="card">
-        <div class="card-title">
-          Historial de planes
-          <div style="display:flex;gap:8px;">
-            <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changePmMonth(-1)">←</button>
-            <span class="card-title-badge" id="pm-cal-month-label" style="display:flex;align-items:center;"></span>
-            <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changePmMonth(1)">→</button>
-          </div>
+          <div class="card-title">Rendimiento por setup</div>
+          <div style="position:relative;height:140px;"><canvas id="setup-chart"></canvas></div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;" id="pm-cal-header"></div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" id="pm-cal-grid"></div>
-        <div style="display:flex;gap:14px;margin-top:10px;">
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);opacity:0.7;"></div>Plan completo</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--amber);opacity:0.7;"></div>Parcial</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--blue);opacity:0.7;"></div>Solo plan</div>
+        <div class="card">
+          <div class="card-title">Estadísticas</div>
+          <div class="stat-row"><span class="stat-name">Mayor ganancia</span><span class="stat-val" id="s-best" style="color:var(--green)">—</span></div>
+          <div class="stat-row"><span class="stat-name">Mayor pérdida</span><span class="stat-val" id="s-worst" style="color:var(--red)">—</span></div>
+          <div class="stat-row"><span class="stat-name">Media/op</span><span class="stat-val" id="s-avg">—</span></div>
+          <div class="stat-row"><span class="stat-name">RR promedio</span><span class="stat-val" id="s-rr">—</span></div>
+          <div class="stat-row"><span class="stat-name">Días operados</span><span class="stat-val" id="s-days">—</span></div>
         </div>
       </div>
+
+      <!-- SESSION HEATMAP + RECENT TRADES -->
+      <div style="display:grid;grid-template-columns:260px 1fr;gap:18px;margin-bottom:18px;">
+        <div class="card">
+          <div class="card-title">Por sesión</div>
+          <div style="position:relative;height:160px;"><canvas id="session-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Distribución de resultados <span class="card-title-badge">Histograma</span></div>
+          <div style="position:relative;height:160px;"><canvas id="dist-chart"></canvas></div>
+        </div>
       </div>
+
+      <!-- RECENT TRADES TABLE -->
+      <div class="card">
+        <div class="card-title">Últimas operaciones <span class="card-title-badge" style="cursor:pointer" onclick="goTab('operaciones',null)">Ver todas →</span></div>
+        <div style="overflow-x:auto;">
+          <table class="trade-table">
+            <thead><tr><th>Fecha</th><th>Instrumento</th><th>Tipo</th><th>Dir.</th><th>Entrada</th><th>SL</th><th>TP</th><th>Contratos</th><th>Resultado</th><th>Emoción</th><th>Estado</th><th></th></tr></thead>
+            <tbody id="recent-trades-body"><tr class="loading-row"><td colspan="12"><span class="spinner"></span>Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
 <div class="tab-panel" id="panel-operaciones">
       <div class="section-title">Análisis de operaciones</div>
@@ -696,7 +728,7 @@ if (typeof supabase === 'undefined') {
         <div style="overflow-x:auto;">
           <table class="trade-table">
             <thead><tr><th>Fecha</th><th>Instrumento</th><th>Tipo</th><th>Dir.</th><th>Entrada</th><th>SL</th><th>TP</th><th>RR</th><th>Contratos</th><th>Resultado</th><th>Setup</th><th>Emoción</th><th>Estado</th><th>Notas</th><th>Gráficos</th><th></th></tr></thead>
-            <tbody id="all-trades-body"><tr class="loading-row"><td colspan="16"><span class="spinner"></span>Cargando desde Notion...</td></tr></tbody>
+            <tbody id="all-trades-body"><tr class="loading-row"><td colspan="16"><span class="spinner"></span>Cargando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1056,15 +1088,54 @@ if (typeof supabase === 'undefined') {
 
 <div class="tab-panel" id="panel-premarket">
       <div class="section-title">Preparación de la sesión</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+
+      <!-- ROW 1: Checklist (left) + Plan del día (right) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;align-items:start;">
+        <!-- CHECKLIST -->
         <div class="card">
           <div class="card-title">Checklist pre-market <span class="card-title-badge" id="checklist-pct">0%</span></div>
           <div class="checklist-progress"><div class="checklist-progress-fill" id="checklist-bar" style="width:0%"></div></div>
-          <div id="checklist-items"></div>
-          <div style="display:flex;gap:8px;margin-top:14px;">
-            <button class="btn" onclick="resetChecklist()" style="font-size:12px;padding:7px 14px;">Reiniciar</button>
+          <div id="checklist-items" style="margin:10px 0;min-height:40px;"></div>
+          <div style="display:flex;gap:8px;margin-top:12px;align-items:center;">
+            <input class="form-input" id="new-checklist-item" placeholder="Escribe una condición y pulsa Enter..." style="flex:1;padding:7px 12px;font-size:12px;" onkeydown="if(event.key==='Enter')addChecklistItem()">
+            <button class="btn btn-primary" onclick="addChecklistItem()" style="font-size:12px;padding:7px 14px;white-space:nowrap;">+ Añadir</button>
           </div>
         </div>
+        <!-- PLAN DEL DÍA -->
+        <div class="card">
+          <div class="card-title">Plan del día</div>
+          <div class="form-grid" style="margin-bottom:14px;">
+            <div class="form-field">
+              <label class="form-label">Sesgo del mercado</label>
+              <select class="form-select" id="plan-sesgo">
+                <option>Alcista</option><option>Bajista</option><option>Lateral</option><option>Sin sesgo claro</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Máx. operaciones hoy</label>
+              <input class="form-input" type="number" id="plan-maxops" placeholder="3">
+            </div>
+          </div>
+          <div class="form-field" style="margin-bottom:12px;">
+            <label class="form-label">Niveles clave a vigilar</label>
+            <input class="form-input" type="text" id="plan-niveles" placeholder="ES: 5240 soporte / 5280 resistencia...">
+          </div>
+          <div class="form-field" style="margin-bottom:12px;">
+            <label class="form-label">Lo que NO haré hoy</label>
+            <input class="form-input" type="text" id="plan-no" placeholder="No operar las primeras 15 min, no revenge trading...">
+          </div>
+          <div class="form-field" style="margin-bottom:16px;">
+            <label class="form-label">Notas adicionales</label>
+            <textarea class="form-textarea" id="plan-notas" style="min-height:60px;" placeholder="Contexto macro, niveles de ayer, earnings..."></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="savePlan()">Guardar plan del día</button>
+          <span id="plan-saved" style="font-size:12px;color:var(--green);font-family:'DM Mono',monospace;margin-left:10px;"></span>
+        </div>
+      </div>
+
+      <!-- ROW 2: Macro eventos (left) + Historial de planes/calendar (right) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+        <!-- EVENTOS MACRO -->
         <div class="card" style="overflow:hidden;padding:0;">
           <div style="padding:14px 16px 8px;" class="card-title">Eventos macro hoy <span class="card-title-badge" id="macro-date"></span></div>
           <div class="tradingview-widget-container" style="height:300px;">
@@ -1082,58 +1153,26 @@ if (typeof supabase === 'undefined') {
             </script>
           </div>
         </div>
-      </div>
-      <div class="card" style="margin-bottom:18px;">
-        <div class="card-title">
-          Historial de planes
-          <div style="display:flex;gap:8px;">
-            <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changePmMonth(-1)">←</button>
-            <span class="card-title-badge" id="pm-cal-month-label" style="display:flex;align-items:center;"></span>
-            <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changePmMonth(1)">→</button>
+        <!-- HISTORIAL DE PLANES (calendar) -->
+        <div class="card">
+          <div class="card-title">
+            Historial de planes
+            <div style="display:flex;gap:8px;">
+              <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changePmMonth(-1)">←</button>
+              <span class="card-title-badge" id="pm-cal-month-label" style="display:flex;align-items:center;"></span>
+              <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changePmMonth(1)">→</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;" id="pm-cal-header"></div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" id="pm-cal-grid"></div>
+          <div style="display:flex;gap:14px;margin-top:10px;">
+            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);opacity:0.7;"></div>Plan completo</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--amber);opacity:0.7;"></div>Parcial</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--blue);opacity:0.7;"></div>Solo plan</div>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;" id="pm-cal-header"></div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" id="pm-cal-grid"></div>
-        <div style="display:flex;gap:14px;margin-top:10px;">
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);opacity:0.7;"></div>Plan completo</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--amber);opacity:0.7;"></div>Parcial</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--blue);opacity:0.7;"></div>Solo plan</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Plan del día</div>
-        <div class="form-grid" style="margin-bottom:14px;">
-          <div class="form-field">
-            <label class="form-label">Sesgo del mercado</label>
-            <select class="form-select" id="plan-sesgo">
-              <option>Alcista</option><option>Bajista</option><option>Lateral</option><option>Sin sesgo claro</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Máx. operaciones hoy</label>
-            <input class="form-input" type="number" id="plan-maxops" placeholder="3">
-          </div>
-        </div>
-        <div class="form-field" style="margin-bottom:12px;">
-          <label class="form-label">Niveles clave a vigilar</label>
-          <input class="form-input" type="text" id="plan-niveles" placeholder="ES: 5240 soporte / 5280 resistencia...">
-        </div>
-        <div class="form-field" style="margin-bottom:12px;">
-          <label class="form-label">Lo que NO haré hoy</label>
-          <input class="form-input" type="text" id="plan-no" placeholder="No operar las primeras 15 min, no revenge trading...">
-        </div>
-        <div class="form-field" style="margin-bottom:16px;">
-          <label class="form-label">Notas adicionales</label>
-          <textarea class="form-textarea" id="plan-notas" style="min-height:60px;" placeholder="Contexto macro, niveles de ayer, earnings..."></textarea>
-        </div>
-        <button class="btn btn-primary" onclick="savePlan()">Guardar plan del día</button>
-        <span id="plan-saved" style="font-size:12px;color:var(--green);font-family:'DM Mono',monospace;margin-left:10px;"></span>
       </div>
     </div>
-
-    </div>
-
     <!-- HÁBITOS -->
     <div class="tab-panel" id="panel-habitos">
       <div class="section-title">Tracker de hábitos y bienestar</div>
