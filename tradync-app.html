@@ -3973,41 +3973,31 @@ function renderSurvey() {
 }
 
 function renderHabitStats() {
-  const container = document.getElementById('habit-stats-container');
+  var container = document.getElementById("habit-stats-container");
   if (!container) return;
-  
-  let streak = 0, totalDays = 0, completeDays = 0;
-  const today = new Date();
-  
-  for (let i = 0; i < 90; i++) {
-    const d = new Date(today);
+  var streak = 0, totalDays = 0, completeDays = 0;
+  var today = new Date();
+  for (var i = 0; i < 90; i++) {
+    var d = new Date(today);
     d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().slice(0,10);
-    const habits = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + dateStr)) || '{}');
-    const count = Object.values(habits).filter(v => v > 0).length;
-    const total = customHabits.length || 1;
+    var dateStr = d.toISOString().slice(0,10);
+    var habits = JSON.parse(localStorage.getItem(lsKey("tj_habits_" + dateStr)) || "{}");
+    var count = Object.values(habits).filter(function(v){ return v > 0; }).length;
+    var total = customHabits.length || 1;
     if (count > 0) totalDays++;
-    if (count >= total) {
-      completeDays++;
-      if (i === streak) streak++;
-    }
+    if (count >= total) { completeDays++; if (i === streak) streak++; }
   }
-  
-  const pct = totalDays > 0 ? Math.round(completeDays / Math.max(totalDays,1) * 100) : 0;
-  
-  const statCard = (val, label, color) =>
-    '<div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;">' +
-    '<div style="font-size:28px;font-weight:700;color:' + color + ';font-family:'DM Mono',monospace;">' + val + '</div>' +
-    '<div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;letter-spacing:1px;">' + label + '</div>' +
-    '</div>';
-  
-  container.innerHTML =
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
-    statCard(streak, 'RACHA ACTUAL', 'var(--green)') +
-    statCard(totalDays, 'DÍAS ACTIVOS', 'var(--blue)') +
-    statCard(completeDays, 'DÍAS COMPLETOS', 'var(--amber)') +
-    statCard(pct + '%', 'CONSISTENCIA', 'var(--purple)') +
-    '</div>';
+  var pct = totalDays > 0 ? Math.round(completeDays / Math.max(totalDays,1) * 100) : 0;
+  function statCard(val, label, color) {
+    return "<div style=\"background:var(--bg3);border-radius:10px;padding:14px;text-align:center;\">" +
+      "<div style=\"font-size:28px;font-weight:700;color:" + color + ";font-family:monospace;\">" + val + "</div>" +
+      "<div style=\"font-size:10px;color:var(--text3);margin-top:4px;letter-spacing:1px;\">" + label + "</div></div>";
+  }
+  container.innerHTML = "<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:12px;\">" +
+    statCard(streak, "RACHA ACTUAL", "var(--green)") +
+    statCard(totalDays, "DÍAS ACTIVOS", "var(--blue)") +
+    statCard(completeDays, "DÍAS COMPLETOS", "var(--amber)") +
+    statCard(pct + "%", "CONSISTENCIA", "var(--purple)") + "</div>";
 }
 
 window.addEventListener('load', async () => {
