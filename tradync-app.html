@@ -1268,13 +1268,15 @@ if (typeof supabase === 'undefined') {
             </div>
           </div>
 
-          <!-- API Key config -->
+          <!-- Status -->
           <div class="card">
-            <div class="card-title" style="margin-bottom:10px;">API Key</div>
-            <input class="form-input" type="password" id="ai-api-key" placeholder="sk-ant-api..." style="font-size:11px;margin-bottom:8px;" onchange="saveApiKey(this.value)">
-            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;line-height:1.5;">
-              Necesitas una API Key de Anthropic.<br>
-              <span style="color:var(--blue);cursor:pointer;" onclick="window.open('https://console.anthropic.com','_blank')">→ console.anthropic.com</span>
+            <div class="card-title" style="margin-bottom:8px;">Estado</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--green);">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--green);"></div>
+              Coach IA activo
+            </div>
+            <div style="font-size:11px;color:var(--text3);font-family:monospace;margin-top:8px;line-height:1.5;">
+              Powered by Claude Sonnet.<br>Los análisis usan tus datos reales.
             </div>
           </div>
 
@@ -3139,34 +3141,41 @@ function showTyping() {
 async function callAi(userMsg) {
   showTyping();
   const context = getTradeContext();
-  const systemPrompt = `Eres un coach de trading experto y psicólogo especializado en traders. Tienes acceso a los datos reales del trader. Responde en español, de forma concisa y directa. Analiza los datos y da consejos específicos basados en ellos. No seas genérico. Máximo 3-4 frases por respuesta salvo que pidan un análisis detallado.
-
-${context}`;
+  const systemPrompt = 'Eres un coach de trading experto y psicólogo especializado en traders. Tienes acceso a los datos reales del trader. Responde en español, de forma concisa y directa. Analiza los datos y da consejos específicos basados en ellos. No seas genérico. Máximo 3-4 frases por respuesta salvo que pidan un análisis detallado.\n\n' + context;
 
   try {
-    const apiKey = localStorage.getItem('tj_ai_key') || document.getElementById('ai-api-key')?.value || '';
-    if (!apiKey) {
-      document.getElementById('ai-typing')?.remove();
-      appendAiMsg('⚠️ Introduce tu API key de Anthropic en el panel de la derecha para activar el Coach IA.', 'bot');
-      return;
-    }
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    // Try server proxy first (production - no API key needed by user)
+    let res = await fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 600,
         system: systemPrompt,
         messages: [{ role: 'user', content: userMsg }]
       })
     });
+
+    // If proxy not available (local dev), use personal API key
+    if (!res.ok) {
+      const apiKey = localStorage.getItem('tj_ai_key') || document.getElementById('ai-api-key')?.value || '';
+      if (!apiKey) {
+        document.getElementById('ai-typing')?.remove();
+        appendAiMsg('⚠️ El Coach IA no está disponible. Si eres el administrador, configura ANTHROPIC_API_KEY en Vercel.', 'bot');
+        return;
+      }
+      res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1024, system: systemPrompt, messages: [{ role: 'user', content: userMsg }] })
+      });
+    }
+
     const data = await res.json();
     document.getElementById('ai-typing')?.remove();
-    const reply = data.content?.[0]?.text || 'No se pudo obtener respuesta. Comprueba tu API key de Anthropic.';
+    const reply = data.content?.[0]?.text || 'No se pudo obtener respuesta.';
     appendAiMsg(reply, 'bot');
   } catch(e) {
     document.getElementById('ai-typing')?.remove();
-    appendAiMsg('Error al conectar con la IA. Necesitas añadir tu API key de Anthropic en el código (busca x-api-key).', 'bot');
+    appendAiMsg('Error al conectar con el Coach IA. Comprueba tu conexión.', 'bot');
   }
 }
 
