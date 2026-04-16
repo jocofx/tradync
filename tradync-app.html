@@ -897,7 +897,8 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
     </div>
-id="panel-riesgo">
+
+    <div class="tab-panel" id="panel-riesgo">
       <div class="section-title">Control de riesgo en tiempo real</div>
 
       <div class="risk-banner safe" id="risk-banner">
@@ -1094,10 +1095,7 @@ id="panel-riesgo">
 
 <div class="tab-panel" id="panel-premarket">
       <div class="section-title">Preparación de la sesión</div>
-
-      <!-- ROW 1: Checklist (left) + Plan del día (right) -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;align-items:start;">
-        <!-- CHECKLIST -->
         <div class="card">
           <div class="card-title">Checklist pre-market <span class="card-title-badge" id="checklist-pct">0%</span></div>
           <div class="checklist-progress"><div class="checklist-progress-fill" id="checklist-bar" style="width:0%"></div></div>
@@ -1107,7 +1105,6 @@ id="panel-riesgo">
             <button class="btn btn-primary" onclick="addChecklistItem()" style="font-size:12px;padding:7px 14px;white-space:nowrap;">+ Añadir</button>
           </div>
         </div>
-        <!-- PLAN DEL DÍA -->
         <div class="card">
           <div class="card-title">Plan del día</div>
           <div class="form-grid" style="margin-bottom:14px;">
@@ -1128,7 +1125,7 @@ id="panel-riesgo">
           </div>
           <div class="form-field" style="margin-bottom:12px;">
             <label class="form-label">Lo que NO haré hoy</label>
-            <input class="form-input" type="text" id="plan-no" placeholder="No operar las primeras 15 min, no revenge trading...">
+            <input class="form-input" type="text" id="plan-no" placeholder="No operar las primeras 15 min...">
           </div>
           <div class="form-field" style="margin-bottom:16px;">
             <label class="form-label">Notas adicionales</label>
@@ -1138,10 +1135,7 @@ id="panel-riesgo">
           <span id="plan-saved" style="font-size:12px;color:var(--green);font-family:'DM Mono',monospace;margin-left:10px;"></span>
         </div>
       </div>
-
-      <!-- ROW 2: Macro eventos (left) + Historial de planes/calendar (right) -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
-        <!-- EVENTOS MACRO -->
         <div class="card" style="overflow:hidden;padding:0;">
           <div style="padding:14px 16px 8px;" class="card-title">Eventos macro hoy <span class="card-title-badge" id="macro-date"></span></div>
           <div class="tradingview-widget-container" style="height:300px;">
@@ -1159,7 +1153,6 @@ id="panel-riesgo">
             </script>
           </div>
         </div>
-        <!-- HISTORIAL DE PLANES (calendar) -->
         <div class="card">
           <div class="card-title">
             Historial de planes
@@ -1174,12 +1167,10 @@ id="panel-riesgo">
           <div style="display:flex;gap:14px;margin-top:10px;">
             <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);opacity:0.7;"></div>Plan completo</div>
             <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--amber);opacity:0.7;"></div>Parcial</div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--blue);opacity:0.7;"></div>Solo plan</div>
           </div>
         </div>
       </div>
     </div>
-    <!-- HÁBITOS -->
     <div class="tab-panel" id="panel-habitos">
       <div class="section-title">Tracker de hábitos y bienestar</div>
 
