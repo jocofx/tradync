@@ -171,7 +171,10 @@
   .tag.overtrading { background: var(--purple-bg); color: var(--purple); border-color: rgba(167,139,250,0.2); }
   .tag.discipline { background: var(--green-bg); color: var(--green); border-color: rgba(0,212,160,0.2); }
   .tag.neutral { background: var(--bg4); color: var(--text3); border-color: var(--border); }
-  .tag.inactive { opacity: 0.3; }
+  .tag.inactive { opacity: 0.25; filter: grayscale(0.8); }
+  .tag.sl-move { background: rgba(68,136,255,0.12); color: #4d9fff; border-color: rgba(68,136,255,0.3); }
+  .tag.early-close { background: rgba(167,139,250,0.12); color: var(--purple); border-color: rgba(167,139,250,0.3); }
+
   /* CALENDAR */
   .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
   .cal-day-label { font-size: 9px; color: var(--text3); text-align: center; font-family: 'DM Mono', monospace; padding-bottom: 6px; }
@@ -816,14 +819,14 @@ if (typeof supabase === 'undefined') {
           </div>
 
         <div class="form-field" style="margin-bottom:14px;">
-          <label class="form-label" style="margin-bottom:8px;">Errores psicológicos</label>
+          <label class="form-label" style="margin-bottom:8px;">Escoge tus errores psicológicos</label>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <span class="tag revenge" onclick="toggleTag(this)">Revenge trading</span>
-            <span class="tag fomo" onclick="toggleTag(this)">FOMO</span>
-            <span class="tag overtrading" onclick="toggleTag(this)">Overtrading</span>
-            <span class="tag neutral" onclick="toggleTag(this)">Mover SL</span>
-            <span class="tag neutral" onclick="toggleTag(this)">Cerrar antes de TP</span>
-            <span class="tag discipline" onclick="toggleTag(this)">Seguí el plan ✓</span>
+            <span class="tag revenge inactive" onclick="toggleTag(this)">Revenge trading</span>
+            <span class="tag fomo inactive" onclick="toggleTag(this)">FOMO</span>
+            <span class="tag overtrading inactive" onclick="toggleTag(this)">Overtrading</span>
+            <span class="tag sl-move inactive" onclick="toggleTag(this)">Mover SL</span>
+            <span class="tag early-close inactive" onclick="toggleTag(this)">Cerrar antes de TP</span>
+            <span class="tag discipline inactive" onclick="toggleTag(this)">Seguí el plan ✓</span>
           </div>
         </div>
 
