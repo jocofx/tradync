@@ -3459,7 +3459,8 @@ function closeModal() {
   document.getElementById('m-balance').value = '';
 }
 
-function saveAccount() {
+async function saveAccount() {
+  if (!requireAuth()) return;
   const nombre = document.getElementById('m-nombre').value.trim();
   const balance = parseFloat(document.getElementById('m-balance').value) || 0;
   const tipo = document.getElementById('m-tipo').value;
@@ -3468,94 +3469,40 @@ function saveAccount() {
 
   if (!nombre) { toast('Escribe un nombre para la cuenta', 'error'); return; }
 
-  const account = { id: Date.now(), nombre, balance, tipo, broker, fase, pnl: 0 };
+  const account = { nombre, balance, tipo, broker, fase };
+  
+  // Save to Supabase
+  const { data, error } = await sb.from('cuentas').insert({
+    user_id: currentUser.id, nombre, balance, tipo,
+    broker: broker || '', fase: fase || '', activa: true,
+    updated_at: new Date().toISOString()
+  }).select().single();
+  
+  if (error) {
+    toast('Error al guardar cuenta: ' + error.message, 'error');
+    return;
+  }
+  
+  // Add to local array with Supabase ID
+  account.id = data.id;
+  account.notionId = data.id;
+  account.pnl = 0;
   accounts.push(account);
-  saveAccountsLocal();
+  
   renderAccounts();
   updateCuentaSelector();
-  renderCalendar();
-  renderRiskPanel();
-  initChecklist();
-  initHabits();
-  initSurvey();
-  loadPlan();
-  loadMacroEvents();
-  renderPmCalendar();
-  renderInstrumentStats();
-  renderMonthCompare();
-  updateAiContext();
-
-  // Init Notion databases and sync all data
-  const today = new Date().toISOString().slice(0,10);
-  initNotionDatabases().then(ok => {
-    if (ok) {
-      loadConfigFromNotion().then(() => {
-        renderRiskPanel();
-        initHabits();
-      });
-      loadHabitsFromNotion(today);
-      loadPlanFromNotion(today);
-      loadAccountsFromNotion();
-    }
-  });
-  document.getElementById('cfg-maxloss').value = riskSettings.maxLoss || 200;
-  document.getElementById('cfg-maxops').value = riskSettings.maxOps || 5;
-  document.getElementById('cfg-objetivo').value = riskSettings.objetivo || '';
-  document.getElementById('cfg-riskpct').value = riskSettings.riskPct || 1;
-  // Persist risk settings on every input change
-  ['cfg-maxloss','cfg-maxops','cfg-objetivo','cfg-riskpct'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('change', () => {
-      updateRiskConfig();
-      saveConfigToNotion('riskSettings', riskSettings).catch(()=>{});
-    });
-  });
   closeModal();
-  toast('Cuenta "' + nombre + '" añadida', 'success');
+  toast('Cuenta "' + nombre + '" guardada ✓', 'success');
 }
 
-function deleteAccount(id) {
-  accounts = accounts.filter(a => a.id !== id);
-  saveAccountsLocal();
+async function deleteAccount(id) {
+  if (!confirm('¿Eliminar esta cuenta?')) return;
+  // Mark as inactive in Supabase
+  await sb.from('cuentas').update({ activa: false }).eq('id', id).eq('user_id', currentUser.id).catch(()=>{});
+  accounts = accounts.filter(a => a.id !== id && a.notionId !== id);
   renderAccounts();
   updateCuentaSelector();
-  renderCalendar();
-  renderRiskPanel();
-  initChecklist();
-  initHabits();
-  initSurvey();
-  loadPlan();
-  loadMacroEvents();
-  renderPmCalendar();
-  renderInstrumentStats();
-  renderMonthCompare();
-  updateAiContext();
-
-  // Init Notion databases and sync all data
-  const today = new Date().toISOString().slice(0,10);
-  initNotionDatabases().then(ok => {
-    if (ok) {
-      loadConfigFromNotion().then(() => {
-        renderRiskPanel();
-        initHabits();
-      });
-      loadHabitsFromNotion(today);
-      loadPlanFromNotion(today);
-      loadAccountsFromNotion();
-    }
-  });
-  document.getElementById('cfg-maxloss').value = riskSettings.maxLoss || 200;
-  document.getElementById('cfg-maxops').value = riskSettings.maxOps || 5;
-  document.getElementById('cfg-objetivo').value = riskSettings.objetivo || '';
-  document.getElementById('cfg-riskpct').value = riskSettings.riskPct || 1;
-  // Persist risk settings on every input change
-  ['cfg-maxloss','cfg-maxops','cfg-objetivo','cfg-riskpct'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('change', () => {
-      updateRiskConfig();
-      saveConfigToNotion('riskSettings', riskSettings).catch(()=>{});
-    });
-  });
+  toast('Cuenta eliminada', 'success');
 }
 
 function renderAccounts() {
