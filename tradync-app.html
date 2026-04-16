@@ -4687,5 +4687,17 @@ function renderPsychCharts() {
     </div>
   </div>
 </div>
+
+<!-- HABIT DAY MODAL -->
+<div id="habit-day-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:10000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeHabitDayModal()">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px;width:500px;max-width:94vw;max-height:85vh;overflow-y:auto;position:relative;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div id="habit-day-modal-title" style="font-size:16px;font-weight:700;color:var(--text);"></div>
+      <button onclick="closeHabitDayModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;padding:0 4px;line-height:1;">&#x2715;</button>
+    </div>
+    <div id="habit-day-modal-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
