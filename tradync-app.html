@@ -1174,9 +1174,7 @@ if (typeof supabase === 'undefined') {
     <div class="tab-panel"
           <button onclick="closeHabitDetail()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);">&#x2715;</button>
         </div>
-        <div id="habit-detail-body"></div>
-      </div>
- id="panel-habitos">
+        <div class="tab-panel" id="panel-habitos">
       <div class="section-title">Tracker de hábitos y bienestar</div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
@@ -1204,7 +1202,7 @@ if (typeof supabase === 'undefined') {
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
 
-        <!-- BOTTOM LEFT: Racha y estadísticas -->
+        <!-- BOTTOM LEFT: Resumen -->
         <div class="card">
           <div class="card-title">Resumen de hábitos</div>
           <div id="habit-stats-container" style="margin-top:10px;">
@@ -1212,7 +1210,7 @@ if (typeof supabase === 'undefined') {
           </div>
         </div>
 
-        <!-- BOTTOM RIGHT: Historial de hábitos (calendar) -->
+        <!-- BOTTOM RIGHT: Historial calendario -->
         <div class="card">
           <div class="card-title">
             Historial de hábitos
@@ -1231,16 +1229,7 @@ if (typeof supabase === 'undefined') {
           </div>
         </div>
 
-  
-      <!-- HABIT DAY DETAIL PANEL -->
-      <div id="habit-detail-panel" style="display:none;background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;margin-top:18px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-          <div id="habit-detail-title" style="font-size:15px;font-weight:700;color:var(--text);"></div>
-          <button onclick="closeHabitDetail()" style="background:none;border:1px solid var(--border);color:var(--text3);cursor:pointer;font-size:14px;padding:4px 10px;border-radius:6px;">✕ Cerrar</button>
-        </div>
-        <div id="habit-detail-body"></div>
       </div>
-    </div>
     </div>
     <div class="tab-panel" id="panel-ia">
       <div class="section-title">Coach de trading con IA</div>
