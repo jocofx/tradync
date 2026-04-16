@@ -2699,57 +2699,103 @@ function renderHabitCalendar() {
 
 
 function openHabitDayDetail(dateStr) {
-  const data = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + dateStr)) || '{}');
-  const survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + dateStr)) || '{}');
-  const date = new Date(dateStr);
-  const label = date.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
-  const score = getHabitScore(dateStr);
+  var habits = {};
+  var survey = {};
+  try { habits = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + dateStr)) || '{}'); } catch(e) {}
+  try { survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + dateStr)) || '{}'); } catch(e) {}
 
-  const habitsHTML = customHabits.map(h => {
-    const val = data[h.id] || 0;
-    const stars = [1,2,3,4,5].map(s => `<span style="color:${s<=val?'var(--amber)':'var(--bg4)'};font-size:14px;">★</span>`).join('');
-    return `<div class="stat-row">
-      <span class="stat-name">${h.icon} ${h.name}</span>
-      <span>${stars} <span style="font-size:11px;color:var(--text3);font-family:monospace;margin-left:4px;">${val>0?val+'/5':'No registrado'}</span></span>
-    </div>`;
+  var date = new Date(dateStr + 'T12:00:00');
+  var label = date.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  label = label.charAt(0).toUpperCase() + label.slice(1);
+
+  var habitCount = customHabits.filter(function(h){ return (habits[h.id] || 0) > 0; }).length;
+  var total = customHabits.length || 1;
+  var pct = Math.round(habitCount / total * 100);
+  var surveyCount = Object.keys(survey).length;
+
+  // Score color
+  var scoreColor = pct >= 100 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
+  var scoreMsg = pct >= 100 ? 'Todos los hábitos completados' : pct >= 50 ? 'Buen día' : 'Día con margen de mejora';
+
+  // Build habits section
+  var habitsRows = customHabits.map(function(h) {
+    var done = (habits[h.id] || 0) > 0;
+    var check = done
+      ? '<svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="rgba(0,212,160,0.15)" stroke="var(--green)" stroke-width="1.5"/><polyline points="4,8 7,11 12,5" stroke="var(--green)" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
+      : '<svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="transparent" stroke="var(--border2)" stroke-width="1.5"/></svg>';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">' +
+      check +
+      '<span style="font-size:13px;color:' + (done ? 'var(--text)' : 'var(--text3)') + ';">' + h.name + '</span>' +
+      '<span style="margin-left:auto;font-size:11px;font-family:monospace;color:' + (done ? 'var(--green)' : 'var(--text3)') + ';">' + (done ? 'Completado' : 'No registrado') + '</span>' +
+      '</div>';
   }).join('');
 
-  const surveyLabels = ['Ejecución','Seguí el plan','Control emocional','Revenge trading','Valoración global'];
-  const surveyHTML = Object.keys(survey).length ? surveyLabels.map((q, i) =>
-    survey[i] ? `<div class="stat-row"><span class="stat-name">${q}</span><span class="stat-val" style="font-size:11px;color:var(--text2)">${survey[i]}</span></div>` : ''
-  ).join('') : '<div style="color:var(--text3);font-size:12px;font-family:monospace">Sin encuesta registrada</div>';
+  // Build survey section
+  var surveyRows = '';
+  if (Object.keys(survey).length) {
+    surveyRows = SURVEY_QS.map(function(q, i) {
+      var ans = survey[i];
+      if (!ans) return '';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">' +
+        '<span style="font-size:12px;color:var(--text2);">' + (i+1) + '. ' + q.q + '</span>' +
+        '<span style="font-size:12px;font-weight:600;color:var(--green);font-family:monospace;">' + ans + '</span>' +
+        '</div>';
+    }).join('');
+  } else {
+    surveyRows = '<div style="color:var(--text3);font-size:12px;font-family:monospace;padding:8px 0;">Sin encuesta registrada</div>';
+  }
 
-  const R = 20, C = 2 * Math.PI * R;
-  const ringColor = score >= 1 ? '#00d4a0' : score >= 0.5 ? '#f5a623' : '#4d9fff';
+  // Build chart: simple bar chart of habits
+  var barChart = '<div style="display:flex;align-items:flex-end;gap:6px;height:60px;margin:12px 0;">';
+  customHabits.forEach(function(h) {
+    var done = (habits[h.id] || 0) > 0;
+    var barH = done ? 60 : 8;
+    var barC = done ? 'var(--green)' : 'var(--bg4)';
+    barChart += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">' +
+      '<div style="width:100%;height:' + barH + 'px;background:' + barC + ';border-radius:4px 4px 0 0;transition:height 0.3s;"></div>' +
+      '<div style="font-size:8px;color:var(--text3);text-align:center;font-family:monospace;line-height:1.2;">' + h.name.slice(0,5).toUpperCase() + '</div>' +
+      '</div>';
+  });
+  barChart += '</div>';
 
-  document.getElementById('habit-day-modal-title').textContent = label.charAt(0).toUpperCase() + label.slice(1);
-  document.getElementById('habit-day-modal-body').innerHTML = `
-    <div style="display:flex;align-items:center;gap:20px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border);">
-      <svg width="60" height="60" viewBox="0 0 60 60">
-        <circle cx="30" cy="30" r="${R}" fill="none" stroke="var(--bg4)" stroke-width="4"/>
-        <circle cx="30" cy="30" r="${R}" fill="none" stroke="${ringColor}" stroke-width="4"
-          stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}"
-          stroke-dashoffset="${(C - score*C).toFixed(1)}"
-          transform="rotate(-90 30 30)"/>
-        <text x="30" y="35" text-anchor="middle" font-size="13" font-weight="bold" fill="${ringColor}">${Math.round(score*100)}%</text>
-      </svg>
-      <div>
-        <div style="font-size:18px;font-weight:800;color:${score>=1?'var(--green)':score>=0.5?'var(--amber)':'var(--red)'}">
-          ${score>=1?'¡Todos los hábitos completados!':score>=0.5?'Buen día':'Día con margen de mejora'}
-        </div>
-        <div style="font-size:12px;color:var(--text3);font-family:monospace;margin-top:3px;">
-          ${Math.round(score*customHabits.length)} / ${customHabits.length} hábitos · ${Math.round(score*100)}% completado
-        </div>
-      </div>
-    </div>
-    <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:10px;">HÁBITOS</div>
-    ${habitsHTML}
-    <div style="height:1px;background:var(--border);margin:14px 0;"></div>
-    <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:10px;">ENCUESTA POST-SESIÓN</div>
-    ${surveyHTML}
-  `;
-  document.getElementById('habit-day-modal').classList.add('open');
+  // Score ring (CSS-based)
+  var ringDeg = Math.round(pct * 3.6);
+  var ring = '<div style="position:relative;width:80px;height:80px;flex-shrink:0;">' +
+    '<svg width="80" height="80" viewBox="0 0 80 80">' +
+    '<circle cx="40" cy="40" r="32" fill="none" stroke="var(--bg4)" stroke-width="6"/>' +
+    '<circle cx="40" cy="40" r="32" fill="none" stroke="' + scoreColor + '" stroke-width="6" stroke-linecap="round"' +
+    ' stroke-dasharray="' + (2*Math.PI*32).toFixed(1) + '"' +
+    ' stroke-dashoffset="' + ((2*Math.PI*32) * (1 - pct/100)).toFixed(1) + '"' +
+    ' transform="rotate(-90 40 40)"/>' +
+    '<text x="40" y="45" text-anchor="middle" font-size="16" font-weight="bold" fill="' + scoreColor + '">' + pct + '%</text>' +
+    '</svg></div>';
+
+  // Set modal content
+  var modal = document.getElementById('habit-day-modal');
+  var title = document.getElementById('habit-day-modal-title');
+  var body = document.getElementById('habit-day-modal-body');
+  if (!modal || !body) return;
+
+  title.textContent = label;
+  body.innerHTML =
+    '<div style="display:flex;align-items:center;gap:18px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border);">' +
+      ring +
+      '<div>' +
+        '<div style="font-size:16px;font-weight:700;color:' + scoreColor + ';">' + scoreMsg + '</div>' +
+        '<div style="font-size:12px;color:var(--text3);font-family:monospace;margin-top:4px;">' + habitCount + ' / ' + total + ' hábitos completados</div>' +
+        (surveyCount ? '<div style="font-size:11px;color:var(--blue);font-family:monospace;margin-top:2px;">Encuesta: ' + surveyCount + '/5 respuestas</div>' : '') +
+      '</div>' +
+    '</div>' +
+    '<div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:8px;">PROGRESO DEL DÍA</div>' +
+    barChart +
+    '<div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin:12px 0 8px;">HÁBITOS</div>' +
+    habitsRows +
+    '<div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin:14px 0 8px;">ENCUESTA POST-SESIÓN</div>' +
+    surveyRows;
+
+  modal.style.display = 'flex';
 }
+
 
 function renderHabitsCorrelation() {
   const container = document.getElementById('habits-correlation');
@@ -4067,6 +4113,11 @@ function selectSurveyQ(idx, val, btn) {
     b.style.background = sel ? 'rgba(0,212,160,0.12)' : 'transparent';
     b.style.color = sel ? 'var(--green)' : 'var(--text2)';
   });
+}
+
+function closeHabitDayModal() {
+  var m = document.getElementById('habit-day-modal');
+  if (m) { m.style.display = 'none'; m.classList.remove('open'); }
 }
 
 window.addEventListener('load', async () => {
