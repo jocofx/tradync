@@ -1232,54 +1232,55 @@ if (typeof supabase === 'undefined') {
       </div>
     </div>
     <div class="tab-panel" id="panel-ia">
-      <div class="section-title">Coach de trading con IA</div>
-      <div style="display:grid;grid-template-columns:1fr 300px;gap:18px;">
-        <div class="card">
-          <div class="card-title">Chat con tu coach</div>
-          <div class="ai-chat" id="ai-chat">
+      <div class="section-title">Coach IA</div>
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:18px;">
+
+        <!-- LEFT: Chat -->
+        <div class="card" style="display:flex;flex-direction:column;height:580px;">
+          <div class="card-title" style="margin-bottom:12px;">Chat con tu Coach</div>
+          <div class="ai-chat" id="ai-chat" style="flex:1;overflow-y:auto;margin-bottom:12px;">
             <div class="ai-msg">
               <div class="ai-avatar bot">🤖</div>
-              <div class="ai-bubble bot">Hola, soy tu coach de trading. Tengo acceso a todas tus operaciones y puedo ayudarte a analizar tu rendimiento, detectar patrones y mejorar tu psicología. ¿En qué te ayudo hoy?</div>
+              <div class="ai-bubble bot">Hola, soy tu Coach IA. Tengo acceso a todas tus operaciones, hábitos y datos de trading. Puedo analizar tu rendimiento, detectar patrones, y ayudarte a mejorar. Usa los botones de la derecha para análisis rápidos o escríbeme directamente.</div>
             </div>
           </div>
           <div class="ai-input-row">
-            <input class="form-input" type="text" id="ai-input" placeholder="Pregúntame algo sobre tu trading..." onkeydown="if(event.key==='Enter')sendAiMessage()">
-            <button class="btn btn-primary" onclick="sendAiMessage()" style="white-space:nowrap;">Enviar</button>
+            <input class="form-input" type="text" id="ai-input" placeholder="Pregúntame algo sobre tu trading..." onkeydown="if(event.key==='Enter')sendAiMessage()" style="flex:1;">
+            <button class="btn btn-primary" onclick="sendAiMessage()" style="white-space:nowrap;padding:9px 18px;">Enviar ↑</button>
           </div>
         </div>
-        <div>
-          <div class="card" style="margin-bottom:14px;">
-            <div class="card-title">Preguntas rápidas</div>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-              <button class="btn" style="font-size:12px;text-align:left;padding:9px 12px;" onclick="quickAsk('¿En qué sesión rindo mejor según mis datos?')">¿En qué sesión rindo mejor?</button>
-              <button class="btn" style="font-size:12px;text-align:left;padding:9px 12px;" onclick="quickAsk('¿Cuál es mi error psicológico más frecuente?')">¿Cuál es mi error más frecuente?</button>
-              <button class="btn" style="font-size:12px;text-align:left;padding:9px 12px;" onclick="quickAsk('¿Qué setup me da más beneficio?')">¿Qué setup me da más beneficio?</button>
-              <button class="btn" style="font-size:12px;text-align:left;padding:9px 12px;" onclick="quickAsk('Analiza mi consistencia esta semana')">Analiza mi consistencia</button>
-              <button class="btn" style="font-size:12px;text-align:left;padding:9px 12px;" onclick="quickAsk('¿Debería operar hoy según mis patrones?')">¿Debería operar hoy?</button>
-              <button class="btn" style="font-size:12px;text-align:left;padding:9px 12px;" onclick="generateWeeklySummary()">📋 Generar resumen semanal</button>
-            </div>
-          </div>
+
+        <!-- RIGHT: Actions + Config -->
+        <div style="display:flex;flex-direction:column;gap:14px;">
+
+          <!-- Quick analyses -->
           <div class="card">
-            <div class="card-title">Configuración IA</div>
-            <div class="form-field" style="margin-bottom:12px;">
-              <label class="form-label">Anthropic API Key</label>
-              <input class="form-input" type="password" id="ai-api-key" placeholder="sk-ant-api..." style="font-size:11px;"
-                onchange="saveApiKey(this.value)">
-              <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;">
-                Obtén tu key en <span style="color:var(--blue);cursor:pointer;" onclick="openLink('https://console.anthropic.com')">console.anthropic.com</span>
-              </div>
+            <div class="card-title" style="margin-bottom:12px;">Análisis rápidos</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-primary" style="font-size:12px;text-align:left;padding:10px 14px;" onclick="aiAnalysis('daily')">📅 Resumen de hoy</button>
+              <button class="btn btn-primary" style="font-size:12px;text-align:left;padding:10px 14px;" onclick="aiAnalysis('weekly')">📋 Resumen semanal</button>
+              <button class="btn btn-primary" style="font-size:12px;text-align:left;padding:10px 14px;" onclick="aiAnalysis('monthly')">📆 Resumen mensual</button>
+              <button class="btn" style="font-size:12px;text-align:left;padding:10px 14px;" onclick="aiAnalysis('errors')">⚠️ Análisis de errores</button>
+              <button class="btn" style="font-size:12px;text-align:left;padding:10px 14px;" onclick="aiAnalysis('psych')">🧠 Análisis psicológico</button>
+              <button class="btn" style="font-size:12px;text-align:left;padding:10px 14px;" onclick="aiAnalysis('setup')">🎯 Mejor setup y sesión</button>
+              <button class="btn" style="font-size:12px;text-align:left;padding:10px 14px;" onclick="aiAnalysis('improve')">📈 ¿Qué debo mejorar?</button>
+              <button class="btn" style="font-size:12px;text-align:left;padding:10px 14px;" onclick="aiAnalysis('habits')">💪 Hábitos y bienestar</button>
             </div>
-            <div style="height:1px;background:var(--border);margin:10px 0;"></div>
-            <div class="stat-row"><span class="stat-name">Ops. cargadas</span><span class="stat-val" id="ai-ops-count">—</span></div>
-            <div class="stat-row"><span class="stat-name">Win rate</span><span class="stat-val" id="ai-wr">—</span></div>
-            <div class="stat-row"><span class="stat-name">P&L total</span><span class="stat-val" id="ai-pnl">—</span></div>
-            <div class="stat-row"><span class="stat-name">Mejor sesión</span><span class="stat-val" id="ai-best-session">—</span></div>
           </div>
+
+          <!-- API Key config -->
+          <div class="card">
+            <div class="card-title" style="margin-bottom:10px;">API Key</div>
+            <input class="form-input" type="password" id="ai-api-key" placeholder="sk-ant-api..." style="font-size:11px;margin-bottom:8px;" onchange="saveApiKey(this.value)">
+            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;line-height:1.5;">
+              Necesitas una API Key de Anthropic.<br>
+              <span style="color:var(--blue);cursor:pointer;" onclick="window.open('https://console.anthropic.com','_blank')">→ console.anthropic.com</span>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
-
-    <!-- DIARIO -->
     <div class="tab-panel" id="panel-diario">
       <div class="section-title">Diario personal de trading</div>
       <div style="display:grid;grid-template-columns:1fr 300px;gap:18px;">
@@ -3169,7 +3170,7 @@ ${context}`;
   }
 }
 
-async function generateWeeklySummary() {
+async async function generateWeeklySummary() {
   const today = new Date();
   const weekStart = new Date(today); weekStart.setDate(today.getDate() - today.getDay() + 1);
   const weekTrades = allTrades.filter(t => {
@@ -4131,6 +4132,59 @@ async function saveHabitsConfig() {
   }
   saveCustomHabits(); // update local cache
   console.log('customHabits saved to Supabase:', customHabits.length, 'habits');
+}
+
+async function aiAnalysis(type) {
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0,10);
+
+  // Date ranges
+  const weekStart = new Date(today); weekStart.setDate(today.getDate() - 7);
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  // Filter trades by period
+  const todayTrades = allTrades.filter(t => (t.fecha||'').slice(0,10) === todayStr);
+  const weekTrades = allTrades.filter(t => new Date(t.fecha||0) >= weekStart);
+  const monthTrades = allTrades.filter(t => new Date(t.fecha||0) >= monthStart);
+
+  function tradeSummary(trades) {
+    if (!trades.length) return 'Sin operaciones en este periodo.';
+    const pnl = trades.reduce((s,t)=>s+(t.resultado||0),0);
+    const wins = trades.filter(t=>(t.resultado||0)>0).length;
+    const wr = (wins/trades.length*100).toFixed(0);
+    const errors = trades.flatMap(t=>t.errores?t.errores.split(','):[]).filter(Boolean);
+    const errorCount = {};
+    errors.forEach(e=>{const k=e.trim();errorCount[k]=(errorCount[k]||0)+1;});
+    const topErrors = Object.entries(errorCount).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>k+' ('+v+'x)').join(', ');
+    const details = trades.slice(0,15).map(t=>`${(t.fecha||'').slice(0,10)} ${t.instrumento||''} ${t.direccion||''} resultado:${(t.resultado||0)>=0?'+':''}$${(t.resultado||0).toFixed(0)} emocion:${t.emocion||'-'} setup:${t.setup||'-'} errores:${t.errores||'ninguno'}`).join('\n');
+    return `${trades.length} ops | WR: ${wr}% | P&L: ${pnl>=0?'+':''}$${pnl.toFixed(2)} | Errores frecuentes: ${topErrors||'ninguno'}\nDetalle:\n${details}`;
+  }
+
+  // Habits context
+  const habitsCtx = customHabits.length ? `Hábitos del trader: ${customHabits.map(h=>h.name).join(', ')}` : '';
+  const todayHabits = {};
+  try { Object.assign(todayHabits, JSON.parse(localStorage.getItem(lsKey('tj_habits_'+todayStr))||'{}')); } catch(e){}
+  const habitsDone = customHabits.filter(h=>(todayHabits[h.id]||0)>0).map(h=>h.name).join(', ');
+
+  const prompts = {
+    daily: `Haz un análisis completo de mi trading de HOY. ${tradeSummary(todayTrades)} Hábitos completados hoy: ${habitsDone||'ninguno'}. Incluye: qué salió bien, qué mejorar, y un consejo para mañana.`,
+    weekly: `Genera un RESUMEN SEMANAL completo de mi trading. ${tradeSummary(weekTrades)} ${habitsCtx}. Incluye: rendimiento general, errores recurrentes, mejores y peores momentos, y 3 objetivos concretos para la próxima semana.`,
+    monthly: `Genera un RESUMEN MENSUAL detallado. ${tradeSummary(monthTrades)} Incluye: evolución del mes, consistencia, áreas de mejora, y proyección para el próximo mes.`,
+    errors: `Analiza en detalle mis ERRORES PSICOLÓGICOS y de ejecución. ${tradeSummary(weekTrades)} Identifica patrones de error, cuándo ocurren, qué los desencadena, y un plan concreto para eliminarlos.`,
+    psych: `Haz un análisis PSICOLÓGICO profundo de mi trading. ${tradeSummary(weekTrades)} Evalúa mi control emocional, disciplina, gestión del miedo y la avaricia. Dame ejercicios concretos para mejorar.`,
+    setup: `Analiza qué SETUPS y SESIONES me dan mejores resultados. ${tradeSummary(allTrades.slice(0,50))} Dime en qué horarios rindo mejor, qué estrategias son más rentables, y cuáles debo eliminar.`,
+    improve: `Basándote en todos mis datos, dime las 3 COSAS MÁS IMPORTANTES que debo mejorar para ser más rentable. ${tradeSummary(weekTrades)} Sé específico y dame un plan de acción.`,
+    habits: `Analiza cómo mis HÁBITOS Y BIENESTAR afectan a mi trading. ${habitsCtx}. Hábitos hoy: ${habitsDone||'ninguno'}. ${tradeSummary(weekTrades)} ¿Hay correlación entre mis hábitos y mi rendimiento?`,
+  };
+
+  const labels = {
+    daily:'Resumen de hoy', weekly:'Resumen semanal', monthly:'Resumen mensual',
+    errors:'Análisis de errores', psych:'Análisis psicológico', setup:'Mejor setup y sesión',
+    improve:'¿Qué debo mejorar?', habits:'Hábitos y bienestar'
+  };
+
+  appendAiMsg('📊 ' + labels[type], 'user');
+  await callAi(prompts[type]);
 }
 
 window.addEventListener('load', async () => {
