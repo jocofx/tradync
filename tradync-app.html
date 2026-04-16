@@ -1176,73 +1176,50 @@ if (typeof supabase === 'undefined') {
     <!-- HÁBITOS -->
     <div class="tab-panel" id="panel-habitos">
       <div class="section-title">Tracker de hábitos y bienestar</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
 
-        <!-- HOY -->
-        <div class="card">
-          <div class="card-title">Hábitos de hoy <span class="card-title-badge" id="habit-date-label"></span></div>
-          <div class="habit-grid" id="habits-today-grid"></div>
-          <div style="height:1px;background:var(--border);margin:14px 0;"></div>
-          <div class="card-title" style="margin-bottom:12px;">Encuesta post-sesión</div>
-          <div id="survey-container"></div>
-          <button class="btn btn-primary" style="margin-top:14px;" onclick="saveSurvey()">Guardar todo</button>
+      <!-- HABITS GRID - addable cards like errores psicológicos -->
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-title">
+          Hábitos de hoy
+          <span class="card-title-badge" id="habit-date-label"></span>
         </div>
-
-        <!-- CONSISTENCIA + CORRELACIÓN -->
-        <div style="display:flex;flex-direction:column;gap:14px;">
-          <div class="card">
-            <div class="card-title">Consistencia semanal</div>
-            <div class="score-circle" id="score-circle" style="border-color:var(--green);">
-              <div class="score-number" id="score-number" style="color:var(--green);">—</div>
-              <div class="score-label">PUNTOS</div>
-            </div>
-            <div id="score-breakdown" style="margin-top:8px;"></div>
-          </div>
-          <div class="card">
-            <div class="card-title">Correlación hábitos/resultados</div>
-            <div id="habits-correlation"></div>
+        <div id="habits-today-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin:14px 0;"></div>
+        <!-- Add habit -->
+        <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">
+          <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:10px;">AÑADIR HÁBITO</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input class="form-input" id="new-habit-icon" placeholder="🏃" style="width:56px;padding:7px 10px;font-size:18px;text-align:center;">
+            <input class="form-input" id="new-habit-name" placeholder="Nombre del hábito..." style="flex:1;min-width:140px;padding:7px 12px;font-size:13px;" onkeydown="if(event.key==='Enter')addHabitFromPanel()">
+            <button class="btn btn-primary" onclick="addHabitFromPanel()" style="font-size:12px;padding:7px 16px;white-space:nowrap;">+ Añadir</button>
           </div>
         </div>
       </div>
 
-      <!-- CALENDAR -->
+      <!-- ENCUESTA POST-SESIÓN -->
       <div class="card" style="margin-bottom:18px;">
+        <div class="card-title">Encuesta post-sesión</div>
+        <div id="survey-container"></div>
+      </div>
+
+      <!-- CALENDAR HISTORY -->
+      <div class="card">
         <div class="card-title">
-          Calendario de hábitos
+          Historial de hábitos
           <div style="display:flex;gap:8px;">
             <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changeHabitMonth(-1)">←</button>
-            <span class="card-title-badge" id="habit-cal-month-label" style="display:flex;align-items:center;"></span>
+            <span class="card-title-badge" id="habit-cal-month" style="display:flex;align-items:center;"></span>
             <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changeHabitMonth(1)">→</button>
           </div>
         </div>
-        <div class="habit-cal-grid" id="habit-cal-grid"></div>
-      </div>
-
-      <!-- MANAGE HABITS -->
-      <div class="card">
-        <div class="card-title">Gestionar hábitos</div>
-        <div id="habits-manage-list"></div>
-        <div style="height:1px;background:var(--border);margin:14px 0;"></div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <input class="form-input" type="text" id="new-habit-name" placeholder="Nombre del hábito" style="width:160px;">
-          <input class="form-input" type="text" id="new-habit-icon" placeholder="Emoji (ej: 🏃)" style="width:80px;">
-          <button class="btn btn-primary" onclick="addHabit()" style="font-size:13px;">+ Añadir hábito</button>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;" id="habit-cal-header"></div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" id="habit-cal-grid"></div>
+        <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);opacity:0.8;"></div>Todos cumplidos</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--amber);opacity:0.8;"></div>Parcial</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--red);opacity:0.5;"></div>Sin cumplir</div>
         </div>
       </div>
     </div>
-
-    <!-- MODAL DETALLE DÍA HÁBITOS -->
-    <div class="modal-overlay" id="habit-day-modal">
-      <div class="day-modal" style="width:500px;">
-        <div class="day-modal-header">
-          <div class="day-modal-title" id="habit-day-modal-title">Hábitos del día</div>
-          <div class="day-modal-close" onclick="document.getElementById('habit-day-modal').classList.remove('open')">✕</div>
-        </div>
-        <div class="day-modal-body" id="habit-day-modal-body"></div>
-      </div>
-    </div>
-
-    <!-- COACH IA -->
     <div class="tab-panel" id="panel-ia">
       <div class="section-title">Coach de trading con IA</div>
       <div style="display:grid;grid-template-columns:1fr 300px;gap:18px;">
@@ -2596,36 +2573,43 @@ function getHabitScore(dateStr) {
 }
 
 function initHabits() {
-  document.getElementById('habit-date-label').textContent = new Date().toLocaleDateString('es-ES', {day:'numeric',month:'short'});
+  const dateLabel = document.getElementById('habit-date-label');
+  if (dateLabel) dateLabel.textContent = new Date().toLocaleDateString('es-ES', {day:'numeric', month:'short'});
 
-  // Today grid
   const grid = document.getElementById('habits-today-grid');
-  grid.innerHTML = customHabits.map(h => {
+  if (!grid) return;
+
+  if (!customHabits.length) {
+    grid.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace;grid-column:1/-1;padding:8px 0;">Añade tus hábitos usando el formulario de abajo...</div>';
+    return;
+  }
+
+  grid.innerHTML = customHabits.map((h, idx) => {
     const val = habitsToday[h.id] || 0;
-    return `<div class="habit-card ${val>0?'active':''}" id="hc-${h.id}" onclick="toggleHabit('${h.id}')">
-      <div class="habit-icon">${h.icon}</div>
-      <div class="habit-label">${h.name.toUpperCase()}</div>
-      <div class="habit-rating" id="hr-${h.id}">
-        ${[1,2,3,4,5].map(s=>`<div class="habit-star ${s<=val?'on':''}" onclick="event.stopPropagation();setHabitRating('${h.id}',${s})">★</div>`).join('')}
-      </div>
-    </div>`;
+    const active = val > 0;
+    const colors = {
+      sueno: 'rgba(68,136,255,0.15)', ejercicio: 'rgba(0,212,160,0.15)',
+      meditacion: 'rgba(167,139,250,0.15)', alcohol: 'rgba(255,77,109,0.15)'
+    };
+    const textColors = {
+      sueno: '#4d9fff', ejercicio: 'var(--green)',
+      meditacion: 'var(--purple)', alcohol: 'var(--red)'
+    };
+    const bg = active ? (colors[h.id] || 'rgba(0,212,160,0.12)') : 'var(--bg3)';
+    const color = active ? (textColors[h.id] || 'var(--green)') : 'var(--text3)';
+    const border = active ? (textColors[h.id] || 'var(--green)') : 'var(--border)';
+    return `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 8px;border-radius:12px;border:1px solid ${border};background:${bg};cursor:pointer;transition:all 0.2s;position:relative;user-select:none;" onclick="toggleHabit('${h.id}')" id="hc-${h.id}">
+        <div style="font-size:22px;">${h.icon}</div>
+        <div style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:0.5px;color:${color};text-align:center;">${h.name.toUpperCase()}</div>
+        <div style="display:flex;gap:3px;" id="hr-${h.id}">
+          ${[1,2,3,4,5].map(s => `<div style="width:6px;height:6px;border-radius:50%;background:${val>=s ? color : 'var(--border)'};cursor:pointer;" onclick="event.stopPropagation();setHabit('${h.id}',${s})"></div>`).join('')}
+        </div>
+        ${!DEFAULT_HABITS.find(d=>d.id===h.id) ? `<div onclick="event.stopPropagation();removeHabitFromPanel(${idx})" style="position:absolute;top:4px;right:4px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,77,109,0.15);color:var(--red);font-size:9px;cursor:pointer;opacity:0.7;">✕</div>` : ''}
+      </div>`;
   }).join('');
 
-  // Manage list
-  const manageList = document.getElementById('habits-manage-list');
-  manageList.innerHTML = customHabits.map(h => `
-    <div class="habit-manage-item">
-      <div class="habit-manage-icon">${h.icon}</div>
-      <div class="habit-manage-name">${h.name}</div>
-      <div class="habit-manage-actions">
-        <button class="habit-small-btn" onclick="editHabit('${h.id}')">✏️ Editar</button>
-        <button class="habit-small-btn del" onclick="removeHabit('${h.id}')">✕ Quitar</button>
-      </div>
-    </div>`).join('');
-
-  renderHabitCalendar();
-  renderHabitsCorrelation();
-  renderConsistencyScore();
+  renderSurvey();
 }
 
 function toggleHabit(id) {
@@ -3941,6 +3925,48 @@ async function saveChecklistItems() {
   if (!currentUser) return;
   localStorage.setItem('tj_custom_checklist_' + currentUser.id, JSON.stringify(CHECKLIST_ITEMS));
   await saveConfigToNotion('customChecklist', CHECKLIST_ITEMS).catch(() => {});
+}
+
+async function addHabitFromPanel() {
+  if (!requireAuth()) return;
+  const iconEl = document.getElementById('new-habit-icon');
+  const nameEl = document.getElementById('new-habit-name');
+  const icon = iconEl?.value?.trim() || '⭐';
+  const name = nameEl?.value?.trim();
+  if (!name) { toast('Escribe un nombre para el hábito', 'error'); return; }
+
+  const id = 'custom_' + Date.now();
+  customHabits.push({ id, icon, name });
+  if (iconEl) iconEl.value = '';
+  if (nameEl) nameEl.value = '';
+  initHabits();
+  saveCustomHabits();
+  await saveConfigToNotion('customHabits', customHabits).catch(()=>{});
+  toast(name + ' añadido ✓', 'success');
+}
+
+async function removeHabitFromPanel(index) {
+  const ok = await confirmDialog('¿Eliminar este hábito?', 'Se eliminará de tu tracker.');
+  if (!ok) return;
+  customHabits.splice(index, 1);
+  initHabits();
+  saveCustomHabits();
+  await saveConfigToNotion('customHabits', customHabits).catch(()=>{});
+  toast('Hábito eliminado ✓', 'success');
+}
+
+function renderSurvey() {
+  const container = document.getElementById('survey-container');
+  if (!container || !surveyDefs) return;
+  const today = new Date().toISOString().slice(0,10);
+  const saved = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + today)) || '{}');
+  container.innerHTML = surveyDefs.map(q => `
+    <div style="margin-bottom:14px;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">${q.q}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${q.opts.map(o => `<button onclick="setSurveyAnswer('${q.id}','${o}')" style="padding:5px 12px;border-radius:20px;border:1px solid ${saved[q.id]===o?'var(--green)':'var(--border)'};background:${saved[q.id]===o?'var(--green-bg)':'transparent'};color:${saved[q.id]===o?'var(--green)':'var(--text2)'};font-size:12px;cursor:pointer;transition:all 0.15s;">${o}</button>`).join('')}
+      </div>
+    </div>`).join('');
 }
 
 window.addEventListener('load', async () => {
