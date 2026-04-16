@@ -464,6 +464,23 @@
 
   .tab-panel { display: none !important; width: 100%; max-width: 100%; overflow-x: hidden; box-sizing: border-box; }
   .tab-panel.active { display: block !important; width: 100%; }
+
+  .error-tag {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 5px; padding: 12px 8px; border-radius: 10px; border: 1px solid;
+    cursor: pointer; transition: all 0.2s; font-size: 11px; font-weight: 600;
+    font-family: 'DM Mono', monospace; text-align: center; letter-spacing: 0.3px;
+    user-select: none;
+  }
+  .error-tag:hover { transform: translateY(-2px); }
+  .error-tag.revenge { background: var(--red-bg); color: var(--red); border-color: rgba(255,77,109,0.3); }
+  .error-tag.fomo { background: var(--amber-bg); color: var(--amber); border-color: rgba(245,166,35,0.3); }
+  .error-tag.overtrading { background: rgba(167,139,250,0.12); color: var(--purple); border-color: rgba(167,139,250,0.3); }
+  .error-tag.sl-move { background: rgba(68,136,255,0.12); color: #4d9fff; border-color: rgba(68,136,255,0.3); }
+  .error-tag.early-close { background: rgba(0,180,216,0.12); color: #00b4d8; border-color: rgba(0,180,216,0.3); }
+  .error-tag.discipline { background: var(--green-bg); color: var(--green); border-color: rgba(0,212,160,0.3); }
+  .error-tag.inactive { opacity: 0.22; filter: grayscale(0.7); transform: none !important; }
+  .error-tag.inactive:hover { opacity: 0.4; transform: translateY(-1px) !important; }
 </style>
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
@@ -819,14 +836,32 @@ if (typeof supabase === 'undefined') {
           </div>
 
         <div class="form-field" style="margin-bottom:14px;">
-          <label class="form-label" style="margin-bottom:8px;">Escoge tus errores psicológicos</label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <span class="tag revenge inactive" onclick="toggleTag(this)">Revenge trading</span>
-            <span class="tag fomo inactive" onclick="toggleTag(this)">FOMO</span>
-            <span class="tag overtrading inactive" onclick="toggleTag(this)">Overtrading</span>
-            <span class="tag sl-move inactive" onclick="toggleTag(this)">Mover SL</span>
-            <span class="tag early-close inactive" onclick="toggleTag(this)">Cerrar antes de TP</span>
-            <span class="tag discipline inactive" onclick="toggleTag(this)">Seguí el plan ✓</span>
+          <label class="form-label" style="margin-bottom:10px;">Escoge tus errores psicológicos</label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <div class="error-tag revenge inactive" onclick="toggleTag(this)">
+              <span style="font-size:16px;">😤</span>
+              <span>Revenge trading</span>
+            </div>
+            <div class="error-tag fomo inactive" onclick="toggleTag(this)">
+              <span style="font-size:16px;">😰</span>
+              <span>FOMO</span>
+            </div>
+            <div class="error-tag overtrading inactive" onclick="toggleTag(this)">
+              <span style="font-size:16px;">🔄</span>
+              <span>Overtrading</span>
+            </div>
+            <div class="error-tag sl-move inactive" onclick="toggleTag(this)">
+              <span style="font-size:16px;">📉</span>
+              <span>Mover SL</span>
+            </div>
+            <div class="error-tag early-close inactive" onclick="toggleTag(this)">
+              <span style="font-size:16px;">✂️</span>
+              <span>Cerrar antes de TP</span>
+            </div>
+            <div class="error-tag discipline inactive" onclick="toggleTag(this)">
+              <span style="font-size:16px;">✅</span>
+              <span>Seguí el plan</span>
+            </div>
           </div>
         </div>
 
@@ -1803,7 +1838,7 @@ function goTab(id, el) {
 function toggleTag(el) { el.classList.toggle('inactive'); }
 
 function getSelectedTags() {
-  return Array.from(document.querySelectorAll('#panel-nueva .tag:not(.inactive)'))
+  return Array.from(document.querySelectorAll('#panel-nueva .tag:not(.inactive), #panel-nueva .error-tag:not(.inactive)'))
     .map(t => t.textContent.trim()).join(', ');
 }
 
