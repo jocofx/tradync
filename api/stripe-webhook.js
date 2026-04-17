@@ -1,48 +1,80 @@
-// api/stripe-webhook.js - Vercel Serverless Function
+import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+async function buffer(readable) {
+  const chunks = [];
+  for await (const chunk of readable) {
+    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+  }
+  return Buffer.concat(chunks);
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   const sig = req.headers['stripe-signature'];
-  let event;
+  const buf = await buffer(req);
 
+  let event;
   try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
+    event = stripe.webhooks.constructEvent(buf, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (e) {
-    return res.status(400).json({ error: 'Webhook signature failed' });
+    console.error('Webhook signature error:', e.message);
+    return res.status(400).json({ error: 'Webhook signature failed: ' + e.message });
   }
 
-  const { createClient } = require('@supabase/supabase-js');
   const sb = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_KEY
   );
 
-  const PRICE_MONTHLY = 'price_1TNBwGP0m8lsmKp7jtgrjZaQ';
-  const PRICE_ANNUAL  = 'price_1TNBwcP0m8lsmKp7ruN7tSbo';
+  const PRICE_ANNUAL = 'price_1TNBwcP0m8lsmKp7ruN7tSbo';
+
+  console.log('Webhook event:', event.type);
 
   try {
-    switch (event.type) {
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      const userId = session.client_reference_id;
+      const customerId = session.customer;
+      const subId = session.subscription;
 
-      case 'checkout.session.completed': {
-        const session = event.data.object;
-        const userId = session.client_reference_id;
-        const priceId = session.line_items?.data?.[0]?.price?.id;
-        const plan = priceId === PRICE_ANNUAL ? 'pro_anual' : 'pro';
-        const subId = session.subscription;
-        const customerId = session.customer;
+      console.log('Checkout completed for user:', userId);
 
-        // Calculate end date
-        const fechaFin = priceId === PRICE_ANNUAL
-          ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      if (!userId) {
+        console.error('No user_id in session');
+        return res.status(200).json({ received: true });
+      }
 
-        // Upsert subscription
-        await sb.from('suscripciones').upsert({
+      // Get subscription to find price
+      const subscription = await stripe.subscriptions.retrieve(subId);
+      const priceId = subscription.items.data[0]?.price?.id;
+      const isAnnual = priceId === PRICE_ANNUAL;
+      const fechaFin = new Date(subscription.current_period_end * 1000).toISOString();
+
+      // Check if row exists
+      const { data: existing } = await sb.from('suscripciones')
+        .select('id').eq('user_id', userId).single();
+
+      if (existing) {
+        await sb.from('suscripciones').update({
+          plan: 'pro',
+          activa: true,
+          fecha_inicio: new Date().toISOString(),
+          fecha_fin: fechaFin,
+          stripe_customer_id: customerId,
+          stripe_subscription_id: subId,
+          updated_at: new Date().toISOString()
+        }).eq('user_id', userId);
+      } else {
+        await sb.from('suscripciones').insert({
           user_id: userId,
           plan: 'pro',
           activa: true,
@@ -51,50 +83,42 @@ export default async function handler(req, res) {
           stripe_customer_id: customerId,
           stripe_subscription_id: subId,
           updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-        break;
+        });
       }
-
-      case 'customer.subscription.deleted':
-      case 'customer.subscription.paused': {
-        const sub = event.data.object;
-        const customerId = sub.customer;
-        // Find user by stripe customer id and downgrade
-        await sb.from('suscripciones')
-          .update({ plan: 'free', activa: false, updated_at: new Date().toISOString() })
-          .eq('stripe_customer_id', customerId);
-        break;
-      }
-
-      case 'customer.subscription.updated': {
-        const sub = event.data.object;
-        const customerId = sub.customer;
-        const active = sub.status === 'active' || sub.status === 'trialing';
-        const fechaFin = new Date(sub.current_period_end * 1000).toISOString();
-        await sb.from('suscripciones')
-          .update({
-            activa: active,
-            plan: active ? 'pro' : 'free',
-            fecha_fin: fechaFin,
-            updated_at: new Date().toISOString()
-          })
-          .eq('stripe_customer_id', customerId);
-        break;
-      }
-
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object;
-        const customerId = invoice.customer;
-        await sb.from('suscripciones')
-          .update({ activa: false, plan: 'free', updated_at: new Date().toISOString() })
-          .eq('stripe_customer_id', customerId);
-        break;
-      }
+      console.log('Plan updated to pro for user:', userId);
     }
 
-    res.status(200).json({ received: true });
+    else if (event.type === 'customer.subscription.deleted') {
+      const sub = event.data.object;
+      await sb.from('suscripciones')
+        .update({ plan: 'free', activa: false, updated_at: new Date().toISOString() })
+        .eq('stripe_customer_id', sub.customer);
+    }
+
+    else if (event.type === 'customer.subscription.updated') {
+      const sub = event.data.object;
+      const active = sub.status === 'active' || sub.status === 'trialing';
+      const fechaFin = new Date(sub.current_period_end * 1000).toISOString();
+      await sb.from('suscripciones')
+        .update({
+          activa: active,
+          plan: active ? 'pro' : 'free',
+          fecha_fin: fechaFin,
+          updated_at: new Date().toISOString()
+        })
+        .eq('stripe_customer_id', sub.customer);
+    }
+
+    else if (event.type === 'invoice.payment_failed') {
+      const invoice = event.data.object;
+      await sb.from('suscripciones')
+        .update({ activa: false, plan: 'free', updated_at: new Date().toISOString() })
+        .eq('stripe_customer_id', invoice.customer);
+    }
+
+    return res.status(200).json({ received: true });
   } catch(e) {
     console.error('Webhook handler error:', e);
-    res.status(500).json({ error: e.message });
+    return res.status(500).json({ error: e.message });
   }
 }
