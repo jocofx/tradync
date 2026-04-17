@@ -1594,7 +1594,7 @@ if (typeof supabase === 'undefined') {
                 <svg width="8" height="8" viewBox="0 0 8 8"><line x1="2" y1="4" x2="6" y2="4" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round"/></svg>
               </span>Informes mensuales personalizados</div>
           </div>
-          <button onclick="toast('Próximamente disponible ✨','success')" style="width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#00d4a0,#4d9fff);color:#0d1117;font-size:13px;font-weight:700;cursor:pointer;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">Empezar 14 días gratis →</button>
+          <button onclick="startCheckout('monthly')" style="width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#00d4a0,#4d9fff);color:#0d1117;font-size:13px;font-weight:700;cursor:pointer;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">Empezar 14 días gratis →</button>
         </div>
 
         <!-- PRO ANUAL -->
@@ -1677,7 +1677,7 @@ if (typeof supabase === 'undefined') {
                 <svg width="8" height="8" viewBox="0 0 8 8"><polyline points="1,4 3,6 7,2" stroke="#00d4a0" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
               </span>Informes mensuales personalizados</div>
           </div>
-          <button onclick="toast('Próximamente disponible ✨','success')" style="width:100%;padding:12px;border:1px solid rgba(77,159,255,0.5);border-radius:10px;background:rgba(77,159,255,0.1);color:#4d9fff;font-size:13px;font-weight:700;cursor:pointer;" onmouseover="this.style.background='rgba(77,159,255,0.2)'" onmouseout="this.style.background='rgba(77,159,255,0.1)'">Empezar Pro Anual →</button>
+          <button onclick="startCheckout('annual')" style="width:100%;padding:12px;border:1px solid rgba(77,159,255,0.5);border-radius:10px;background:rgba(77,159,255,0.1);color:#4d9fff;font-size:13px;font-weight:700;cursor:pointer;" onmouseover="this.style.background='rgba(77,159,255,0.2)'" onmouseout="this.style.background='rgba(77,159,255,0.1)'">Empezar Pro Anual →</button>
         </div>
       </div>
 
@@ -4826,6 +4826,53 @@ function renderFreeLimitBanner() {
 
   const dashboard = document.getElementById('panel-dashboard');
   if (dashboard) dashboard.prepend(banner);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STRIPE CHECKOUT
+// ═══════════════════════════════════════════════════════════════
+const STRIPE_PK = 'pk_test_51TNBtRP0m8lsmKp7viZ2E3fd3Kg62GNc9lVR2sYIDedXMSzgJRStsjL0XSrxOwfkHbexyqoNlUOkSgiO5kBkjDTY008YZA5MR3';
+const PRICE_MONTHLY = 'price_1TNBwGP0m8lsmKp7jtgrjZaQ';
+const PRICE_ANNUAL  = 'price_1TNBwcP0m8lsmKp7ruN7tSbo';
+
+async function startCheckout(plan) {
+  if (!currentUser) { showInlineAuth(); return; }
+  const priceId = plan === 'annual' ? PRICE_ANNUAL : PRICE_MONTHLY;
+  const btn = event ? event.target : null;
+  if (btn) { btn.disabled = true; btn.textContent = 'Redirigiendo...'; }
+  try {
+    const res = await fetch('/api/stripe-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priceId, userId: currentUser.id, userEmail: currentUser.email })
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      toast('Error al iniciar el pago: ' + (data.error || 'Inténtalo de nuevo'), 'info');
+      if (btn) { btn.disabled = false; btn.textContent = plan === 'annual' ? 'Empezar Pro Anual >' : 'Empezar 14 dias gratis >'; }
+    }
+  } catch(e) {
+    toast('Error de conexion. Intentalo de nuevo.', 'info');
+    if (btn) { btn.disabled = false; }
+  }
+}
+
+function checkPaymentReturn() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('payment') === 'success') {
+    toast('Pago completado! Activando tu plan Pro...', 'success');
+    setTimeout(async function() {
+      await loadUserPlan();
+      checkPlanRestrictions();
+      renderFreeLimitBanner();
+      window.history.replaceState({}, '', window.location.pathname);
+    }, 2000);
+  } else if (params.get('payment') === 'cancelled') {
+    toast('Pago cancelado. Puedes intentarlo cuando quieras.', 'info');
+    window.history.replaceState({}, '', window.location.pathname);
+  }
 }
 
 window.addEventListener('load', async () => {
