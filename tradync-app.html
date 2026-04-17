@@ -1841,6 +1841,7 @@ function parseSupabaseRow(row) {
 
 async function guardarOperacion() {
   if (!requireAuth()) return;
+  if (!checkOpsLimit()) return;
   const btn = document.getElementById('save-btn');
   const status = document.getElementById('save-status');
 
@@ -2164,6 +2165,9 @@ async function doInlineLogin() {
     updateUserUI(data.user); toast('Bienvenido ✓','success'); await loadTrades();
     const today=new Date().toISOString().slice(0,10);
     await Promise.all([loadHabitsFromNotion(today),loadPlanFromNotion(today),loadAccountsFromNotion(),loadConfigFromNotion()].map(p=>p.catch(()=>{})));
+    await loadUserPlan();
+    checkPlanRestrictions();
+    renderFreeLimitBanner();
   }
 }
 
@@ -2239,9 +2243,9 @@ function goTab(id, el) {
   }
   if (id === 'operaciones') setTimeout(() => { try { renderAllTrades(); renderOpsCharts(); } catch(e){} }, 50);
   if (id === 'nueva') setTimeout(() => { try { updateCuentaSelector(); } catch(e){} }, 50);
-  if (id === 'estadisticas') setTimeout(() => { try { renderStatsCharts(); } catch(e){} }, 50);
+  if (id === 'estadisticas') { setTimeout(() => { try { if(!isPro()) showUpgradeOverlay('estadisticas','Estadísticas avanzadas'); else renderStatsCharts(); } catch(e){} }, 50); }
   if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); } catch(e){} }, 50);
-  if (id === 'psicologia') setTimeout(() => { try { renderPsych(); renderPsychCharts(); } catch(e){} }, 50);
+  if (id === 'psicologia') { setTimeout(() => { try { if(!isPro()) showUpgradeOverlay('psicologia','Análisis psicológico'); else { renderPsych(); renderPsychCharts(); } } catch(e){} }, 50); }
   if (id === 'habitos') setTimeout(() => { try { initHabits(); renderHabitCalendar(); renderHabitStats(); } catch(e){} }, 50);
   if (id === 'calendario') setTimeout(() => { try { renderCalendar(); } catch(e){} }, 50);
   if (id === 'premarket') setTimeout(() => { try { renderPmCalendar(); } catch(e){} }, 50);
@@ -3861,7 +3865,8 @@ function closeDiaryDetail() {
 function renderDiaryRecent() {
   const container = document.getElementById('diary-recent-list');
   if (!container) return;
-  const sorted = Object.entries(diaryEntries).sort((a,b) => b[0].localeCompare(a[0])).slice(0,5);
+  const diaryLimit = isPro() ? 999 : 10;
+  const sorted = Object.entries(diaryEntries).sort((a,b) => b[0].localeCompare(a[0])).slice(0, isPro() ? 5 : 5);
   if (!sorted.length) { container.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace;">Sin entradas aún</div>'; return; }
   container.innerHTML = sorted.map(([date, e]) => `
     <div onclick="loadDiaryForDate('${date}')" style="padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
@@ -4044,6 +4049,7 @@ function closeModal() {
 
 async function saveAccount() {
   if (!requireAuth()) return;
+  if (!checkAccountsLimit()) return;
   const nombre = document.getElementById('m-nombre').value.trim();
   const balance = parseFloat(document.getElementById('m-balance').value) || 0;
   const tipo = document.getElementById('m-tipo').value;
@@ -4691,6 +4697,137 @@ async function loadDiaryFromNotion() {
   renderDiaryStats();
 }
 
+// ═══════════════════════════════════════════════════════════════
+// PLAN SYSTEM
+// ═══════════════════════════════════════════════════════════════
+let currentPlan = 'free'; // 'free' | 'pro'
+
+async function loadUserPlan() {
+  if (!currentUser) return;
+  try {
+    const { data } = await sb.from('suscripciones')
+      .select('plan, activa, fecha_fin')
+      .eq('user_id', currentUser.id)
+      .eq('activa', true)
+      .single();
+    if (data && data.plan === 'pro') {
+      // Check if subscription is still valid
+      if (!data.fecha_fin || new Date(data.fecha_fin) > new Date()) {
+        currentPlan = 'pro';
+      } else {
+        currentPlan = 'free';
+      }
+    } else {
+      currentPlan = 'free';
+    }
+  } catch(e) {
+    currentPlan = 'free'; // default to free if no subscription found
+  }
+  console.log('User plan:', currentPlan);
+  updatePlanUI();
+}
+
+function isPro() { return currentPlan === 'pro'; }
+
+function updatePlanUI() {
+  // Update "Hazte Pro+" nav item
+  const planNav = document.querySelector('.nav-item[onclick*="planes"]');
+  if (planNav) {
+    if (isPro()) {
+      planNav.innerHTML = '<svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l2 4 4.5.65-3.25 3.17.77 4.48L8 11.1l-4.02 2.2.77-4.48L1.5 5.65 6 5z"/></svg> Plan Pro ⭐';
+      planNav.style.color = 'var(--amber)';
+    }
+  }
+}
+
+function showUpgradeOverlay(panelId, featureName) {
+  const panel = document.getElementById('panel-' + panelId);
+  if (!panel) return;
+  // Remove existing overlay if any
+  const existing = panel.querySelector('.upgrade-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'upgrade-overlay';
+  overlay.style.cssText = 'position:absolute;inset:0;background:rgba(10,11,14,0.85);backdrop-filter:blur(8px);z-index:50;display:flex;align-items:center;justify-content:center;border-radius:14px;';
+  overlay.innerHTML = `
+    <div style="text-align:center;padding:40px 32px;max-width:380px;">
+      <div style="font-size:48px;margin-bottom:16px;">⭐</div>
+      <div style="font-size:20px;font-weight:800;color:var(--text);margin-bottom:10px;letter-spacing:-0.5px;">${featureName}</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:28px;line-height:1.7;">Esta función está disponible en el plan <strong style="color:var(--green);">Pro</strong>. Mejora tu plan para desbloquearla.</div>
+      <button onclick="goTab('planes',document.querySelector('[onclick*=planes]'))" 
+        style="padding:13px 32px;border:none;border-radius:10px;background:linear-gradient(135deg,#00d4a0,#4d9fff);color:#0d1117;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px;">
+        Ver planes →
+      </button>
+      <div style="font-size:11px;color:var(--text3);">Desde 6,5€/mes · Sin permanencia</div>
+    </div>`;
+  panel.style.position = 'relative';
+  panel.appendChild(overlay);
+}
+
+function checkPlanRestrictions() {
+  if (isPro()) return; // no restrictions for pro users
+
+  // Block Coach IA
+  showUpgradeOverlay('ia', 'Coach IA');
+
+  // Block Estadísticas
+  showUpgradeOverlay('estadisticas', 'Estadísticas avanzadas');
+
+  // Block Psicología
+  showUpgradeOverlay('psicologia', 'Análisis psicológico');
+}
+
+function checkOpsLimit() {
+  if (isPro()) return true;
+  if (allTrades.length >= 50) {
+    toast('Has alcanzado el límite de 50 operaciones del plan Free. ¡Mejora a Pro para operaciones ilimitadas!', 'info');
+    setTimeout(() => goTab('planes', document.querySelector('[onclick*=planes]')), 1500);
+    return false;
+  }
+  return true;
+}
+
+function checkAccountsLimit() {
+  if (isPro()) return true;
+  if (accounts.length >= 1) {
+    toast('El plan Free permite 1 cuenta. ¡Mejora a Pro para cuentas ilimitadas!', 'info');
+    setTimeout(() => goTab('planes', document.querySelector('[onclick*=planes]')), 1500);
+    return false;
+  }
+  return true;
+}
+
+// Show free plan limit banner on dashboard
+function renderFreeLimitBanner() {
+  if (isPro()) return;
+  const remaining = Math.max(0, 50 - allTrades.length);
+  const pct = (allTrades.length / 50 * 100).toFixed(0);
+  const color = remaining <= 10 ? 'var(--red)' : remaining <= 25 ? 'var(--amber)' : 'var(--green)';
+  const existing = document.getElementById('free-limit-banner');
+  if (existing) existing.remove();
+  if (allTrades.length === 0) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'free-limit-banner';
+  banner.style.cssText = 'background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;';
+  banner.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;flex:1;">
+      <div style="font-size:13px;font-weight:600;color:var(--text);">Plan Free: ${allTrades.length}/50 operaciones</div>
+      <div style="flex:1;max-width:160px;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;background:${color};border-radius:3px;transition:width 0.3s;"></div>
+      </div>
+      <div style="font-size:12px;color:${color};font-family:monospace;">${remaining} restantes</div>
+    </div>
+    <button onclick="goTab('planes',document.querySelector('[onclick*=planes]'))" 
+      style="padding:7px 16px;border:none;border-radius:8px;background:linear-gradient(135deg,#00d4a0,#4d9fff);color:#0d1117;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
+      Mejorar a Pro ⭐
+    </button>`;
+
+  const dashboard = document.getElementById('panel-dashboard');
+  if (dashboard) dashboard.prepend(banner);
+}
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
@@ -4758,6 +4895,9 @@ window.addEventListener('load', async () => {
     ]);
     try { initHabits(); } catch(e) {}
     loadDiaryFromNotion().catch(()=>{});
+    await loadUserPlan();
+    checkPlanRestrictions();
+    renderFreeLimitBanner();
   }
 
   // Start quote carousel
