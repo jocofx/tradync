@@ -5125,8 +5125,15 @@ function renderPsychCharts() {
       scales:{x:{grid:{display:false},ticks:{color:th.tick,font:{size:9},maxRotation:30}},
         y:{grid:{color:th.grid},max:100,ticks:{color:th.tick,font:{size:9},callback:v=>v+'%'},border:{display:false}}}}
     });
-  }
+
+  // Update emo-stats table
+  const emoEl = document.getElementById('emo-stats');
+  if (emoEl) emoEl.innerHTML = emoE.map(function(entry) {
+    var emo = entry[0]; var d = entry[1];
+    return '<div class="stat-row"><span class="stat-name">' + emo + '</span><span class="stat-val" style="color:' + (d.pnl>=0?'var(--green)':'var(--red)') + '">' + (d.pnl>=0?'+':'') + '$' + d.pnl.toFixed(0) + ' · ' + d.count + ' ops · ' + (d.wins/d.count*100).toFixed(0) + '%WR</span></div>';
+  }).join('');
 }
+
 
 </script>
 
