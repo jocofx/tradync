@@ -4766,6 +4766,9 @@ function showUpgradeOverlay(panelId, featureName) {
 }
 
 function checkPlanRestrictions() {
+  // Remove any existing overlays first
+  document.querySelectorAll('.upgrade-overlay').forEach(function(el) { el.remove(); });
+
   if (isPro()) return; // no restrictions for pro users
 
   // Block Coach IA
@@ -4863,12 +4866,27 @@ function checkPaymentReturn() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('payment') === 'success') {
     toast('Pago completado! Activando tu plan Pro...', 'success');
-    setTimeout(async function() {
+    window.history.replaceState({}, '', window.location.pathname);
+
+    // Poll Supabase until plan is updated (webhook may take a few seconds)
+    let attempts = 0;
+    const maxAttempts = 10;
+    const pollInterval = setInterval(async function() {
+      attempts++;
       await loadUserPlan();
-      checkPlanRestrictions();
-      renderFreeLimitBanner();
-      window.history.replaceState({}, '', window.location.pathname);
-    }, 2000);
+      if (currentPlan === 'pro') {
+        clearInterval(pollInterval);
+        checkPlanRestrictions();
+        renderFreeLimitBanner();
+        // Remove all upgrade overlays
+        document.querySelectorAll('.upgrade-overlay').forEach(function(el) { el.remove(); });
+        toast('Plan Pro activado correctamente', 'success');
+      } else if (attempts >= maxAttempts) {
+        clearInterval(pollInterval);
+        toast('Si el pago fue correcto, recarga la pagina en unos segundos.', 'info');
+      }
+    }, 1500);
+
   } else if (params.get('payment') === 'cancelled') {
     toast('Pago cancelado. Puedes intentarlo cuando quieras.', 'info');
     window.history.replaceState({}, '', window.location.pathname);
