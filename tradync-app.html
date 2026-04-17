@@ -4862,13 +4862,75 @@ async function startCheckout(plan) {
   }
 }
 
+function showProWelcome() {
+  if (document.getElementById('pro-welcome-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'pro-welcome-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);z-index:99999;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.4s ease;';
+  overlay.innerHTML = `
+    <div style="text-align:center;padding:48px 40px;max-width:480px;background:var(--bg2);border:1px solid rgba(0,212,160,0.3);border-radius:24px;position:relative;box-shadow:0 0 80px rgba(0,212,160,0.15);">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);border-radius:24px 24px 0 0;"></div>
+
+      <div style="font-size:56px;margin-bottom:20px;animation:bounceIn 0.6s ease;">⭐</div>
+
+      <div style="font-size:11px;color:var(--green);letter-spacing:3px;font-family:monospace;margin-bottom:12px;">BIENVENIDO A</div>
+      <div style="font-size:32px;font-weight:800;color:var(--text);letter-spacing:-1px;margin-bottom:8px;">Tradync <span style="background:linear-gradient(135deg,#00d4a0,#4d9fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Pro</span></div>
+      <div style="font-size:14px;color:var(--text3);margin-bottom:32px;line-height:1.7;">Tu cuenta ha sido actualizada. Ahora tienes acceso completo a todas las funciones premium de Tradync.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:32px;text-align:left;">
+        <div style="background:var(--bg3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:18px;">🤖</span>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--text);">Coach IA</div>
+            <div style="font-size:10px;color:var(--text3);">Desbloqueado</div>
+          </div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:18px;">📊</span>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--text);">Estadísticas</div>
+            <div style="font-size:10px;color:var(--text3);">Desbloqueado</div>
+          </div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:18px;">🧠</span>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--text);">Psicología</div>
+            <div style="font-size:10px;color:var(--text3);">Desbloqueado</div>
+          </div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:18px;">∞</span>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--text);">Operaciones</div>
+            <div style="font-size:10px;color:var(--text3);">Ilimitadas</div>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="document.getElementById('pro-welcome-overlay').remove()" 
+        style="width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#00d4a0,#4d9fff);color:#0d1117;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:0.3px;"
+        onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        Empezar a usar Pro →
+      </button>
+      <div style="font-size:11px;color:var(--text3);margin-top:12px;">14 días de prueba gratuita · Cancela cuando quieras</div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  // Auto-close after 30 seconds
+  setTimeout(function() {
+    var el = document.getElementById('pro-welcome-overlay');
+    if (el) el.style.animation = 'fadeOut 0.4s ease forwards';
+    setTimeout(function() { var el2 = document.getElementById('pro-welcome-overlay'); if (el2) el2.remove(); }, 400);
+  }, 30000);
+}
+
 function checkPaymentReturn() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('payment') === 'success') {
-    toast('Pago completado! Activando tu plan Pro...', 'success');
     window.history.replaceState({}, '', window.location.pathname);
 
-    // Poll Supabase until plan is updated (webhook may take a few seconds)
     let attempts = 0;
     const maxAttempts = 10;
     const pollInterval = setInterval(async function() {
@@ -4878,9 +4940,8 @@ function checkPaymentReturn() {
         clearInterval(pollInterval);
         checkPlanRestrictions();
         renderFreeLimitBanner();
-        // Remove all upgrade overlays
         document.querySelectorAll('.upgrade-overlay').forEach(function(el) { el.remove(); });
-        toast('Plan Pro activado correctamente', 'success');
+        showProWelcome();
       } else if (attempts >= maxAttempts) {
         clearInterval(pollInterval);
         toast('Si el pago fue correcto, recarga la pagina en unos segundos.', 'info');
