@@ -1,4 +1,5 @@
-// api/stripe-checkout.js - Vercel Serverless Function
+import Stripe from 'stripe';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -9,7 +10,7 @@ export default async function handler(req, res) {
   const { priceId, userId, userEmail } = req.body;
   if (!priceId || !userId) return res.status(400).json({ error: 'Missing fields' });
 
-  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -25,8 +26,9 @@ export default async function handler(req, res) {
       success_url: process.env.APP_URL + '/tradync-app.html?payment=success',
       cancel_url: process.env.APP_URL + '/tradync-app.html?payment=cancelled',
     });
-    res.status(200).json({ url: session.url });
+    return res.status(200).json({ url: session.url });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('Checkout error:', e);
+    return res.status(500).json({ error: e.message });
   }
 }
