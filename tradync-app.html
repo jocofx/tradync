@@ -4931,8 +4931,15 @@ function checkPaymentReturn() {
   if (params.get('payment') === 'success') {
     window.history.replaceState({}, '', window.location.pathname);
 
+    // Show welcome immediately - don't wait for webhook polling
+    // The plan will be active next time they load anyway
+    setTimeout(function() {
+      showProWelcome();
+    }, 800);
+
+    // Also update plan in background
     let attempts = 0;
-    const maxAttempts = 10;
+    const maxAttempts = 12;
     const pollInterval = setInterval(async function() {
       attempts++;
       await loadUserPlan();
@@ -4941,10 +4948,8 @@ function checkPaymentReturn() {
         checkPlanRestrictions();
         renderFreeLimitBanner();
         document.querySelectorAll('.upgrade-overlay').forEach(function(el) { el.remove(); });
-        showProWelcome();
       } else if (attempts >= maxAttempts) {
         clearInterval(pollInterval);
-        toast('Si el pago fue correcto, recarga la pagina en unos segundos.', 'info');
       }
     }, 1500);
 
