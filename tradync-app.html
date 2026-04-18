@@ -1080,6 +1080,31 @@ if (typeof supabase === 'undefined') {
           </svg>
         </div>
       </div>
+
+      <!-- COMPARATIVA ENTRE PERÍODOS -->
+      <div class="section-title" style="margin-top:8px;">Comparativa entre períodos</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+        <div class="card">
+          <div class="card-title">Esta semana vs semana anterior</div>
+          <div id="compare-weekly"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Este mes vs mes anterior</div>
+          <div id="compare-monthly"></div>
+        </div>
+      </div>
+
+      <!-- MEJOR/PEOR DÍA DE SEMANA -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+        <div class="card">
+          <div class="card-title">Rendimiento por día de la semana</div>
+          <div id="weekday-performance"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Mejor hora del día</div>
+          <div id="hour-performance"></div>
+        </div>
+      </div>
     </div>
 
 <div class="tab-panel" id="panel-cuentas">
@@ -2280,7 +2305,7 @@ function goTab(id, el) {
   }
   if (id === 'operaciones') setTimeout(() => { try { renderAllTrades(); renderOpsCharts(); } catch(e){} }, 50);
   if (id === 'nueva') setTimeout(() => { try { updateCuentaSelector(); } catch(e){} }, 50);
-  if (id === 'estadisticas') { setTimeout(() => { try { if(!isPro()) showUpgradeOverlay('estadisticas','Estadísticas avanzadas'); else renderStatsCharts(); } catch(e){} }, 50); }
+  if (id === 'estadisticas') { setTimeout(() => { try { if(!isPro()) showUpgradeOverlay('estadisticas','Estadísticas avanzadas'); else { renderStatsCharts(); renderComparisons(); } } catch(e){} }, 50); }
   if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); renderPropFirmTracker(); } catch(e){} }, 50);
   if (id === 'logros') setTimeout(() => { try { renderLogros(); } catch(e){} }, 50);
   if (id === 'psicologia') { setTimeout(() => { try { if(!isPro()) showUpgradeOverlay('psicologia','Análisis psicológico'); else { renderPsych(); renderPsychCharts(); } } catch(e){} }, 50); }
@@ -2398,6 +2423,7 @@ function fmtCur(n) {
 }
 
 function renderAll() {
+  try { renderComparisons(); } catch(e) {}
   const fns = [
     renderMetrics, renderRecentTrades, renderAllTrades, renderEquity,
     renderDashboardCharts, renderPsych, renderAccounts, renderCalendar,
@@ -5291,6 +5317,133 @@ function renderLogros() {
         '<div style="font-size:10px;color:var(--text3);">' + b.desc + '</div>' +
       '</div>';
     }).join('');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMPARATIVA ENTRE PERÍODOS
+// ═══════════════════════════════════════════════════════════════
+function renderComparisons() {
+  var now = new Date();
+
+  // ── WEEKLY ────────────────────────────────────────────────────
+  var thisWeekStart = new Date(now); thisWeekStart.setDate(now.getDate() - now.getDay() + (now.getDay()===0?-6:1)); thisWeekStart.setHours(0,0,0,0);
+  var lastWeekStart = new Date(thisWeekStart); lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+  var lastWeekEnd = new Date(thisWeekStart); lastWeekEnd.setDate(lastWeekEnd.getDate() - 1);
+
+  var thisWeek = allTrades.filter(function(t){ var d=new Date(t.fecha||''); return d>=thisWeekStart && d<=now; });
+  var lastWeek = allTrades.filter(function(t){ var d=new Date(t.fecha||''); return d>=lastWeekStart && d<=lastWeekEnd; });
+
+  function periodStats(trades) {
+    var pnl = trades.reduce(function(s,t){return s+(t.resultado||0);},0);
+    var wins = trades.filter(function(t){return (t.resultado||0)>0;});
+    var wr = trades.length ? (wins.length/trades.length*100).toFixed(1) : '0';
+    var sumW = wins.reduce(function(s,t){return s+(t.resultado||0);},0);
+    var sumL = Math.abs(trades.filter(function(t){return (t.resultado||0)<0;}).reduce(function(s,t){return s+(t.resultado||0);},0));
+    var pf = sumL>0 ? (sumW/sumL).toFixed(2) : '∞';
+    return { pnl:pnl, wr:wr, ops:trades.length, pf:pf };
+  }
+
+  function compHTML(current, previous, labels) {
+    if (!current.ops && !previous.ops) return '<div style="color:var(--text3);font-size:12px;font-family:monospace;padding:8px 0;">Sin datos suficientes</div>';
+    function row(label, curVal, prevVal, isCurrency, higherBetter) {
+      var cur = isCurrency ? (curVal>=0?'+':'')+'\$'+Math.abs(curVal).toFixed(0) : curVal;
+      var prev = isCurrency ? (prevVal>=0?'+':'')+'\$'+Math.abs(prevVal).toFixed(0) : prevVal;
+      var diff = parseFloat(curVal) - parseFloat(prevVal);
+      var better = higherBetter ? diff > 0 : diff < 0;
+      var arrow = diff === 0 ? '→' : (better ? '↑' : '↓');
+      var arrowColor = diff === 0 ? 'var(--text3)' : (better ? 'var(--green)' : 'var(--red)');
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">' +
+        '<span style="font-size:12px;color:var(--text2);min-width:100px;">' + label + '</span>' +
+        '<span style="font-size:13px;font-weight:700;font-family:monospace;color:' + (parseFloat(curVal)>=0?'var(--green)':'var(--red)') + ';">' + cur + '</span>' +
+        '<span style="font-size:11px;color:var(--text3);font-family:monospace;">' + labels[1] + ': ' + prev + '</span>' +
+        '<span style="font-size:14px;color:' + arrowColor + ';font-weight:700;">' + arrow + '</span>' +
+      '</div>';
+    }
+    return '<div style="margin-bottom:8px;display:flex;justify-content:space-between;">' +
+        '<span style="font-size:10px;color:var(--green);font-family:monospace;letter-spacing:1px;">' + labels[0] + ': ' + current.ops + ' ops</span>' +
+        '<span style="font-size:10px;color:var(--text3);font-family:monospace;">' + labels[1] + ': ' + previous.ops + ' ops</span>' +
+      '</div>' +
+      row('P&L', current.pnl, previous.pnl, true, true) +
+      row('Win Rate', current.wr+'%', previous.wr+'%', false, true) +
+      row('Profit Factor', current.pf, previous.pf, false, true);
+  }
+
+  var weekEl = document.getElementById('compare-weekly');
+  if (weekEl) weekEl.innerHTML = compHTML(periodStats(thisWeek), periodStats(lastWeek), ['Esta semana','Semana ant.']);
+
+  // ── MONTHLY ───────────────────────────────────────────────────
+  var thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  var lastMonthStart = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  var lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+  var thisMonth = allTrades.filter(function(t){ var d=new Date(t.fecha||''); return d>=thisMonthStart && d<=now; });
+  var lastMonth = allTrades.filter(function(t){ var d=new Date(t.fecha||''); return d>=lastMonthStart && d<=lastMonthEnd; });
+
+  var monthEl = document.getElementById('compare-monthly');
+  if (monthEl) monthEl.innerHTML = compHTML(periodStats(thisMonth), periodStats(lastMonth), ['Este mes','Mes ant.']);
+
+  // ── WEEKDAY PERFORMANCE ───────────────────────────────────────
+  var wdNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  var wdMap = {};
+  allTrades.forEach(function(t) {
+    if (!t.fecha) return;
+    var wd = new Date(t.fecha).getDay();
+    if (!wdMap[wd]) wdMap[wd] = { pnl:0, count:0, wins:0 };
+    wdMap[wd].pnl += (t.resultado||0);
+    wdMap[wd].count++;
+    if ((t.resultado||0)>0) wdMap[wd].wins++;
+  });
+  var wdEl = document.getElementById('weekday-performance');
+  if (wdEl) {
+    var wdSorted = [1,2,3,4,5,6,0].map(function(d){ return {name:wdNames[d], data:wdMap[d]||{pnl:0,count:0,wins:0}}; });
+    var maxAbsPnl = Math.max.apply(null, wdSorted.map(function(w){ return Math.abs(w.data.pnl); })) || 1;
+    wdEl.innerHTML = wdSorted.map(function(w) {
+      var wr = w.data.count ? (w.data.wins/w.data.count*100).toFixed(0) : 0;
+      var barW = (Math.abs(w.data.pnl)/maxAbsPnl*100).toFixed(1);
+      var color = w.data.pnl>=0 ? 'var(--green)' : 'var(--red)';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">' +
+        '<span style="font-size:11px;color:var(--text2);min-width:72px;">' + w.name.slice(0,3) + '</span>' +
+        '<div style="flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;">' +
+          '<div style="width:' + (w.data.count?barW:0) + '%;height:100%;background:' + color + ';border-radius:3px;"></div>' +
+        '</div>' +
+        '<span style="font-size:11px;font-family:monospace;color:' + color + ';min-width:60px;text-align:right;">' + (w.data.count?(w.data.pnl>=0?'+':'')+'\$'+w.data.pnl.toFixed(0):'—') + '</span>' +
+        '<span style="font-size:10px;color:var(--text3);font-family:monospace;min-width:32px;text-align:right;">' + (w.data.count?wr+'%':'') + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  // ── HOUR PERFORMANCE ──────────────────────────────────────────
+  var hourMap = {};
+  allTrades.forEach(function(t) {
+    if (!t.fecha) return;
+    var h = new Date(t.fecha).getHours();
+    if (!hourMap[h]) hourMap[h] = { pnl:0, count:0, wins:0 };
+    hourMap[h].pnl += (t.resultado||0);
+    hourMap[h].count++;
+    if ((t.resultado||0)>0) hourMap[h].wins++;
+  });
+  var hourEl = document.getElementById('hour-performance');
+  if (hourEl) {
+    var hourSorted = Object.entries(hourMap).sort(function(a,b){ return b[1].pnl-a[1].pnl; }).slice(0,6);
+    if (!hourSorted.length) { hourEl.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace;">Sin datos de hora</div>'; }
+    else {
+      var maxH = Math.max.apply(null, hourSorted.map(function(h){ return Math.abs(h[1].pnl); })) || 1;
+      hourEl.innerHTML = hourSorted.map(function(entry) {
+        var h = entry[0]; var d = entry[1];
+        var wr = (d.wins/d.count*100).toFixed(0);
+        var color = d.pnl>=0 ? 'var(--green)' : 'var(--red)';
+        var barW = (Math.abs(d.pnl)/maxH*100).toFixed(1);
+        return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">' +
+          '<span style="font-size:11px;color:var(--text2);min-width:44px;font-family:monospace;">' + h + ':00h</span>' +
+          '<div style="flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;">' +
+            '<div style="width:' + barW + '%;height:100%;background:' + color + ';border-radius:3px;"></div>' +
+          '</div>' +
+          '<span style="font-size:11px;font-family:monospace;color:' + color + ';min-width:60px;text-align:right;">' + (d.pnl>=0?'+':'')+'\$'+d.pnl.toFixed(0) + '</span>' +
+          '<span style="font-size:10px;color:var(--text3);font-family:monospace;min-width:32px;text-align:right;">' + wr + '%</span>' +
+        '</div>';
+      }).join('');
+    }
   }
 }
 
