@@ -1049,40 +1049,66 @@ if (typeof supabase === 'undefined') {
 <div class="tab-panel" id="panel-estadisticas">
       <div class="section-title">Análisis avanzado</div>
 
+      <!-- ACCOUNT COMPARATOR FILTER -->
+      <div class="card" style="padding:14px 18px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <div style="font-size:11px;color:var(--text3);font-family:monospace;letter-spacing:1px;">COMPARAR CUENTAS:</div>
+          <select id="stats-account-a" class="form-select" style="width:160px;padding:7px 10px;font-size:12px;" onchange="renderAllStats()">
+            <option value="">Todas las cuentas</option>
+          </select>
+          <div style="font-size:12px;color:var(--text3);">vs</div>
+          <select id="stats-account-b" class="form-select" style="width:160px;padding:7px 10px;font-size:12px;" onchange="renderAllStats()">
+            <option value="">— Sin comparar —</option>
+          </select>
+          <select id="stats-period" class="form-select" style="width:140px;padding:7px 10px;font-size:12px;" onchange="renderAllStats()">
+            <option value="all">Todo el historial</option>
+            <option value="week">Esta semana</option>
+            <option value="month">Este mes</option>
+            <option value="3month">Últimos 3 meses</option>
+            <option value="year">Este año</option>
+          </select>
+          <button class="btn" style="font-size:12px;padding:7px 14px;" onclick="resetStatsFilters()">↺ Reset</button>
+        </div>
+      </div>
+
+      <!-- ROW 1: P&L curves + Win/Loss donut -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px;">
+        <div class="card">
+          <div class="card-title">Curva de equity comparada <span class="card-title-badge" id="stats-equity-badge"></span></div>
+          <div style="position:relative;height:180px;"><canvas id="stats-equity-chart"></canvas></div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div class="card-title" style="width:100%;">Win / Loss</div>
+          <div style="position:relative;height:140px;width:140px;"><canvas id="stats-winloss-chart"></canvas></div>
+          <div id="stats-winloss-legend" style="display:flex;gap:12px;margin-top:8px;"></div>
+        </div>
+      </div>
+
+      <!-- ROW 2: Weekday + Session charts -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
         <div class="card">
-          <div class="card-title">P&L por instrumento</div>
-          <div id="instr-stats"></div>
+          <div class="card-title">Rendimiento por día de la semana</div>
+          <div style="position:relative;height:180px;"><canvas id="stats-weekday-chart"></canvas></div>
         </div>
         <div class="card">
-          <div class="card-title">Comparativa mensual</div>
-          <div style="display:flex;align-items:flex-end;gap:6px;height:120px;margin-bottom:8px;" id="month-compare-bars"></div>
-          <div style="display:flex;gap:6px;" id="month-compare-labels"></div>
+          <div class="card-title">Rendimiento por sesión</div>
+          <div style="position:relative;height:180px;"><canvas id="stats-session-chart"></canvas></div>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:18px;">
-        <div class="card-title">Proyección de crecimiento de cuenta <span class="card-title-badge">Basada en tu historial</span></div>
-        <div style="display:grid;grid-template-columns:200px 1fr;gap:18px;align-items:start;">
-          <div>
-            <div class="form-field" style="margin-bottom:12px;">
-              <label class="form-label">Capital actual ($)</label>
-              <input class="form-input" type="number" id="proj-capital" placeholder="10000" oninput="renderProjection()">
-            </div>
-            <div class="form-field" style="margin-bottom:12px;">
-              <label class="form-label">Meses a proyectar</label>
-              <input class="form-input" type="number" id="proj-meses" value="12" min="1" max="36" oninput="renderProjection()">
-            </div>
-            <div id="proj-summary"></div>
-          </div>
-          <svg class="proj-svg" id="proj-svg" viewBox="0 0 400 160" preserveAspectRatio="none">
-            <text x="200" y="85" text-anchor="middle" fill="#555870" font-size="11" font-family="monospace">Introduce tu capital para proyectar</text>
-          </svg>
+      <!-- ROW 3: Hour + Setup charts -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+        <div class="card">
+          <div class="card-title">Mejor hora del día</div>
+          <div style="position:relative;height:180px;"><canvas id="stats-hour-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">P&L por instrumento</div>
+          <div style="position:relative;height:180px;"><canvas id="stats-instr-chart"></canvas></div>
         </div>
       </div>
 
-      <!-- COMPARATIVA ENTRE PERÍODOS -->
-      <div class="section-title" style="margin-top:8px;">Comparativa entre períodos</div>
+      <!-- ROW 4: Period comparison + Monthly -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
         <div class="card">
           <div class="card-title">Esta semana vs semana anterior</div>
@@ -1094,15 +1120,31 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
 
-      <!-- MEJOR/PEOR DÍA DE SEMANA -->
+      <!-- ROW 5: Monthly bars + Projection -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
         <div class="card">
-          <div class="card-title">Rendimiento por día de la semana</div>
-          <div id="weekday-performance"></div>
+          <div class="card-title">Comparativa mensual</div>
+          <div style="display:flex;align-items:flex-end;gap:6px;height:120px;margin-bottom:8px;" id="month-compare-bars"></div>
+          <div style="display:flex;gap:6px;" id="month-compare-labels"></div>
         </div>
         <div class="card">
-          <div class="card-title">Mejor hora del día</div>
-          <div id="hour-performance"></div>
+          <div class="card-title">Proyección de crecimiento <span class="card-title-badge">Basada en historial</span></div>
+          <div style="display:grid;grid-template-columns:160px 1fr;gap:14px;align-items:start;">
+            <div>
+              <div class="form-field" style="margin-bottom:10px;">
+                <label class="form-label">Capital ($)</label>
+                <input class="form-input" type="number" id="proj-capital" placeholder="10000" oninput="renderProjection()">
+              </div>
+              <div class="form-field" style="margin-bottom:10px;">
+                <label class="form-label">Meses</label>
+                <input class="form-input" type="number" id="proj-meses" value="12" min="1" max="36" oninput="renderProjection()">
+              </div>
+              <div id="proj-summary"></div>
+            </div>
+            <svg class="proj-svg" id="proj-svg" viewBox="0 0 400 160" preserveAspectRatio="none">
+              <text x="200" y="85" text-anchor="middle" fill="#555870" font-size="11" font-family="monospace">Introduce tu capital</text>
+            </svg>
+          </div>
         </div>
       </div>
     </div>
@@ -5445,6 +5487,174 @@ function renderComparisons() {
       }).join('');
     }
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ESTADÍSTICAS AVANZADAS CON COMPARADOR
+// ═══════════════════════════════════════════════════════════════
+var statsEquityInst = null, statsWinlossInst = null, statsWeekdayInst = null;
+var statsSessionInst = null, statsHourInst = null, statsInstrInst = null;
+
+function populateStatsFilters() {
+  var selA = document.getElementById('stats-account-a');
+  var selB = document.getElementById('stats-account-b');
+  if (!selA || !selB) return;
+  var opts = accounts.map(function(a) { return '<option value="' + a.nombre + '">' + a.nombre + '</option>'; }).join('');
+  var curA = selA.value; var curB = selB.value;
+  selA.innerHTML = '<option value="">Todas las cuentas</option>' + opts;
+  selB.innerHTML = '<option value="">— Sin comparar —</option>' + opts;
+  if (curA) selA.value = curA;
+  if (curB) selB.value = curB;
+}
+
+function resetStatsFilters() {
+  var selA = document.getElementById('stats-account-a');
+  var selB = document.getElementById('stats-account-b');
+  var selP = document.getElementById('stats-period');
+  if (selA) selA.value = '';
+  if (selB) selB.value = '';
+  if (selP) selP.value = 'all';
+  renderAllStats();
+}
+
+function getStatsTrades(accountFilter, period) {
+  var trades = allTrades.slice();
+  if (accountFilter) trades = trades.filter(function(t){ return t.cuenta === accountFilter; });
+  var now = new Date();
+  if (period === 'week') { var s=new Date(now); s.setDate(now.getDate()-7); trades=trades.filter(function(t){return new Date(t.fecha||'')>=s;}); }
+  else if (period === 'month') { var s2=new Date(now.getFullYear(),now.getMonth(),1); trades=trades.filter(function(t){return new Date(t.fecha||'')>=s2;}); }
+  else if (period === '3month') { var s3=new Date(now); s3.setMonth(s3.getMonth()-3); trades=trades.filter(function(t){return new Date(t.fecha||'')>=s3;}); }
+  else if (period === 'year') { var s4=new Date(now.getFullYear(),0,1); trades=trades.filter(function(t){return new Date(t.fecha||'')>=s4;}); }
+  return trades;
+}
+
+function renderAllStats() {
+  var accountA = document.getElementById('stats-account-a')?.value || '';
+  var accountB = document.getElementById('stats-account-b')?.value || '';
+  var period = document.getElementById('stats-period')?.value || 'all';
+  var tradesA = getStatsTrades(accountA, period);
+  var tradesB = accountB ? getStatsTrades(accountB, period) : null;
+  var th = getChartTheme();
+  var labelA = accountA || 'Todas';
+  var labelB = accountB || '';
+
+  function destroy(inst) { if (inst) { try { inst.destroy(); } catch(e){} } }
+
+  // ── EQUITY ─────────────────────────────────────────────────
+  destroy(statsEquityInst);
+  var ctxEq = document.getElementById('stats-equity-chart');
+  if (ctxEq && tradesA.length) {
+    var sortedA = tradesA.slice().sort(function(a,b){return new Date(a.fecha)-new Date(b.fecha);});
+    var cumA = 0; var ptsA = sortedA.map(function(t){cumA+=(t.resultado||0);return parseFloat(cumA.toFixed(2));});
+    var datasets = [{
+      label: labelA, data: ptsA, borderColor:'#00d4a0', backgroundColor:'rgba(0,212,160,0.06)',
+      borderWidth:2, pointRadius:0, tension:0.4, fill:true
+    }];
+    if (tradesB && tradesB.length) {
+      var sortedB = tradesB.slice().sort(function(a,b){return new Date(a.fecha)-new Date(b.fecha);});
+      var cumB = 0; var ptsB = sortedB.map(function(t){cumB+=(t.resultado||0);return parseFloat(cumB.toFixed(2));});
+      datasets.push({ label:labelB, data:ptsB, borderColor:'#4d9fff', backgroundColor:'rgba(77,159,255,0.04)', borderWidth:2, pointRadius:0, tension:0.4, fill:true });
+    }
+    var badge = document.getElementById('stats-equity-badge');
+    if (badge) badge.textContent = tradesA.length + ' ops' + (tradesB?' · '+tradesB.length+' ops':'');
+    statsEquityInst = new Chart(ctxEq, { type:'line',
+      data:{ labels: ptsA.map(function(_,i){return 'Op '+(i+1);}), datasets:datasets },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ display:!!tradesB, labels:{color:th.tick,font:{size:10},boxWidth:10} }, tooltip:{backgroundColor:th.bg,bodyColor:th.text,callbacks:{label:function(c){return c.dataset.label+': '+(c.raw>=0?'+':'')+'$'+c.raw.toFixed(2);}}} },
+        scales:{ x:{display:false}, y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:10},callback:function(v){return '$'+v.toFixed(0);}}} }}});
+  }
+
+  // ── WIN/LOSS ────────────────────────────────────────────────
+  destroy(statsWinlossInst);
+  var ctxWL = document.getElementById('stats-winloss-chart');
+  if (ctxWL) {
+    var wA = tradesA.filter(function(t){return (t.resultado||0)>0;}).length;
+    var lA = tradesA.filter(function(t){return (t.resultado||0)<0;}).length;
+    statsWinlossInst = new Chart(ctxWL, { type:'doughnut',
+      data:{ labels:['Wins','Losses'], datasets:[{data:[wA,lA],backgroundColor:['#00d4a0','#ff4d6d'],borderWidth:0}] },
+      options:{ responsive:true, maintainAspectRatio:false, cutout:'72%', plugins:{ legend:{display:false}, tooltip:{backgroundColor:th.bg,bodyColor:th.text} }}});
+    var leg = document.getElementById('stats-winloss-legend');
+    if (leg) leg.innerHTML = '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);font-family:monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);"></div>'+wA+'W</div><div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);font-family:monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--red);"></div>'+lA+'L</div>';
+  }
+
+  // ── WEEKDAY ─────────────────────────────────────────────────
+  destroy(statsWeekdayInst);
+  var ctxWD = document.getElementById('stats-weekday-chart');
+  if (ctxWD) {
+    var wdLabels = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+    var wdIdx = [1,2,3,4,5,6,0];
+    function wdData(trades) {
+      var m = {};
+      trades.forEach(function(t){ if(!t.fecha)return; var d=new Date(t.fecha).getDay(); if(!m[d])m[d]=0; m[d]+=(t.resultado||0); });
+      return wdIdx.map(function(d){ return parseFloat((m[d]||0).toFixed(2)); });
+    }
+    var datasets = [{ label:labelA, data:wdData(tradesA), backgroundColor:wdData(tradesA).map(function(v){return v>=0?'rgba(0,212,160,0.75)':'rgba(255,77,109,0.75)';}), borderRadius:4 }];
+    if (tradesB) datasets.push({ label:labelB, data:wdData(tradesB), backgroundColor:wdData(tradesB).map(function(v){return v>=0?'rgba(77,159,255,0.75)':'rgba(255,77,109,0.5)';}), borderRadius:4 });
+    statsWeekdayInst = new Chart(ctxWD, { type:'bar',
+      data:{ labels:wdLabels, datasets:datasets },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:!!tradesB,labels:{color:th.tick,font:{size:10},boxWidth:10}}, tooltip:{backgroundColor:th.bg,bodyColor:th.text,callbacks:{label:function(c){return c.dataset.label+': '+(c.raw>=0?'+':'')+'$'+c.raw.toFixed(2);}}} },
+        scales:{ x:{grid:{display:false},ticks:{color:th.tick,font:{size:10}}}, y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},callback:function(v){return '$'+v;}},border:{display:false}} }}});
+  }
+
+  // ── SESSION ─────────────────────────────────────────────────
+  destroy(statsSessionInst);
+  var ctxSes = document.getElementById('stats-session-chart');
+  if (ctxSes) {
+    var sessions = ['Pre-market','Apertura NY','Media sesión','Cierre','Asia','Londres'];
+    function sesData(trades) { return sessions.map(function(s){ return parseFloat(trades.filter(function(t){return t.sesion===s;}).reduce(function(a,t){return a+(t.resultado||0);},0).toFixed(2)); }); }
+    var dsA = sesData(tradesA);
+    var datasets2 = [{ label:labelA, data:dsA, backgroundColor:dsA.map(function(v){return v>=0?'rgba(167,139,250,0.75)':'rgba(255,77,109,0.75)';}), borderRadius:4 }];
+    if (tradesB) { var dsB=sesData(tradesB); datasets2.push({ label:labelB, data:dsB, backgroundColor:dsB.map(function(v){return v>=0?'rgba(77,159,255,0.75)':'rgba(255,77,109,0.5)';}), borderRadius:4 }); }
+    statsSessionInst = new Chart(ctxSes, { type:'bar',
+      data:{ labels:sessions.map(function(s){return s.replace('Apertura ','Ap.');}), datasets:datasets2 },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:!!tradesB,labels:{color:th.tick,font:{size:10},boxWidth:10}}, tooltip:{backgroundColor:th.bg,bodyColor:th.text} },
+        scales:{ x:{grid:{display:false},ticks:{color:th.tick,font:{size:9}}}, y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},callback:function(v){return '$'+v;}},border:{display:false}} }}});
+  }
+
+  // ── HOUR ────────────────────────────────────────────────────
+  destroy(statsHourInst);
+  var ctxHr = document.getElementById('stats-hour-chart');
+  if (ctxHr) {
+    var hours = [];
+    tradesA.forEach(function(t){if(t.fecha){var h=new Date(t.fecha).getHours();if(!hours.includes(h))hours.push(h);}});
+    if(tradesB) tradesB.forEach(function(t){if(t.fecha){var h=new Date(t.fecha).getHours();if(!hours.includes(h))hours.push(h);}});
+    hours.sort(function(a,b){return a-b;});
+    function hrData(trades){ return hours.map(function(h){ return parseFloat(trades.filter(function(t){return t.fecha&&new Date(t.fecha).getHours()===h;}).reduce(function(a,t){return a+(t.resultado||0);},0).toFixed(2)); }); }
+    var hrA=hrData(tradesA);
+    var datasets3=[{label:labelA,data:hrA,borderColor:'#f5a623',backgroundColor:'rgba(245,166,35,0.1)',borderWidth:2,pointRadius:3,tension:0.4,fill:true}];
+    if(tradesB){var hrB=hrData(tradesB);datasets3.push({label:labelB,data:hrB,borderColor:'#4d9fff',backgroundColor:'rgba(77,159,255,0.05)',borderWidth:2,pointRadius:3,tension:0.4,fill:true});}
+    statsHourInst = new Chart(ctxHr,{type:'line',data:{labels:hours.map(function(h){return h+':00';}),datasets:datasets3},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:!!tradesB,labels:{color:th.tick,font:{size:10},boxWidth:10}},tooltip:{backgroundColor:th.bg,bodyColor:th.text}},
+        scales:{x:{grid:{display:false},ticks:{color:th.tick,font:{size:9}}},y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},callback:function(v){return '$'+v;}},border:{display:false}}}}});
+  }
+
+  // ── INSTRUMENT ──────────────────────────────────────────────
+  destroy(statsInstrInst);
+  var ctxIn = document.getElementById('stats-instr-chart');
+  if (ctxIn) {
+    var instrMap={};
+    tradesA.forEach(function(t){var i=t.instrumento||'Otro';if(!instrMap[i])instrMap[i]=0;instrMap[i]+=(t.resultado||0);});
+    var instrE=Object.entries(instrMap).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
+    var instrLabels=instrE.map(function(e){return e[0];});
+    var instrVals=instrE.map(function(e){return parseFloat(e[1].toFixed(2));});
+    var datasets4=[{label:labelA,data:instrVals,backgroundColor:instrVals.map(function(v){return v>=0?'rgba(0,212,160,0.75)':'rgba(255,77,109,0.75)';}),borderRadius:4}];
+    if(tradesB){var instrMapB={};tradesB.forEach(function(t){var i=t.instrumento||'Otro';if(!instrMapB[i])instrMapB[i]=0;instrMapB[i]+=(t.resultado||0);});var instrValsB=instrLabels.map(function(l){return parseFloat((instrMapB[l]||0).toFixed(2));});datasets4.push({label:labelB,data:instrValsB,backgroundColor:instrValsB.map(function(v){return v>=0?'rgba(77,159,255,0.75)':'rgba(255,77,109,0.5)';}),borderRadius:4});}
+    statsInstrInst = new Chart(ctxIn,{type:'bar',data:{labels:instrLabels,datasets:datasets4},
+      options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:!!tradesB,labels:{color:th.tick,font:{size:10},boxWidth:10}},tooltip:{backgroundColor:th.bg,bodyColor:th.text}},
+        scales:{x:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:9},callback:function(v){return '$'+v;}},border:{display:false}},y:{grid:{display:false},ticks:{color:th.tick,font:{size:10}}}}}});
+  }
+
+  // Period comparisons + monthly bars
+  renderComparisons();
+  renderMonthCompare();
+  renderProjection();
+}
+
+function renderStatsCharts() {
+  populateStatsFilters();
+  renderAllStats();
 }
 
 window.addEventListener('load', async () => {
