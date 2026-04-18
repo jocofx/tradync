@@ -260,14 +260,14 @@
   .macro-badge.medium { background: var(--amber-bg); color: var(--amber); }
 
   /* AI COACH */
-  .ai-chat { display: flex; flex-direction: column; gap: 12px; max-height: 420px; overflow-y: auto; margin-bottom: 14px; padding-right: 4px; }
+  .ai-chat { display: flex; flex-direction: column; gap: 14px; max-height: 420px; overflow-y: auto; margin-bottom: 14px; padding-right: 6px; scroll-behavior: smooth; }
   .ai-msg { display: flex; gap: 10px; align-items: flex-start; }
   .ai-msg.user { flex-direction: row-reverse; }
   .ai-avatar { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
   .ai-avatar.bot { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,212,160,0.2); }
   .ai-avatar.user { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(77,159,255,0.2); }
-  .ai-bubble { padding: 10px 14px; border-radius: 10px; font-size: 13px; line-height: 1.6; max-width: 85%; }
-  .ai-bubble.bot { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+  .ai-bubble { padding: 14px 16px; border-radius: 12px; font-size: 13px; line-height: 1.6; max-width: 88%; }
+  .ai-bubble.bot { background: var(--bg2); color: var(--text2); border: 1px solid var(--border2); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
   .ai-bubble.user { background: var(--blue-bg); color: var(--text); border: 1px solid rgba(77,159,255,0.15); }
   .ai-input-row { display: flex; gap: 8px; }
   .ai-typing { display: flex; gap: 4px; align-items: center; padding: 10px 14px; }
@@ -3704,12 +3704,44 @@ function quickAsk(msg) {
 }
 
 function appendAiMsg(text, role) {
-  const chat = document.getElementById('ai-chat');
-  const icon = role === 'user' ? '👤' : '🤖';
-  chat.innerHTML += `<div class="ai-msg ${role}">
-    <div class="ai-avatar ${role}">${icon}</div>
-    <div class="ai-bubble ${role}">${text}</div>
-  </div>`;
+  var chat = document.getElementById('ai-chat');
+  var icon = role === 'user' ? '👤' : '🤖';
+
+  // Format bot messages with proper HTML
+  var formatted = text;
+  if (role === 'bot') {
+    // Convert newlines to proper paragraphs
+    formatted = text
+      .split('\n')
+      .filter(function(line) { return line.trim(); })
+      .map(function(line) {
+        line = line.trim();
+        // Detect section headers (lines starting with emoji)
+        if (/^[📊🎯⚠️✅💪🧠📈📋📅📆💼🔥⚡]/.test(line)) {
+          var parts = line.split(':');
+          if (parts.length > 1) {
+            var label = parts[0].trim();
+            var value = parts.slice(1).join(':').trim();
+            return '<div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border);">' +
+              '<span style="font-size:13px;flex-shrink:0;">' + label.slice(0,4) + '</span>' +
+              '<div><span style="font-size:10px;color:var(--text3);letter-spacing:1px;font-family:monospace;display:block;margin-bottom:2px;">' + label.slice(4).trim().toUpperCase() + '</span>' +
+              '<span style="font-size:13px;color:var(--text);line-height:1.5;">' + value + '</span></div>' +
+            '</div>';
+          }
+          return '<div style="padding:5px 0;font-size:13px;color:var(--text);">' + line + '</div>';
+        }
+        // Regular line
+        return '<p style="margin:4px 0;font-size:13px;color:var(--text2);line-height:1.6;">' + line + '</p>';
+      })
+      .join('');
+  }
+
+  var div = document.createElement('div');
+  div.className = 'ai-msg ' + role;
+  div.innerHTML =
+    '<div class="ai-avatar ' + role + '">' + icon + '</div>' +
+    '<div class="ai-bubble ' + role + '">' + (role === 'bot' ? formatted : text) + '</div>';
+  chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
 
