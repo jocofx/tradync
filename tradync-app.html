@@ -2980,6 +2980,7 @@ const DEFAULT_HABITS = [
 ];
 let customHabits = DEFAULT_HABITS.slice(); // Supabase loads user habits after login
 let habitsToday = {};
+let habitsHistory = {}; // all dates from Supabase
 let habitCalYear = new Date().getFullYear();
 let habitCalMonth = new Date().getMonth();
 
@@ -3146,11 +3147,17 @@ function closeHabitDetail() {
 }
 
 function openHabitDayDetail(dateStr) {
-  var habits = {}; 
-  try { habits = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + dateStr)) || '{}'); } catch(e){}
-  var survey = {}; 
-  try { survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + dateStr)) || '{}'); } catch(e){}
-  
+  // Try habitsHistory (from Supabase) first, then localStorage
+  var habits = {};
+  var survey = {};
+  if (habitsHistory[dateStr]) {
+    habits = habitsHistory[dateStr].habits || {};
+    survey = habitsHistory[dateStr].survey || {};
+  } else {
+    try { habits = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + dateStr)) || '{}'); } catch(e){}
+    try { survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + dateStr)) || '{}'); } catch(e){}
+  }
+
   var date = new Date(dateStr + 'T12:00:00');
   var label = date.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
   label = label.charAt(0).toUpperCase() + label.slice(1);
@@ -3161,7 +3168,7 @@ function openHabitDayDetail(dateStr) {
   var pctColor = pct >= 100 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
   var surveyAnswers = Object.keys(survey).length;
 
-  // Summary row
+  // Summary
   var summary = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">' +
     '<div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;">' +
       '<div style="font-size:26px;font-weight:800;color:' + pctColor + ';font-family:monospace;">' + pct + '%</div>' +
@@ -3174,48 +3181,34 @@ function openHabitDayDetail(dateStr) {
     '<div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;">' +
       '<div style="font-size:26px;font-weight:800;color:' + (surveyAnswers > 0 ? 'var(--blue)' : 'var(--text3)') + ';font-family:monospace;">' + surveyAnswers + '/5</div>' +
       '<div style="font-size:10px;color:var(--text3);margin-top:4px;letter-spacing:1px;">ENCUESTA</div>' +
-    '</div>' +
-  '</div>';
-
-  // Bar chart
-  var bars = '<div style="margin-bottom:20px;">' +
-    '<div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:10px;">PROGRESO POR HÁBITO</div>' +
-    '<div style="display:flex;align-items:flex-end;gap:8px;height:64px;">';
-  customHabits.forEach(function(h) {
-    var isDone = (habits[h.id]||0) > 0;
-    bars += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">' +
-      '<div style="width:100%;height:' + (isDone ? 56 : 10) + 'px;background:' + (isDone ? 'var(--green)' : 'var(--bg4)') + ';border-radius:5px 5px 0 0;transition:height 0.3s;"></div>' +
-      '<div style="font-size:8px;color:var(--text3);text-align:center;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">' + h.name.slice(0,6).toUpperCase() + '</div>' +
-      '</div>';
-  });
-  bars += '</div></div>';
+    '</div></div>';
 
   // Habits list
   var habitsList = '<div style="margin-bottom:20px;">' +
-    '<div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:10px;">DETALLE DE HÁBITOS</div>';
+    '<div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:10px;">HÁBITOS DEL DÍA</div>';
   customHabits.forEach(function(h) {
     var isDone = (habits[h.id]||0) > 0;
-    habitsList += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">' +
-      '<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid ' + (isDone ? 'var(--green)' : 'var(--border2)') + ';background:' + (isDone ? 'rgba(0,212,160,0.15)' : 'transparent') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+    habitsList += '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">' +
+      '<div style="width:22px;height:22px;border-radius:50%;border:1.5px solid ' + (isDone ? 'var(--green)' : 'var(--border2)') + ';background:' + (isDone ? 'rgba(0,212,160,0.15)' : 'transparent') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
         (isDone ? '<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="var(--green)" stroke-width="1.5" fill="none"/></svg>' : '') +
       '</div>' +
-      '<span style="font-size:13px;color:' + (isDone ? 'var(--text)' : 'var(--text3)') + ';">' + h.name + '</span>' +
-      '<span style="margin-left:auto;font-size:11px;font-family:monospace;color:' + (isDone ? 'var(--green)' : 'var(--text3)') + ';">' + (isDone ? '✓ Hecho' : '— Pendiente') + '</span>' +
-      '</div>';
+      '<span style="font-size:13px;color:' + (isDone ? 'var(--text)' : 'var(--text3)') + ';flex:1;">' + h.name + '</span>' +
+      '<span style="font-size:11px;font-family:monospace;color:' + (isDone ? 'var(--green)' : 'var(--text3)') + ';">' + (isDone ? '✓ Completado' : '— Pendiente') + '</span>' +
+    '</div>';
   });
   habitsList += '</div>';
 
-  // Survey answers
+  // Survey
   var surveyHTML = '<div>' +
     '<div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:10px;">ENCUESTA POST-SESIÓN</div>';
   if (surveyAnswers > 0) {
     SURVEY_QS.forEach(function(q, i) {
       var ans = survey[i];
       if (!ans) return;
-      surveyHTML += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">' +
+      surveyHTML += '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">' +
         '<span style="font-size:12px;color:var(--text2);flex:1;margin-right:12px;">' + q.q + '</span>' +
-        '<span style="font-size:12px;font-weight:600;color:var(--green);font-family:monospace;white-space:nowrap;">' + ans + '</span>' +
-        '</div>';
+        '<span style="font-size:12px;font-weight:600;color:var(--green);font-family:monospace;">' + ans + '</span>' +
+      '</div>';
     });
   } else {
     surveyHTML += '<div style="color:var(--text3);font-size:12px;font-family:monospace;padding:8px 0;">Sin encuesta registrada este día</div>';
@@ -3228,9 +3221,11 @@ function openHabitDayDetail(dateStr) {
   var body = document.getElementById('habit-detail-body');
   if (!panel || !body) return;
   title.textContent = '📊 ' + label;
-  body.innerHTML = summary + bars + habitsList + surveyHTML;
+  body.innerHTML = summary + habitsList + surveyHTML;
   panel.style.display = 'block';
-  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  setTimeout(function() {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 50);
 }
 
 
@@ -4972,6 +4967,33 @@ function checkPaymentReturn() {
   }
 }
 
+async function loadAllHabitsFromSupabase() {
+  if (!requireAuth()) return;
+  try {
+    const { data, error } = await sb.from('habitos').select('*').eq('user_id', currentUser.id);
+    if (error || !data) return;
+    habitsHistory = {};
+    data.forEach(function(row) {
+      const habits = {
+        sueno: row.sueno||0, ejercicio: row.ejercicio||0,
+        meditacion: row.meditacion||0, alcohol: row.alcohol||0,
+        ...(row.habitos_extra||{})
+      };
+      habitsHistory[row.fecha] = {
+        habits: habits,
+        survey: row.encuesta||{}
+      };
+      // Also cache in localStorage
+      localStorage.setItem(lsKey('tj_habits_' + row.fecha), JSON.stringify(habits));
+      if (row.encuesta) localStorage.setItem(lsKey('tj_survey_' + row.fecha), JSON.stringify(row.encuesta));
+    });
+    console.log('Habits history loaded:', Object.keys(habitsHistory).length, 'days');
+    renderHabitCalendar();
+  } catch(e) {
+    console.error('loadAllHabitsFromSupabase error:', e);
+  }
+}
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
@@ -5039,6 +5061,7 @@ window.addEventListener('load', async () => {
     ]);
     try { initHabits(); } catch(e) {}
     loadDiaryFromNotion().catch(()=>{});
+    loadAllHabitsFromSupabase().catch(()=>{});
     await loadUserPlan();
     checkPlanRestrictions();
     renderFreeLimitBanner();
