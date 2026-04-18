@@ -2276,6 +2276,7 @@ async function doInlineLogin() {
     await loadUserPlan();
     checkPlanRestrictions();
     renderFreeLimitBanner();
+    await loadAiUsage();
   }
 }
 
@@ -5873,7 +5874,25 @@ function checkAiLimit() {
     return false;
   }
   if (aiUsageThisMonth >= AI_MONTHLY_LIMIT) {
-    toast('Has alcanzado el límite de ' + AI_MONTHLY_LIMIT + ' análisis este mes. Se reinicia el próximo mes.', 'info');
+    // Calculate next reset date (1st of next month)
+    var now = new Date();
+    var nextReset = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    var daysLeft = Math.ceil((nextReset - now) / (1000*60*60*24));
+    var resetStr = nextReset.toLocaleDateString('es-ES', {day:'numeric', month:'long'});
+
+    // Show blocking message in chat
+    var chat = document.getElementById('ai-chat');
+    if (chat) {
+      var div = document.createElement('div');
+      div.style.cssText = 'background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);border-radius:12px;padding:16px;text-align:center;margin:8px 0;';
+      div.innerHTML =
+        '<div style="font-size:20px;margin-bottom:8px;">⏳</div>' +
+        '<div style="font-size:14px;font-weight:700;color:var(--amber);margin-bottom:6px;">Límite mensual alcanzado</div>' +
+        '<div style="font-size:12px;color:var(--text3);line-height:1.6;">Has usado los <strong style="color:var(--text);">50 análisis</strong> de este mes.<br>' +
+        'El límite se reinicia el <strong style="color:var(--green);">' + resetStr + '</strong> (' + daysLeft + ' días).</div>';
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
     return false;
   }
   return true;
@@ -5883,17 +5902,27 @@ function updateAiUsageUI() {
   var el = document.getElementById('ai-usage-counter');
   if (!el) return;
   var remaining = AI_MONTHLY_LIMIT - aiUsageThisMonth;
-  var pct = (aiUsageThisMonth / AI_MONTHLY_LIMIT * 100).toFixed(0);
+  var pct = Math.min(100, (aiUsageThisMonth / AI_MONTHLY_LIMIT * 100)).toFixed(0);
   var color = remaining <= 5 ? 'var(--red)' : remaining <= 15 ? 'var(--amber)' : 'var(--green)';
+
+  // Next reset date
+  var now = new Date();
+  var nextReset = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  var resetStr = nextReset.toLocaleDateString('es-ES', {day:'numeric', month:'long'});
+
+  var limitMsg = remaining <= 0
+    ? '<div style="font-size:10px;color:var(--red);margin-top:4px;">⛔ Límite alcanzado · Reinicio el ' + resetStr + '</div>'
+    : '<div style="font-size:10px;color:var(--text3);margin-top:4px;">' + remaining + ' restantes · Reinicio el ' + resetStr + '</div>';
+
   el.innerHTML =
     '<div style="font-size:10px;color:var(--text3);letter-spacing:1px;font-family:monospace;margin-bottom:6px;">ANÁLISIS ESTE MES</div>' +
-    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
-      '<div style="flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;">' +
-        '<div style="width:' + pct + '%;height:100%;background:' + color + ';border-radius:2px;transition:width 0.3s;"></div>' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
+      '<div style="flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;">' +
+        '<div style="width:' + pct + '%;height:100%;background:' + color + ';border-radius:3px;transition:width 0.4s;"></div>' +
       '</div>' +
-      '<span style="font-size:11px;font-family:monospace;color:' + color + ';white-space:nowrap;">' + aiUsageThisMonth + '/' + AI_MONTHLY_LIMIT + '</span>' +
+      '<span style="font-size:11px;font-family:monospace;color:' + color + ';white-space:nowrap;font-weight:700;">' + aiUsageThisMonth + '/' + AI_MONTHLY_LIMIT + '</span>' +
     '</div>' +
-    '<div style="font-size:10px;color:var(--text3);">' + remaining + ' análisis restantes · Se reinicia el 1 de cada mes</div>';
+    limitMsg;
 }
 
 window.addEventListener('load', async () => {
@@ -5967,6 +5996,7 @@ window.addEventListener('load', async () => {
     await loadUserPlan();
     checkPlanRestrictions();
     renderFreeLimitBanner();
+    await loadAiUsage();
   }
 
   // Start quote carousel
