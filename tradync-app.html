@@ -1246,6 +1246,15 @@ if (typeof supabase === 'undefined') {
         </div>
 
       </div>
+
+      <!-- HABIT DAY DETAIL PANEL -->
+      <div id="habit-detail-panel" style="display:none;background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;margin-top:18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div id="habit-detail-title" style="font-size:15px;font-weight:700;color:var(--text);"></div>
+          <button onclick="closeHabitDetail()" style="background:none;border:1px solid var(--border);color:var(--text3);cursor:pointer;font-size:13px;padding:5px 12px;border-radius:6px;">✕ Cerrar</button>
+        </div>
+        <div id="habit-detail-body"></div>
+      </div>
     </div>
     <div class="tab-panel" id="panel-ia">
       <div class="section-title">Coach IA</div>
@@ -4851,6 +4860,7 @@ async function startCheckout(plan) {
     });
     const data = await res.json();
     if (data.url) {
+      localStorage.setItem('tj_pending_upgrade', '1');
       window.location.href = data.url;
     } else {
       toast('Error al iniciar el pago: ' + (data.error || 'Inténtalo de nuevo'), 'info');
@@ -4928,18 +4938,21 @@ function showProWelcome() {
 
 function checkPaymentReturn() {
   const params = new URLSearchParams(window.location.search);
-  if (params.get('payment') === 'success') {
+  const urlSuccess = params.get('payment') === 'success';
+  const lsSuccess = localStorage.getItem('tj_pending_upgrade') === '1';
+
+  if (urlSuccess || lsSuccess) {
+    // Clear both signals
+    localStorage.removeItem('tj_pending_upgrade');
     window.history.replaceState({}, '', window.location.pathname);
 
-    // Show welcome immediately - don't wait for webhook polling
-    // The plan will be active next time they load anyway
+    // Show welcome immediately
     setTimeout(function() {
       showProWelcome();
     }, 800);
 
-    // Also update plan in background
+    // Update plan in background
     let attempts = 0;
-    const maxAttempts = 12;
     const pollInterval = setInterval(async function() {
       attempts++;
       await loadUserPlan();
@@ -4948,7 +4961,7 @@ function checkPaymentReturn() {
         checkPlanRestrictions();
         renderFreeLimitBanner();
         document.querySelectorAll('.upgrade-overlay').forEach(function(el) { el.remove(); });
-      } else if (attempts >= maxAttempts) {
+      } else if (attempts >= 12) {
         clearInterval(pollInterval);
       }
     }, 1500);
