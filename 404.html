@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Página no encontrada · Tradync</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#05060a;--bg2:#0a0c12;--bg3:#0f1218;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--text:#eef0f8;--text2:#7880a0;--text3:#3a4060;--green:#00e5a0;--green2:#00b87a;}
+body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;overflow:hidden;}
+body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0;}
+.glow{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,160,0.05) 0%,transparent 70%);pointer-events:none;}
+.container{position:relative;z-index:1;max-width:520px;}
+.code{font-family:"JetBrains Mono",monospace;font-size:120px;font-weight:700;color:transparent;-webkit-text-stroke:2px rgba(0,229,160,0.3);line-height:1;margin-bottom:8px;animation:fadeUp 0.6s ease both;}
+.code span{color:var(--green);-webkit-text-stroke:0;}
+.title{font-family:"Instrument Serif",serif;font-size:clamp(28px,4vw,42px);letter-spacing:-1px;margin-bottom:16px;animation:fadeUp 0.6s 0.1s ease both;}
+.sub{font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:40px;font-weight:300;animation:fadeUp 0.6s 0.2s ease both;}
+.actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;animation:fadeUp 0.6s 0.3s ease both;}
+.btn{padding:13px 28px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:"Outfit",sans-serif;transition:all 0.2s;text-decoration:none;display:inline-flex;align-items:center;gap:8px;}
+.btn-primary{background:var(--green);color:#000;border:none;box-shadow:0 0 30px rgba(0,229,160,0.2);}
+.btn-primary:hover{background:var(--green2);transform:translateY(-2px);}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2);}
+.btn-ghost:hover{border-color:var(--green);color:var(--green);}
+.ticker{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:8px 0;overflow:hidden;}
+.ticker-track{display:flex;gap:48px;animation:ticker 20s linear infinite;white-space:nowrap;}
+.ticker-item{font-size:11px;font-family:"JetBrains Mono",monospace;color:var(--text3);}
+.ticker-item span{color:var(--green);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<div class="container">
+  <div class="code">4<span>0</span>4</div>
+  <h1 class="title">Página no encontrada</h1>
+  <p class="sub">La URL que buscas no existe o ha sido movida. Pero tu journal de trading sigue aquí — sin pérdidas.</p>
+  <div class="actions">
+    <a href="/tradync-landing.html" class="btn btn-primary">← Volver al inicio</a>
+    <a href="/tradync-app.html" class="btn btn-ghost">Ir al journal →</a>
+  </div>
+</div>
+<div class="ticker">
+  <div class="ticker-track">
+    <span class="ticker-item">ES <span>+0.84%</span></span>
+    <span class="ticker-item">NQ <span>+1.12%</span></span>
+    <span class="ticker-item">GC <span>+0.56%</span></span>
+    <span class="ticker-item">EUR/USD <span>-0.18%</span></span>
+    <span class="ticker-item">ERROR 404 <span>página no encontrada</span></span>
+    <span class="ticker-item">ES <span>+0.84%</span></span>
+    <span class="ticker-item">NQ <span>+1.12%</span></span>
+    <span class="ticker-item">GC <span>+0.56%</span></span>
+    <span class="ticker-item">EUR/USD <span>-0.18%</span></span>
+    <span class="ticker-item">ERROR 404 <span>página no encontrada</span></span>
+  </div>
+</div>
+</body>
+</html>
