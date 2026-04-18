@@ -493,6 +493,56 @@ if (typeof supabase === 'undefined') {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
 <body>
+<script>
+function goTab(id, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+  if (el) el.classList.add('active');
+
+  // Update page title
+  const titles = {
+    dashboard: 'Mi <span>Trading</span> Journal',
+    operaciones: '<span>Operaciones</span>',
+    nueva: 'Nueva <span>Operación</span>',
+    riesgo: 'Control de <span>Riesgo</span>',
+    calendario: '<span>Calendario</span>',
+    premarket: '<span>Pre-Market</span>',
+    habitos: '<span>Hábitos</span>',
+    estadisticas: '<span>Estadísticas</span>',
+    cuentas: '<span>Cuentas</span>',
+    ia: 'Coach <span>IA</span>',
+    diario: '<span>Diario</span>',
+    psicologia: '<span>Psicología</span>',
+    logros: '🏆 <span>Logros</span>',
+    planes: '⭐ <span>Hazte Pro+</span>'
+  };
+  const titleEl = document.getElementById('page-title');
+  if (titleEl && titles[id]) titleEl.innerHTML = titles[id];
+
+  // Panel-specific renders
+  if (id === 'riesgo') {
+    const ml = document.getElementById('cfg-maxloss'); if (ml) ml.value = riskSettings.maxLoss || 200;
+    const mo = document.getElementById('cfg-maxops'); if (mo) mo.value = riskSettings.maxOps || 5;
+    const ob = document.getElementById('cfg-objetivo'); if (ob) ob.value = riskSettings.objetivo || '';
+    const rp = document.getElementById('cfg-riskpct'); if (rp) rp.value = riskSettings.riskPct || 1;
+    setTimeout(() => { try { renderRiskPanel(); } catch(e){} }, 50);
+  }
+  if (id === 'operaciones') setTimeout(() => { try { renderAllTrades(); renderOpsCharts(); } catch(e){} }, 50);
+  if (id === 'nueva') setTimeout(() => { try { updateCuentaSelector(); } catch(e){} }, 50);
+  if (id === 'estadisticas') { setTimeout(() => { try { if(!isPro()) showUpgradeOverlay('estadisticas','Estadísticas avanzadas'); else { renderStatsCharts(); renderComparisons(); } } catch(e){} }, 50); }
+  if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); renderPropFirmTracker(); } catch(e){} }, 50);
+  if (id === 'logros') setTimeout(() => { try { renderLogros(); } catch(e){} }, 50);
+  if (id === 'psicologia') { setTimeout(() => { try { if(!isPro()) showUpgradeOverlay('psicologia','Análisis psicológico'); else { renderPsych(); renderPsychCharts(); } } catch(e){} }, 80); }
+  if (id === 'habitos') setTimeout(() => { try { initHabits(); renderHabitCalendar(); renderHabitStats(); } catch(e){} }, 50);
+  if (id === 'calendario') setTimeout(() => { try { renderCalendar(); } catch(e){} }, 50);
+  if (id === 'premarket') setTimeout(() => { try { renderPmCalendar(); } catch(e){} }, 50);
+  if (id === 'diario') setTimeout(() => { try { initDiario(); } catch(e){} }, 50);
+  if (id === 'dashboard') setTimeout(() => { try { renderEquity(); renderDashboardCharts(); } catch(e){} }, 50);
+}
+</script>
+
 
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div class="layout">
