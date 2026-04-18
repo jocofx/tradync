@@ -47,13 +47,13 @@
   .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
 
   /* SIDEBAR */
-  .sidebar { width: 220px; min-height: 100vh; background: var(--bg2); border-right: 1px solid var(--border); padding: 28px 0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+  .sidebar { width: 220px; height: 100vh; background: var(--bg2); border-right: 1px solid var(--border); padding: 0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
   .sidebar.hidden { transform: translateX(-220px); }
   .logo { padding: 0 20px 28px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
   .logo-text { font-size: 16px; font-weight: 800; letter-spacing: -0.5px; }
   .logo-text span { color: var(--green); }
   .logo-sub { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 2px; letter-spacing: 1px; }
-  .nav-section { padding: 0 12px; margin-bottom: 8px; }
+  .nav-section { padding: 0 12px; margin-bottom: 8px; } .sidebar-scroll { flex: 1; overflow-y: auto; padding: 20px 0 8px; scrollbar-width: thin; scrollbar-color: var(--border2) transparent; } .sidebar-scroll::-webkit-scrollbar { width: 4px; } .sidebar-scroll::-webkit-scrollbar-track { background: transparent; } .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
   .nav-label { font-size: 9px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; font-family: 'DM Mono', monospace; padding: 0 8px; margin-bottom: 6px; }
   .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); transition: all 0.15s; margin-bottom: 2px; }
   .nav-item:hover { background: var(--bg3); color: var(--text); }
@@ -506,6 +506,7 @@ if (typeof supabase === 'undefined') {
         style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);cursor:pointer;color:var(--text2);font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"
         title="Ocultar menú">‹</button>
     </div>
+    <div class="sidebar-scroll">
     <div class="nav-section">
       <div class="nav-label">Navegación</div>
       <div class="nav-item active" onclick="goTab('dashboard', this)">
@@ -558,7 +559,8 @@ if (typeof supabase === 'undefined') {
       </div>
     </div>
 
-    <div class="nav-section" style="margin-top:auto;padding-top:16px;border-top:1px solid var(--border);">
+    </div>
+    <div style="padding:16px 12px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="nav-item" onclick="goTab('logros', this)">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.5 3 3.5.5-2.5 2.5.6 3.5L8 9l-3.1 1.5.6-3.5L3 4.5l3.5-.5z"/><path d="M4 13h8v1.5H4z" opacity=".5"/></svg>
         Logros
@@ -568,7 +570,6 @@ if (typeof supabase === 'undefined') {
         Hazte Pro+
       </div>
     </div>
-    
   </aside>
 
   <main class="main">
@@ -3483,13 +3484,41 @@ function openAccountDetail(id) {
   const worst = losses.length ? Math.min(...losses.map(t=>t.resultado||0)) : 0;
   const avgRR = trades.filter(t=>t.entrada&&t.sl&&t.tp).map(t=>Math.abs(t.tp-t.entrada)/Math.abs(t.entrada-t.sl));
   const rrAvg = avgRR.length ? (avgRR.reduce((a,b)=>a+b,0)/avgRR.length).toFixed(2) : '—';
-  const instrs = {};
-  trades.forEach(t => { instrs[t.instrumento] = (instrs[t.instrumento]||0) + (t.resultado||0); });
-  const topInstr = Object.entries(instrs).sort((a,b)=>b[1]-a[1])[0];
+  const balance = acc.balance || 100000;
+
+  // Prop Firm section
+  let propHTML = '';
+  if (acc.tipo === 'prop') {
+    const rules = PROP_RULES[acc.broker] || PROP_RULES['Otro'];
+    const today = new Date().toISOString().slice(0,10);
+    const todayTrades = trades.filter(t => (t.fecha||'').slice(0,10) === today);
+    const todayPnl = todayTrades.reduce((s,t) => s+(t.resultado||0), 0);
+    const dailyDDpct = Math.abs(Math.min(0, todayPnl)) / balance * 100;
+    const maxDDpct = Math.abs(Math.min(0, pnl)) / balance * 100;
+    const targetPct = Math.max(0, pnl) / balance * 100;
+
+    function bar(val, max, color) {
+      const w = Math.min(100, val/max*100).toFixed(1);
+      const c = val >= max*0.8 ? 'var(--red)' : val >= max*0.5 ? 'var(--amber)' : color;
+      return `<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);font-family:monospace;margin-bottom:4px;">
+        <span>${arguments[3]||''}</span><span style="color:${c};">${val.toFixed(2)}% / ${max}%</span></div>
+        <div style="height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-bottom:12px;">
+        <div style="width:${w}%;height:100%;background:${c};border-radius:3px;"></div></div>`;
+    }
+
+    propHTML = `<div style="background:var(--amber-bg);border:1px solid rgba(245,166,35,0.3);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;color:var(--amber);letter-spacing:1.5px;font-family:monospace;margin-bottom:12px;">📊 PROP FIRM TRACKER · ${rules.label}</div>
+      ${bar(dailyDDpct, rules.dailyDD, 'var(--green)', 'DD diario')}
+      ${bar(maxDDpct, rules.maxDD, 'var(--green)', 'DD máximo')}
+      ${bar(targetPct, rules.target, 'var(--blue)', 'Objetivo profit')}
+      <div style="font-size:11px;color:var(--text3);font-family:monospace;">Fase: <span style="color:var(--amber);">${acc.fase||'Fase 1'}</span></div>
+    </div>`;
+  }
 
   document.getElementById('account-modal-title').textContent = acc.nombre;
   document.getElementById('account-modal-body').innerHTML = `
-    <div class="day-summary" style="grid-template-columns:repeat(4,1fr);">
+    ${propHTML}
+    <div class="day-summary" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
       <div class="day-summary-item"><div class="day-summary-label">P&L TOTAL</div><div class="day-summary-value" style="color:${pnl>=0?'var(--green)':'var(--red)'}">${pnl>=0?'+':''}$${pnl.toFixed(2)}</div></div>
       <div class="day-summary-item"><div class="day-summary-label">WIN RATE</div><div class="day-summary-value" style="color:var(--blue)">${wr}%</div></div>
       <div class="day-summary-item"><div class="day-summary-label">PROFIT FACTOR</div><div class="day-summary-value" style="color:var(--amber)">${pf}</div></div>
@@ -3499,7 +3528,7 @@ function openAccountDetail(id) {
       <div class="day-summary-item"><div class="day-summary-label">MAYOR GANANCIA</div><div class="day-summary-value" style="color:var(--green);font-size:16px">+$${best.toFixed(2)}</div></div>
       <div class="day-summary-item"><div class="day-summary-label">MAYOR PÉRDIDA</div><div class="day-summary-value" style="color:var(--red);font-size:16px">$${worst.toFixed(2)}</div></div>
       <div class="day-summary-item"><div class="day-summary-label">RR PROMEDIO</div><div class="day-summary-value" style="color:var(--blue);font-size:16px">${rrAvg}:1</div></div>
-      <div class="day-summary-item"><div class="day-summary-label">MEJOR INSTRUMENTO</div><div class="day-summary-value" style="color:var(--amber);font-size:14px">${topInstr ? topInstr[0] : '—'}</div></div>
+      <div class="day-summary-item"><div class="day-summary-label">BALANCE ACTUAL</div><div class="day-summary-value" style="color:var(--green);font-size:16px">$${(balance+pnl).toLocaleString()}</div></div>
     </div>
     <div style="font-size:11px;color:var(--text3);font-family:monospace;margin-bottom:10px;letter-spacing:1px;">ÚLTIMAS OPERACIONES</div>
     ${trades.slice(0,8).map(t => `
