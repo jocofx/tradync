@@ -454,13 +454,50 @@ footer{border-top:1px solid var(--border);padding:40px 48px;display:flex;align-i
 </div>
 
 <script>
-const { createClient } = supabase;
-const sb = createClient('https://oeznlehxublyvivzvuab.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lem5sZWh4dWJseXZpdnp2dWFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjUzMDQsImV4cCI6MjA5MTc0MTMwNH0.OJQRGgV0W64tJcrgQIos_C5e3RD8gsUtEm09LTtEhpE');
+// Wait for Supabase to load
+var sb;
+function initSb() {
+  if (typeof supabase === 'undefined') {
+    setTimeout(initSb, 100);
+    return;
+  }
+  var SURL = 'https://oeznlehxublyvivzvuab.supabase.co';
+  var SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lem5sZWh4dWJseXZpdnp2dWFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjUzMDQsImV4cCI6MjA5MTc0MTMwNH0.OJQRGgV0W64tJcrgQIos_C5e3RD8gsUtEm09LTtEhpE';
+  sb = supabase.createClient(SURL, SKEY);
+  // Check existing session
+  sb.auth.getSession().then(function(res){
+    var session = res.data.session;
+    if(session){
+      var userName = (session.user.user_metadata && session.user.user_metadata.full_name)
+        ? session.user.user_metadata.full_name.split(' ')[0]
+        : session.user.email.split('@')[0];
+      var cta = document.getElementById('nav-cta');
+      cta.innerHTML = '';
+      var badge = document.createElement('span');
+      badge.style.cssText = 'font-size:12px;color:var(--text2);white-space:nowrap;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03);';
+      badge.textContent = '👤 ' + userName;
+      var btnApp = document.createElement('button');
+      btnApp.className = 'btn-primary';
+      btnApp.style.whiteSpace = 'nowrap';
+      btnApp.textContent = 'Ir al journal →';
+      btnApp.onclick = function(){ window.location.replace(window.location.origin + '/tradync-app.html'); };
+      var btnOut = document.createElement('button');
+      btnOut.className = 'btn-ghost';
+      btnOut.style.cssText = 'white-space:nowrap;padding:9px 14px;';
+      btnOut.textContent = 'Salir';
+      btnOut.onclick = doLogout;
+      cta.appendChild(badge);
+      cta.appendChild(btnApp);
+      cta.appendChild(btnOut);
+    }
+  });
+}
+initSb();
 function openAuth(tab){document.getElementById('auth-overlay').classList.add('open');switchTab(tab);document.body.style.overflow='hidden';}
 function closeAuth(){document.getElementById('auth-overlay').classList.remove('open');document.body.style.overflow='';}
 function switchTab(tab){document.getElementById('tab-login').classList.toggle('active',tab==='login');document.getElementById('tab-register').classList.toggle('active',tab==='register');document.getElementById('form-login').style.display=tab==='login'?'block':'none';document.getElementById('form-register').style.display=tab==='register'?'block':'none';}
 function showMsg(id,text,type){const el=document.getElementById(id);el.textContent=text;el.className='auth-msg '+type+' show';}
-async function doLogin(){
+async function doLogin(){ if(!sb){alert('Cargando... inténtalo de nuevo');return;}
   const email=document.getElementById('login-email').value.trim();
   const pass=document.getElementById('login-pass').value;
   if(!email||!pass){showMsg('login-msg','Rellena todos los campos','error');return;}
@@ -469,7 +506,7 @@ async function doLogin(){
   if(error){showMsg('login-msg',error.message==='Invalid login credentials'?'Email o contraseña incorrectos':error.message,'error');btn.disabled=false;btn.textContent='Iniciar sesión';}
   else{showMsg('login-msg','Accediendo a tu journal...','success');btn.textContent='Redirigiendo...';window.location.replace(window.location.origin+'/tradync-app.html');}
 }
-async function doRegister(){
+async function doRegister(){ if(!sb){alert('Cargando... inténtalo de nuevo');return;}
   const name=document.getElementById('reg-name').value.trim();
   const email=document.getElementById('reg-email').value.trim();
   const pass=document.getElementById('reg-pass').value;
@@ -487,32 +524,7 @@ document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
 window.addEventListener('scroll',()=>{document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>50);});
 function scrollToSection(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
 document.getElementById('auth-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAuth();});
-sb.auth.getSession().then(function(res){
-  var session = res.data.session;
-  if(session){
-    var userName = (session.user.user_metadata && session.user.user_metadata.full_name)
-      ? session.user.user_metadata.full_name.split(' ')[0]
-      : session.user.email.split('@')[0];
-    var cta = document.getElementById('nav-cta');
-    cta.innerHTML = '';
-    var badge = document.createElement('span');
-    badge.style.cssText = 'font-size:12px;color:var(--text2);white-space:nowrap;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03);';
-    badge.textContent = '👤 ' + userName;
-    var btnApp = document.createElement('button');
-    btnApp.className = 'btn-primary';
-    btnApp.style.whiteSpace = 'nowrap';
-    btnApp.textContent = 'Ir al journal →';
-    btnApp.onclick = function(){ window.location.replace(window.location.origin + '/tradync-app.html'); };
-    var btnOut = document.createElement('button');
-    btnOut.className = 'btn-ghost';
-    btnOut.style.cssText = 'white-space:nowrap;padding:9px 14px;';
-    btnOut.textContent = 'Salir';
-    btnOut.onclick = doLogout;
-    cta.appendChild(badge);
-    cta.appendChild(btnApp);
-    cta.appendChild(btnOut);
-  }
-});
+
 async function doLogout(){await sb.auth.signOut();location.reload();}
 </script>
 </body>
