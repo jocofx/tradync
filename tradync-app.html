@@ -1528,6 +1528,10 @@ if (typeof supabase === 'undefined') {
     </div>
 
     <div class="tab-panel" id="panel-planes">
+      <!-- SUBSCRIPTION MANAGEMENT (shown only for Pro users) -->
+      <div id="subscription-management" style="display:none;">
+      </div>
+
       <div class="section-title">Elige tu plan</div>
 
       <div style="text-align:center;margin-bottom:36px;">
@@ -4869,25 +4873,29 @@ async function loadUserPlan() {
   if (!currentUser) return;
   try {
     const { data } = await sb.from('suscripciones')
-      .select('plan, activa, fecha_fin')
+      .select('*')
       .eq('user_id', currentUser.id)
       .eq('activa', true)
       .single();
     if (data && data.plan === 'pro') {
-      // Check if subscription is still valid
       if (!data.fecha_fin || new Date(data.fecha_fin) > new Date()) {
         currentPlan = 'pro';
+        window._subData = data; // store for subscription management
       } else {
         currentPlan = 'free';
+        window._subData = null;
       }
     } else {
       currentPlan = 'free';
+      window._subData = null;
     }
   } catch(e) {
-    currentPlan = 'free'; // default to free if no subscription found
+    currentPlan = 'free';
+    window._subData = null;
   }
   console.log('User plan:', currentPlan);
   updatePlanUI();
+  renderSubscriptionPanel();
 }
 
 function isPro() { return currentPlan === 'pro'; }
@@ -5655,6 +5663,87 @@ function renderAllStats() {
 function renderStatsCharts() {
   populateStatsFilters();
   renderAllStats();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GESTIÓN DE SUSCRIPCIÓN
+// ═══════════════════════════════════════════════════════════════
+function renderSubscriptionPanel() {
+  var container = document.getElementById('subscription-management');
+  if (!container) return;
+
+  if (!isPro()) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+  var sub = window._subData;
+  var fechaFin = sub && sub.fecha_fin ? new Date(sub.fecha_fin) : null;
+  var fechaInicio = sub && sub.fecha_inicio ? new Date(sub.fecha_inicio) : null;
+  var daysLeft = fechaFin ? Math.ceil((fechaFin - new Date()) / (1000*60*60*24)) : null;
+  var isTrialing = fechaInicio && daysLeft > 25; // likely still in trial
+
+  var statusColor = daysLeft !== null && daysLeft <= 7 ? 'var(--red)' : 'var(--green)';
+  var statusText = isTrialing ? 'Período de prueba activo' : 'Suscripción activa';
+
+  container.innerHTML =
+    '<div style="background:var(--bg2);border:2px solid rgba(0,212,160,0.3);border-radius:16px;padding:28px;margin-bottom:24px;position:relative;">' +
+      '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);border-radius:16px 16px 0 0;"></div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">' +
+        '<div>' +
+          '<div style="font-size:11px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:6px;">PLAN ACTUAL</div>' +
+          '<div style="font-size:24px;font-weight:800;background:linear-gradient(135deg,#00d4a0,#4d9fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Tradync Pro ⭐</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;background:rgba(0,212,160,0.1);border:1px solid rgba(0,212,160,0.25);border-radius:20px;padding:6px 14px;">' +
+          '<div style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse-dot 1.5s infinite;"></div>' +
+          '<span style="font-size:12px;color:var(--green);font-weight:600;">' + statusText + '</span>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">' +
+        '<div style="background:var(--bg3);border-radius:10px;padding:14px;">' +
+          '<div style="font-size:10px;color:var(--text3);letter-spacing:1px;font-family:monospace;margin-bottom:6px;">RENOVACIÓN</div>' +
+          '<div style="font-size:14px;font-weight:700;color:' + statusColor + ';">' +
+            (fechaFin ? fechaFin.toLocaleDateString('es-ES', {day:'numeric',month:'long',year:'numeric'}) : '—') +
+          '</div>' +
+          (daysLeft !== null ? '<div style="font-size:11px;color:var(--text3);font-family:monospace;margin-top:3px;">' + daysLeft + ' días restantes</div>' : '') +
+        '</div>' +
+        '<div style="background:var(--bg3);border-radius:10px;padding:14px;">' +
+          '<div style="font-size:10px;color:var(--text3);letter-spacing:1px;font-family:monospace;margin-bottom:6px;">MIEMBRO DESDE</div>' +
+          '<div style="font-size:14px;font-weight:700;color:var(--text);">' +
+            (fechaInicio ? fechaInicio.toLocaleDateString('es-ES', {day:'numeric',month:'long',year:'numeric'}) : '—') +
+          '</div>' +
+        '</div>' +
+        '<div style="background:var(--bg3);border-radius:10px;padding:14px;">' +
+          '<div style="font-size:10px;color:var(--text3);letter-spacing:1px;font-family:monospace;margin-bottom:6px;">PRECIO</div>' +
+          '<div style="font-size:14px;font-weight:700;color:var(--text);">9€<span style="font-size:11px;color:var(--text3);font-weight:400;">/mes</span></div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;">' +
+        '<button onclick="openStripePortal()" style="padding:10px 20px;border:none;border-radius:8px;background:var(--bg3);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border2);" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg3)'">Gestionar suscripción →</button>' +
+        '<button onclick="openStripePortal()" style="padding:10px 20px;border:1px solid rgba(255,77,109,0.3);border-radius:8px;background:transparent;color:var(--red);font-size:13px;font-weight:600;cursor:pointer;" onmouseover="this.style.background='var(--red-bg)'" onmouseout="this.style.background='transparent'">Cancelar suscripción</button>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.6;">Al cancelar mantienes el acceso hasta el ' + (fechaFin ? fechaFin.toLocaleDateString('es-ES') : 'final del período') + '. Sin cargos adicionales.</div>' +
+    '</div>';
+}
+
+async function openStripePortal() {
+  if (!currentUser) return;
+  toast('Abriendo portal de gestión...', 'success');
+  try {
+    const res = await fetch('/api/stripe-portal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser.id, userEmail: currentUser.email })
+    });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+    else toast('Error al abrir el portal. Contacta con soporte.', 'info');
+  } catch(e) {
+    toast('Error de conexión.', 'info');
+  }
 }
 
 window.addEventListener('load', async () => {
