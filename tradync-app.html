@@ -6294,6 +6294,135 @@ function exportCSV() {
   toast('CSV exportado correctamente (' + allTrades.length + ' operaciones)', 'success');
 }
 
+// ═══════════════════════════════════════════════════════════════
+// RESUMEN SEMANAL AUTOMÁTICO IA
+// ═══════════════════════════════════════════════════════════════
+async function checkWeeklySummary() {
+  if (!isPro()) return;
+  if (!currentUser) return;
+
+  var now = new Date();
+  var dayOfWeek = now.getDay(); // 1 = lunes
+  if (dayOfWeek !== 1) return; // Solo los lunes
+
+  var weekKey = lsKey('tj_weekly_summary_shown');
+  var lastShown = localStorage.getItem(weekKey);
+  var thisMonday = new Date(now);
+  thisMonday.setHours(0,0,0,0);
+  var mondayStr = thisMonday.toISOString().slice(0,10);
+
+  if (lastShown === mondayStr) return; // Ya mostrado hoy
+
+  // Get last week trades
+  var lastMonday = new Date(thisMonday);
+  lastMonday.setDate(lastMonday.getDate() - 7);
+  var lastSunday = new Date(thisMonday);
+  lastSunday.setDate(lastSunday.getDate() - 1);
+
+  var weekTrades = allTrades.filter(function(t) {
+    var d = new Date(t.fecha || '');
+    return d >= lastMonday && d <= lastSunday;
+  });
+
+  if (!weekTrades.length) return; // No hay ops la semana pasada
+
+  // Show loading modal
+  showWeeklySummaryModal('loading');
+
+  // Build summary for AI
+  var pnl = weekTrades.reduce(function(s,t){return s+(t.resultado||0);},0);
+  var wins = weekTrades.filter(function(t){return (t.resultado||0)>0;}).length;
+  var wr = (wins/weekTrades.length*100).toFixed(1);
+  var sumW = weekTrades.filter(function(t){return (t.resultado||0)>0;}).reduce(function(s,t){return s+(t.resultado||0);},0);
+  var sumL = Math.abs(weekTrades.filter(function(t){return (t.resultado||0)<0;}).reduce(function(s,t){return s+(t.resultado||0);},0));
+  var pf = sumL > 0 ? (sumW/sumL).toFixed(2) : 'inf';
+
+  var prompt = 'Genera un RESUMEN SEMANAL de trading en máximo 150 palabras. Semana del ' +
+    lastMonday.toLocaleDateString('es-ES') + ' al ' + lastSunday.toLocaleDateString('es-ES') + '. ' +
+    'Datos: ' + weekTrades.length + ' operaciones | P&L: ' + (pnl>=0?'+':'') + '$' + pnl.toFixed(0) +
+    ' | Win Rate: ' + wr + '% | Profit Factor: ' + pf + '. ' +
+    'Formato: 📊 SEMANA | ✅ LO QUE FUNCIONÓ | ⚠️ A MEJORAR | 🎯 OBJETIVO ESTA SEMANA. ' +
+    'Sé directo, usa los datos reales y da un objetivo concreto para esta semana.';
+
+  try {
+    var res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: 'Eres el Coach IA de Tradync. Genera resúmenes semanales concisos y accionables.',
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    var data = await res.json();
+    var reply = data.content && data.content[0] ? data.content[0].text : null;
+
+    if (reply) {
+      localStorage.setItem(weekKey, mondayStr);
+      await incrementAiUsage();
+      showWeeklySummaryModal(reply);
+    }
+  } catch(e) {
+    console.error('Weekly summary error:', e);
+    var el = document.getElementById('weekly-summary-content');
+    if (el) el.innerHTML = '<div style="color:var(--text3);font-size:13px;">No se pudo generar el resumen. Inténtalo desde el Coach IA.</div>';
+  }
+}
+
+function showWeeklySummaryModal(content) {
+  var existing = document.getElementById('weekly-summary-overlay');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'weekly-summary-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);z-index:99998;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.4s ease;';
+
+  var isLoading = content === 'loading';
+  var bodyHTML = isLoading
+    ? '<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:20px 0;"><div style="display:flex;gap:6px;">' +
+      '<div style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:aidot 1.2s infinite;"></div>' +
+      '<div style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:aidot 1.2s 0.2s infinite;"></div>' +
+      '<div style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:aidot 1.2s 0.4s infinite;"></div>' +
+      '</div><div style="font-size:13px;color:var(--text3);">Analizando tu semana...</div></div>'
+    : '';
+
+  overlay.innerHTML =
+    '<div style="background:var(--bg2);border:1px solid rgba(0,212,160,0.3);border-radius:20px;padding:32px;max-width:520px;width:90vw;position:relative;">' +
+      '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);border-radius:20px 20px 0 0;"></div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">' +
+        '<div>' +
+          '<div style="font-size:10px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:6px;">RESUMEN SEMANAL</div>' +
+          '<div style="font-size:20px;font-weight:700;color:var(--text);">Coach IA · Lunes 🤖</div>' +
+        '</div>' +
+        '<button onclick="document.getElementById('weekly-summary-overlay').remove()" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>' +
+      '</div>' +
+      '<div id="weekly-summary-content" style="font-size:13px;color:var(--text2);line-height:1.7;">' + bodyHTML + '</div>' +
+      (!isLoading ? '<button onclick="document.getElementById('weekly-summary-overlay').remove()" style="width:100%;margin-top:20px;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#00d4a0,#4d9fff);color:#0d1117;font-size:14px;font-weight:700;cursor:pointer;">Empezar la semana →</button>' : '') +
+    '</div>';
+
+  document.body.appendChild(overlay);
+
+  // If we have actual content, render it
+  if (!isLoading) {
+    var contentEl = document.getElementById('weekly-summary-content');
+    if (contentEl) {
+      var lines = content.split('\n').filter(function(l){return l.trim();});
+      contentEl.innerHTML = lines.map(function(line) {
+        line = line.trim();
+        if (/^[📊✅⚠️🎯]/.test(line)) {
+          var parts = line.split(':');
+          if (parts.length > 1) {
+            return '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);">' +
+              '<span style="font-size:16px;flex-shrink:0;">' + parts[0].slice(0,2) + '</span>' +
+              '<div><div style="font-size:10px;color:var(--text3);letter-spacing:1px;font-family:monospace;margin-bottom:3px;">' + parts[0].slice(2).trim().toUpperCase() + '</div>' +
+              '<div style="font-size:13px;color:var(--text);">' + parts.slice(1).join(':').trim() + '</div></div></div>';
+          }
+        }
+        return '<p style="margin:6px 0;color:var(--text2);">' + line + '</p>';
+      }).join('');
+    }
+  }
+}
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
