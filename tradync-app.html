@@ -3725,7 +3725,23 @@ function showTyping() {
 async function callAi(userMsg) {
   showTyping();
   const context = getTradeContext();
-  const systemPrompt = 'Eres un coach de trading experto y psicólogo especializado en traders. Tienes acceso a los datos reales del trader. Responde en español, de forma concisa y directa. Analiza los datos y da consejos específicos. No seas genérico.\n\n' + context;
+  const systemPrompt = `Eres el Coach IA de Tradync, un coach de trading experto y directo.
+
+REGLAS DE RESPUESTA:
+- Máximo 150 palabras por respuesta
+- Usa datos reales del trader, nunca genéricos
+- Formato: primero los números, luego el consejo
+- Sé directo y personal, como un mentor experimentado
+- Usa emojis solo para separar secciones (📊 🎯 ⚠️ ✅)
+- Si no hay datos suficientes, dilo en una línea y pide que registre más operaciones
+
+FORMATO PARA ANÁLISIS:
+📊 NÚMEROS: [métrica clave] | [comparativa]
+🎯 FORTALEZA: [qué hace bien en una frase]
+⚠️ A MEJORAR: [el problema principal en una frase]
+✅ ACCIÓN: [un consejo concreto y accionable]
+
+${context}`;
 
   try {
     const res = await fetch('/api/chat', {
@@ -4825,14 +4841,14 @@ async function aiAnalysis(type) {
   const habitsDone = customHabits.filter(h=>(todayHabits[h.id]||0)>0).map(h=>h.name).join(', ');
 
   const prompts = {
-    daily: `Haz un análisis completo de mi trading de HOY. ${tradeSummary(todayTrades)} Hábitos completados hoy: ${habitsDone||'ninguno'}. Incluye: qué salió bien, qué mejorar, y un consejo para mañana.`,
-    weekly: `Genera un RESUMEN SEMANAL completo de mi trading. ${tradeSummary(weekTrades)} ${habitsCtx}. Incluye: rendimiento general, errores recurrentes, mejores y peores momentos, y 3 objetivos concretos para la próxima semana.`,
-    monthly: `Genera un RESUMEN MENSUAL detallado. ${tradeSummary(monthTrades)} Incluye: evolución del mes, consistencia, áreas de mejora, y proyección para el próximo mes.`,
-    errors: `Analiza en detalle mis ERRORES PSICOLÓGICOS y de ejecución. ${tradeSummary(weekTrades)} Identifica patrones de error, cuándo ocurren, qué los desencadena, y un plan concreto para eliminarlos.`,
-    psych: `Haz un análisis PSICOLÓGICO profundo de mi trading. ${tradeSummary(weekTrades)} Evalúa mi control emocional, disciplina, gestión del miedo y la avaricia. Dame ejercicios concretos para mejorar.`,
-    setup: `Analiza qué SETUPS y SESIONES me dan mejores resultados. ${tradeSummary(allTrades.slice(0,50))} Dime en qué horarios rindo mejor, qué estrategias son más rentables, y cuáles debo eliminar.`,
-    improve: `Basándote en todos mis datos, dime las 3 COSAS MÁS IMPORTANTES que debo mejorar para ser más rentable. ${tradeSummary(weekTrades)} Sé específico y dame un plan de acción.`,
-    habits: `Analiza cómo mis HÁBITOS Y BIENESTAR afectan a mi trading. ${habitsCtx}. Hábitos hoy: ${habitsDone||'ninguno'}. ${tradeSummary(weekTrades)} ¿Hay correlación entre mis hábitos y mi rendimiento?`,
+    daily: 'Analiza mi trading de HOY en máximo 100 palabras. Usa el formato: 📊 NÚMEROS | 🎯 FORTALEZA | ⚠️ PROBLEMA | ✅ MAÑANA. Datos: ' + tradeSummary(todayTrades) + ' Hábitos: ' + (habitsDone||'ninguno'),
+    weekly: 'Resumen SEMANAL en máximo 120 palabras. Formato: 📊 SEMANA | 🎯 MEJOR MOMENTO | ⚠️ ERROR PRINCIPAL | ✅ 3 OBJETIVOS para la próxima semana. Datos: ' + tradeSummary(weekTrades),
+    monthly: 'Resumen MENSUAL en máximo 120 palabras. Formato: 📊 MES | 📈 EVOLUCIÓN vs mes anterior | ⚠️ PATRÓN NEGATIVO | ✅ OBJETIVO próximo mes. Datos: ' + tradeSummary(monthTrades),
+    errors: 'Analiza mis ERRORES en máximo 100 palabras. Formato: ⚠️ ERROR #1 | ⚠️ ERROR #2 | 🎯 PATRÓN detectado | ✅ PLAN para eliminarlos. Datos: ' + tradeSummary(weekTrades),
+    psych: 'Análisis PSICOLÓGICO en máximo 100 palabras. Formato: 🧠 ESTADO EMOCIONAL | ⚠️ TRAMPA MENTAL principal | ✅ EJERCICIO concreto para esta semana. Datos: ' + tradeSummary(weekTrades),
+    setup: 'Analiza mis SETUPS en máximo 100 palabras. Formato: 🎯 MEJOR SETUP | 🎯 MEJOR SESIÓN | ⚠️ SETUP a eliminar | ✅ ENFOQUE recomendado. Datos: ' + tradeSummary(allTrades.slice(0,50)),
+    improve: 'Las 3 MEJORAS más importantes en máximo 100 palabras. Formato: ✅ MEJORA #1 | ✅ MEJORA #2 | ✅ MEJORA #3 | 🎯 EMPIEZA HOY con: [acción concreta]. Datos: ' + tradeSummary(weekTrades),
+    habits: 'Correlación HÁBITOS y trading en máximo 100 palabras. Formato: 💪 HÁBITO que más ayuda | ⚠️ HÁBITO que falta | ✅ RUTINA recomendada. Hábitos: ' + habitsCtx + ' Trading: ' + tradeSummary(weekTrades),
   };
 
   const labels = {
