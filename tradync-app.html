@@ -5682,51 +5682,74 @@ function renderSubscriptionPanel() {
   var fechaFin = sub && sub.fecha_fin ? new Date(sub.fecha_fin) : null;
   var fechaInicio = sub && sub.fecha_inicio ? new Date(sub.fecha_inicio) : null;
   var daysLeft = fechaFin ? Math.ceil((fechaFin - new Date()) / (1000*60*60*24)) : null;
-  var isTrialing = fechaInicio && daysLeft > 25; // likely still in trial
-
+  var isTrialing = fechaInicio && daysLeft !== null && daysLeft > 25;
   var statusColor = daysLeft !== null && daysLeft <= 7 ? 'var(--red)' : 'var(--green)';
   var statusText = isTrialing ? 'Período de prueba activo' : 'Suscripción activa';
+  var fechaFinStr = fechaFin ? fechaFin.toLocaleDateString('es-ES', {day:'numeric',month:'long',year:'numeric'}) : '—';
+  var fechaIniStr = fechaInicio ? fechaInicio.toLocaleDateString('es-ES', {day:'numeric',month:'long',year:'numeric'}) : '—';
+  var cancelDate = fechaFin ? fechaFin.toLocaleDateString('es-ES') : 'final del período';
 
-  container.innerHTML =
-    '<div style="background:var(--bg2);border:2px solid rgba(0,212,160,0.3);border-radius:16px;padding:28px;margin-bottom:24px;position:relative;">' +
-      '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);border-radius:16px 16px 0 0;"></div>' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">' +
-        '<div>' +
-          '<div style="font-size:11px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:6px;">PLAN ACTUAL</div>' +
-          '<div style="font-size:24px;font-weight:800;background:linear-gradient(135deg,#00d4a0,#4d9fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Tradync Pro ⭐</div>' +
-        '</div>' +
-        '<div style="display:flex;align-items:center;gap:8px;background:rgba(0,212,160,0.1);border:1px solid rgba(0,212,160,0.25);border-radius:20px;padding:6px 14px;">' +
-          '<div style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse-dot 1.5s infinite;"></div>' +
-          '<span style="font-size:12px;color:var(--green);font-weight:600;">' + statusText + '</span>' +
-        '</div>' +
-      '</div>' +
+  var div = document.createElement('div');
+  div.style.cssText = 'background:var(--bg2);border:2px solid rgba(0,212,160,0.3);border-radius:16px;padding:28px;margin-bottom:24px;position:relative;';
 
-      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">' +
-        '<div style="background:var(--bg3);border-radius:10px;padding:14px;">' +
-          '<div style="font-size:10px;color:var(--text3);letter-spacing:1px;font-family:monospace;margin-bottom:6px;">RENOVACIÓN</div>' +
-          '<div style="font-size:14px;font-weight:700;color:' + statusColor + ';">' +
-            (fechaFin ? fechaFin.toLocaleDateString('es-ES', {day:'numeric',month:'long',year:'numeric'}) : '—') +
-          '</div>' +
-          (daysLeft !== null ? '<div style="font-size:11px;color:var(--text3);font-family:monospace;margin-top:3px;">' + daysLeft + ' días restantes</div>' : '') +
-        '</div>' +
-        '<div style="background:var(--bg3);border-radius:10px;padding:14px;">' +
-          '<div style="font-size:10px;color:var(--text3);letter-spacing:1px;font-family:monospace;margin-bottom:6px;">MIEMBRO DESDE</div>' +
-          '<div style="font-size:14px;font-weight:700;color:var(--text);">' +
-            (fechaInicio ? fechaInicio.toLocaleDateString('es-ES', {day:'numeric',month:'long',year:'numeric'}) : '—') +
-          '</div>' +
-        '</div>' +
-        '<div style="background:var(--bg3);border-radius:10px;padding:14px;">' +
-          '<div style="font-size:10px;color:var(--text3);letter-spacing:1px;font-family:monospace;margin-bottom:6px;">PRECIO</div>' +
-          '<div style="font-size:14px;font-weight:700;color:var(--text);">9€<span style="font-size:11px;color:var(--text3);font-weight:400;">/mes</span></div>' +
-        '</div>' +
+  // Top bar
+  div.innerHTML =
+    '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);border-radius:16px 16px 0 0;"></div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">' +
+      '<div>' +
+        '<div style="font-size:11px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:6px;">PLAN ACTUAL</div>' +
+        '<div style="font-size:24px;font-weight:800;background:linear-gradient(135deg,#00d4a0,#4d9fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Tradync Pro ⭐</div>' +
       '</div>' +
-
-      '<div style="display:flex;gap:10px;flex-wrap:wrap;">' +
-        '<button onclick="openStripePortal()" style="padding:10px 20px;border:none;border-radius:8px;background:var(--bg3);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border2);" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg3)'">Gestionar suscripción →</button>' +
-        '<button onclick="openStripePortal()" style="padding:10px 20px;border:1px solid rgba(255,77,109,0.3);border-radius:8px;background:transparent;color:var(--red);font-size:13px;font-weight:600;cursor:pointer;" onmouseover="this.style.background='var(--red-bg)'" onmouseout="this.style.background='transparent'">Cancelar suscripción</button>' +
+      '<div style="display:flex;align-items:center;gap:8px;background:rgba(0,212,160,0.1);border:1px solid rgba(0,212,160,0.25);border-radius:20px;padding:6px 14px;">' +
+        '<div style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse-dot 1.5s infinite;"></div>' +
+        '<span style="font-size:12px;color:var(--green);font-weight:600;">' + statusText + '</span>' +
       '</div>' +
-      '<div style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.6;">Al cancelar mantienes el acceso hasta el ' + (fechaFin ? fechaFin.toLocaleDateString('es-ES') : 'final del período') + '. Sin cargos adicionales.</div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">' +
+      '<div style="background:var(--bg3);border-radius:10px;padding:14px;">' +
+        '<div style="font-size:10px;color:var(--text3);letter-spacing:1px;font-family:monospace;margin-bottom:6px;">RENOVACIÓN</div>' +
+        '<div style="font-size:14px;font-weight:700;color:' + statusColor + ';">' + fechaFinStr + '</div>' +
+        (daysLeft !== null ? '<div style="font-size:11px;color:var(--text3);font-family:monospace;margin-top:3px;">' + daysLeft + ' días restantes</div>' : '') +
+      '</div>' +
+      '<div style="background:var(--bg3);border-radius:10px;padding:14px;">' +
+        '<div style="font-size:10px;color:var(--text3);letter-spacing:1px;font-family:monospace;margin-bottom:6px;">MIEMBRO DESDE</div>' +
+        '<div style="font-size:14px;font-weight:700;color:var(--text);">' + fechaIniStr + '</div>' +
+      '</div>' +
+      '<div style="background:var(--bg3);border-radius:10px;padding:14px;">' +
+        '<div style="font-size:10px;color:var(--text3);letter-spacing:1px;font-family:monospace;margin-bottom:6px;">PRECIO</div>' +
+        '<div style="font-size:14px;font-weight:700;color:var(--text);">9€<span style="font-size:11px;color:var(--text3);font-weight:400;">/mes</span></div>' +
+      '</div>' +
     '</div>';
+
+  // Buttons - use createElement to avoid quote issues
+  var btnWrap = document.createElement('div');
+  btnWrap.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;';
+
+  var btnManage = document.createElement('button');
+  btnManage.textContent = 'Gestionar suscripción →';
+  btnManage.style.cssText = 'padding:10px 20px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;';
+  btnManage.onmouseover = function(){ this.style.background='var(--bg4)'; };
+  btnManage.onmouseout = function(){ this.style.background='var(--bg3)'; };
+  btnManage.onclick = openStripePortal;
+
+  var btnCancel = document.createElement('button');
+  btnCancel.textContent = 'Cancelar suscripción';
+  btnCancel.style.cssText = 'padding:10px 20px;border:1px solid rgba(255,77,109,0.3);border-radius:8px;background:transparent;color:var(--red);font-size:13px;font-weight:600;cursor:pointer;';
+  btnCancel.onmouseover = function(){ this.style.background='var(--red-bg)'; };
+  btnCancel.onmouseout = function(){ this.style.background='transparent'; };
+  btnCancel.onclick = openStripePortal;
+
+  btnWrap.appendChild(btnManage);
+  btnWrap.appendChild(btnCancel);
+  div.appendChild(btnWrap);
+
+  var note = document.createElement('div');
+  note.style.cssText = 'font-size:11px;color:var(--text3);margin-top:12px;line-height:1.6;';
+  note.textContent = 'Al cancelar mantienes el acceso hasta el ' + cancelDate + '. Sin cargos adicionales.';
+  div.appendChild(note);
+
+  container.innerHTML = '';
+  container.appendChild(div);
 }
 
 async function openStripePortal() {
