@@ -436,7 +436,69 @@
   .sidebar-overlay.open { display:block; }
 
   @media (max-width: 768px) {
+    /* Sidebar hidden by default on mobile */
     .sidebar { transform: translateX(-100%); transition: transform 0.3s; z-index: 200; }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0 !important; padding: 16px 14px; }
+
+    /* Header */
+    .topbar { padding: 10px 14px !important; }
+    .topbar-title { font-size: 16px !important; }
+    .quote-wrap { display: none !important; }
+
+    /* Cards */
+    .card { padding: 16px 14px 14px; }
+    .card-title { font-size: 13px; }
+
+    /* Dashboard grid - single column */
+    .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+    .charts-grid { grid-template-columns: 1fr !important; }
+
+    /* Operations table - horizontal scroll */
+    .ops-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .ops-table { min-width: 600px; }
+
+    /* Forms - full width */
+    .form-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+    .form-input, .form-select, .form-textarea { font-size: 16px !important; } /* Prevent zoom on iOS */
+
+    /* Stats grid - single column */
+    [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+    [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+    [style*="grid-template-columns:repeat(4"] { grid-template-columns: repeat(2,1fr) !important; }
+    [style*="grid-template-columns:repeat(3"] { grid-template-columns: 1fr !important; }
+    [style*="grid-template-columns:2fr 1fr"] { grid-template-columns: 1fr !important; }
+    [style*="grid-template-columns:3fr 1fr"] { grid-template-columns: 1fr !important; }
+
+    /* Day summary */
+    .day-summary { grid-template-columns: repeat(2,1fr) !important; }
+
+    /* Modals */
+    .day-modal { width: 95vw !important; max-height: 90vh; overflow-y: auto; }
+    .edit-modal { width: 95vw !important; max-height: 90vh; overflow-y: auto; }
+
+    /* Pricing in plans panel */
+    .plan-cards-wrap { flex-direction: column !important; }
+
+    /* Sidebar show button visible */
+    #sidebar-show-btn { display: flex !important; }
+
+    /* Nav items font size */
+    .nav-item { font-size: 13px; padding: 9px 12px; }
+    .nav-label { font-size: 9px; }
+
+    /* Steps/how-it-works grids */
+    .steps-grid { grid-template-columns: 1fr 1fr; }
+
+    /* Calendar */
+    #diary-cal-grid, #habit-cal-grid { gap: 3px !important; }
+
+    /* AI chat */
+    .ai-bubble { max-width: 95% !important; }
+
+    /* Tabs overflow scroll */
+    .sidebar-scroll { -webkit-overflow-scrolling: touch; }
+  }
     .sidebar.open { transform: translateX(0); }
     .main { margin-left: 0 !important; padding: 16px; }
     .hamburger { display: flex; }
@@ -4198,32 +4260,27 @@ function toggleTheme() {
 
 
 function toggleSidebar() {
-  const sidebar = document.querySelector('.sidebar');
-  const main = document.querySelector('.main');
-  const overlay = document.getElementById('sidebar-overlay');
-  const showBtn = document.getElementById('sidebar-show-btn');
-  const toggleBtn = document.getElementById('sidebar-toggle-btn');
-
-  if (window.innerWidth <= 768) {
-    const isOpen = sidebar.classList.toggle('open');
-    if (overlay) overlay.classList.toggle('open', isOpen);
-    return;
-  }
-
-  // Desktop: slide sidebar, never show overlay
-  if (overlay) overlay.classList.remove('open');
-  const isHidden = sidebar.classList.toggle('hidden');
-
-  if (isHidden) {
-    if (main) { main.style.marginLeft = '0'; main.style.maxWidth = '100vw'; }
+  var sidebar = document.querySelector('.sidebar');
+  var overlay = document.getElementById('sidebar-mobile-overlay');
+  var showBtn = document.getElementById('sidebar-show-btn');
+  if (!sidebar) return;
+  var isOpen = sidebar.classList.contains('open');
+  if (isOpen) {
+    sidebar.classList.remove('open');
+    if (overlay) overlay.style.display = 'none';
     if (showBtn) showBtn.style.display = 'flex';
-    if (toggleBtn) toggleBtn.style.display = 'none';
-    localStorage.setItem('tj_sidebar', 'hidden');
   } else {
-    if (main) { main.style.marginLeft = '220px'; main.style.maxWidth = 'calc(100vw - 220px)'; }
+    sidebar.classList.add('open');
     if (showBtn) showBtn.style.display = 'none';
-    if (toggleBtn) toggleBtn.style.display = 'flex';
-    localStorage.setItem('tj_sidebar', 'visible');
+    if (!overlay) {
+      var ov = document.createElement('div');
+      ov.id = 'sidebar-mobile-overlay';
+      ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:199;';
+      ov.onclick = toggleSidebar;
+      document.body.appendChild(ov);
+    } else {
+      overlay.style.display = 'block';
+    }
   }
 }
 
