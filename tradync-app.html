@@ -3470,75 +3470,85 @@ function renderProjection() {
 
 // ─── ACCOUNT DETAIL ───────────────────────────────────────────────
 function openAccountDetail(id) {
-  const acc = accounts.find(a => a.id === id);
+  var acc = accounts.find(function(a) { return String(a.id) === String(id); });
   if (!acc) return;
-  const trades = allTrades.filter(t => t.cuenta === acc.nombre);
-  const pnl = trades.reduce((s,t) => s+(t.resultado||0), 0);
-  const wins = trades.filter(t => (t.resultado||0)>0);
-  const losses = trades.filter(t => (t.resultado||0)<0);
-  const wr = trades.length ? (wins.length/trades.length*100).toFixed(1) : 0;
-  const sumWins = wins.reduce((s,t)=>s+(t.resultado||0),0);
-  const sumLoss = Math.abs(losses.reduce((s,t)=>s+(t.resultado||0),0));
-  const pf = sumLoss > 0 ? (sumWins/sumLoss).toFixed(2) : '∞';
-  const best = wins.length ? Math.max(...wins.map(t=>t.resultado||0)) : 0;
-  const worst = losses.length ? Math.min(...losses.map(t=>t.resultado||0)) : 0;
-  const avgRR = trades.filter(t=>t.entrada&&t.sl&&t.tp).map(t=>Math.abs(t.tp-t.entrada)/Math.abs(t.entrada-t.sl));
-  const rrAvg = avgRR.length ? (avgRR.reduce((a,b)=>a+b,0)/avgRR.length).toFixed(2) : '—';
-  const balance = acc.balance || 100000;
+  var trades = allTrades.filter(function(t) { return t.cuenta === acc.nombre; });
+  var pnl = trades.reduce(function(s,t) { return s+(t.resultado||0); }, 0);
+  var wins = trades.filter(function(t) { return (t.resultado||0)>0; });
+  var losses = trades.filter(function(t) { return (t.resultado||0)<0; });
+  var wr = trades.length ? (wins.length/trades.length*100).toFixed(1) : '0';
+  var sumWins = wins.reduce(function(s,t){return s+(t.resultado||0);},0);
+  var sumLoss = Math.abs(losses.reduce(function(s,t){return s+(t.resultado||0);},0));
+  var pf = sumLoss > 0 ? (sumWins/sumLoss).toFixed(2) : '∞';
+  var best = wins.length ? Math.max.apply(null, wins.map(function(t){return t.resultado||0;})) : 0;
+  var worst = losses.length ? Math.min.apply(null, losses.map(function(t){return t.resultado||0;})) : 0;
+  var rrVals = trades.filter(function(t){return t.entrada&&t.sl&&t.tp;}).map(function(t){return Math.abs(t.tp-t.entrada)/Math.abs(t.entrada-t.sl);});
+  var rrAvg = rrVals.length ? (rrVals.reduce(function(a,b){return a+b;},0)/rrVals.length).toFixed(2) : '—';
+  var balance = acc.balance || 100000;
 
-  // Prop Firm section
-  let propHTML = '';
+  // Prop Firm tracker
+  var propHTML = '';
   if (acc.tipo === 'prop') {
-    const rules = PROP_RULES[acc.broker] || PROP_RULES['Otro'];
-    const today = new Date().toISOString().slice(0,10);
-    const todayTrades = trades.filter(t => (t.fecha||'').slice(0,10) === today);
-    const todayPnl = todayTrades.reduce((s,t) => s+(t.resultado||0), 0);
-    const dailyDDpct = Math.abs(Math.min(0, todayPnl)) / balance * 100;
-    const maxDDpct = Math.abs(Math.min(0, pnl)) / balance * 100;
-    const targetPct = Math.max(0, pnl) / balance * 100;
+    var rules = PROP_RULES[acc.broker] || PROP_RULES['Otro'];
+    var today = new Date().toISOString().slice(0,10);
+    var todayTrades = trades.filter(function(t){ return (t.fecha||'').slice(0,10) === today; });
+    var todayPnl = todayTrades.reduce(function(s,t){ return s+(t.resultado||0); }, 0);
+    var dailyDDpct = Math.abs(Math.min(0, todayPnl)) / balance * 100;
+    var maxDDpct = Math.abs(Math.min(0, pnl)) / balance * 100;
+    var targetPct = Math.max(0, pnl) / balance * 100;
 
-    function bar(val, max, color) {
-      const w = Math.min(100, val/max*100).toFixed(1);
-      const c = val >= max*0.8 ? 'var(--red)' : val >= max*0.5 ? 'var(--amber)' : color;
-      return `<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);font-family:monospace;margin-bottom:4px;">
-        <span>${arguments[3]||''}</span><span style="color:${c};">${val.toFixed(2)}% / ${max}%</span></div>
-        <div style="height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-bottom:12px;">
-        <div style="width:${w}%;height:100%;background:${c};border-radius:3px;"></div></div>`;
+    function propBar(val, max, label) {
+      var pctW = Math.min(100, val/max*100).toFixed(1);
+      var color = val >= max*0.8 ? 'var(--red)' : val >= max*0.5 ? 'var(--amber)' : 'var(--green)';
+      return '<div style="margin-bottom:10px;">' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);font-family:monospace;margin-bottom:4px;">' +
+          '<span>' + label + '</span><span style="color:' + color + ';">' + val.toFixed(2) + '% / ' + max + '%</span>' +
+        '</div>' +
+        '<div style="height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;">' +
+          '<div style="width:' + pctW + '%;height:100%;background:' + color + ';border-radius:4px;transition:width 0.4s;"></div>' +
+        '</div></div>';
     }
 
-    propHTML = `<div style="background:var(--amber-bg);border:1px solid rgba(245,166,35,0.3);border-radius:12px;padding:16px;margin-bottom:16px;">
-      <div style="font-size:11px;color:var(--amber);letter-spacing:1.5px;font-family:monospace;margin-bottom:12px;">📊 PROP FIRM TRACKER · ${rules.label}</div>
-      ${bar(dailyDDpct, rules.dailyDD, 'var(--green)', 'DD diario')}
-      ${bar(maxDDpct, rules.maxDD, 'var(--green)', 'DD máximo')}
-      ${bar(targetPct, rules.target, 'var(--blue)', 'Objetivo profit')}
-      <div style="font-size:11px;color:var(--text3);font-family:monospace;">Fase: <span style="color:var(--amber);">${acc.fase||'Fase 1'}</span></div>
-    </div>`;
+    propHTML = '<div style="background:var(--amber-bg);border:1px solid rgba(245,166,35,0.3);border-radius:12px;padding:18px;margin-bottom:18px;">' +
+      '<div style="font-size:10px;color:var(--amber);letter-spacing:2px;font-family:monospace;margin-bottom:14px;">PROP FIRM TRACKER · ' + rules.label + ' · ' + (acc.fase||'Fase 1') + '</div>' +
+      propBar(dailyDDpct, rules.dailyDD, 'DD diario') +
+      propBar(maxDDpct, rules.maxDD, 'DD máximo') +
+      propBar(targetPct, rules.target, 'Objetivo profit') +
+    '</div>';
+  }
+
+  // Stats grid
+  var statsHTML = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">' +
+    '<div class="day-summary-item"><div class="day-summary-label">P&L TOTAL</div><div class="day-summary-value" style="color:' + (pnl>=0?'var(--green)':'var(--red)') + ';">' + (pnl>=0?'+':'') + '$' + pnl.toFixed(2) + '</div></div>' +
+    '<div class="day-summary-item"><div class="day-summary-label">WIN RATE</div><div class="day-summary-value" style="color:var(--blue);">' + wr + '%</div></div>' +
+    '<div class="day-summary-item"><div class="day-summary-label">PROFIT FACTOR</div><div class="day-summary-value" style="color:var(--amber);">' + pf + '</div></div>' +
+    '<div class="day-summary-item"><div class="day-summary-label">OPERACIONES</div><div class="day-summary-value" style="color:var(--purple);">' + trades.length + '</div></div>' +
+  '</div>' +
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">' +
+    '<div class="day-summary-item"><div class="day-summary-label">MAYOR GANANCIA</div><div class="day-summary-value" style="color:var(--green);font-size:16px;">+$' + best.toFixed(2) + '</div></div>' +
+    '<div class="day-summary-item"><div class="day-summary-label">MAYOR PÉRDIDA</div><div class="day-summary-value" style="color:var(--red);font-size:16px;">$' + worst.toFixed(2) + '</div></div>' +
+    '<div class="day-summary-item"><div class="day-summary-label">RR PROMEDIO</div><div class="day-summary-value" style="color:var(--blue);font-size:16px;">' + rrAvg + ':1</div></div>' +
+    '<div class="day-summary-item"><div class="day-summary-label">BALANCE ACTUAL</div><div class="day-summary-value" style="color:var(--green);font-size:16px;">$' + (balance+pnl).toLocaleString() + '</div></div>' +
+  '</div>';
+
+  // Recent trades
+  var recentHTML = '<div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:8px;">ÚLTIMAS OPERACIONES</div>';
+  if (trades.length) {
+    recentHTML += trades.slice(0,8).map(function(t) {
+      var pnlClr = (t.resultado||0)>=0 ? 'var(--green)' : 'var(--red)';
+      var dirCls = t.direccion==='LONG' ? 'badge-long' : 'badge-short';
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;font-family:monospace;">' +
+        '<span style="color:var(--text3);min-width:60px;">' + fmtDate(t.fecha) + '</span>' +
+        '<span class="' + dirCls + '" style="font-size:9px;">' + (t.instrumento||'') + ' ' + (t.direccion||'') + '</span>' +
+        '<span style="color:' + pnlClr + ';font-weight:600;">' + ((t.resultado||0)>=0?'+':'') + '$' + Math.abs(t.resultado||0).toFixed(2) + '</span>' +
+      '</div>';
+    }).join('');
+  } else {
+    recentHTML += '<div style="color:var(--text3);font-size:12px;">Sin operaciones en esta cuenta</div>';
   }
 
   document.getElementById('account-modal-title').textContent = acc.nombre;
-  document.getElementById('account-modal-body').innerHTML = `
-    ${propHTML}
-    <div class="day-summary" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
-      <div class="day-summary-item"><div class="day-summary-label">P&L TOTAL</div><div class="day-summary-value" style="color:${pnl>=0?'var(--green)':'var(--red)'}">${pnl>=0?'+':''}$${pnl.toFixed(2)}</div></div>
-      <div class="day-summary-item"><div class="day-summary-label">WIN RATE</div><div class="day-summary-value" style="color:var(--blue)">${wr}%</div></div>
-      <div class="day-summary-item"><div class="day-summary-label">PROFIT FACTOR</div><div class="day-summary-value" style="color:var(--amber)">${pf}</div></div>
-      <div class="day-summary-item"><div class="day-summary-label">OPERACIONES</div><div class="day-summary-value" style="color:var(--purple)">${trades.length}</div></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
-      <div class="day-summary-item"><div class="day-summary-label">MAYOR GANANCIA</div><div class="day-summary-value" style="color:var(--green);font-size:16px">+$${best.toFixed(2)}</div></div>
-      <div class="day-summary-item"><div class="day-summary-label">MAYOR PÉRDIDA</div><div class="day-summary-value" style="color:var(--red);font-size:16px">$${worst.toFixed(2)}</div></div>
-      <div class="day-summary-item"><div class="day-summary-label">RR PROMEDIO</div><div class="day-summary-value" style="color:var(--blue);font-size:16px">${rrAvg}:1</div></div>
-      <div class="day-summary-item"><div class="day-summary-label">BALANCE ACTUAL</div><div class="day-summary-value" style="color:var(--green);font-size:16px">$${(balance+pnl).toLocaleString()}</div></div>
-    </div>
-    <div style="font-size:11px;color:var(--text3);font-family:monospace;margin-bottom:10px;letter-spacing:1px;">ÚLTIMAS OPERACIONES</div>
-    ${trades.slice(0,8).map(t => `
-      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;font-family:monospace;">
-        <span style="color:var(--text3)">${fmtDate(t.fecha)}</span>
-        <span class="${t.tipo==='Futuro'?'badge-fut':'badge-cfd'}" style="font-size:9px">${t.instrumento}</span>
-        <span class="${t.direccion==='LONG'?'badge-long':'badge-short'}" style="font-size:9px">${t.direccion}</span>
-        <span style="color:${(t.resultado||0)>=0?'var(--green)':'var(--red)'};font-weight:600">${(t.resultado||0)>=0?'+':''}$${Math.abs(t.resultado||0).toFixed(2)}</span>
-      </div>`).join('')}
-  `;
+  document.getElementById('account-modal-body').innerHTML = propHTML + statsHTML + recentHTML;
   document.getElementById('account-modal-overlay').classList.add('open');
 }
 
@@ -4210,7 +4220,7 @@ function renderAccounts() {
     const wr = trades.length ? (wins / trades.length * 100).toFixed(1) : 0;
     const balanceActual = a.balance + pnl;
     return `
-      <div class="account-card ${a.tipo}" onclick="openAccountDetail(${a.id})">
+      <div class="account-card ${a.tipo}" onclick="openAccountDetail('${a.id}')">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
           <span class="account-type-badge ${a.tipo}">${a.tipo === 'prop' ? 'PROP FIRM' : 'CAPITAL PROPIO'}</span>
           <span style="font-size:10px;color:var(--text3);cursor:pointer;font-family:'DM Mono',monospace;" onclick="event.stopPropagation();deleteAccount('${a.notionId || a.id}')">✕</span>
