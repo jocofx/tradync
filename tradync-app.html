@@ -3104,11 +3104,14 @@ function renderHabitCalendar() {
   var offset = firstDay === 0 ? 6 : firstDay - 1;
   var daysInMonth = new Date(habitCalYear, habitCalMonth + 1, 0).getDate();
   var today = new Date();
-  var html = '';
-  for (var i = 0; i < offset; i++) html += '<div style="aspect-ratio:1;"></div>';
+  grid.innerHTML = '';
+  for (var i = 0; i < offset; i++) {
+    var empty = document.createElement('div');
+    empty.style.aspectRatio = '1';
+    grid.appendChild(empty);
+  }
   for (var d = 1; d <= daysInMonth; d++) {
     var ds = habitCalYear + '-' + String(habitCalMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-    // Check data from habitsHistory (Supabase) or localStorage
     var habits = {};
     var survey = {};
     if (habitsHistory[ds]) {
@@ -3125,28 +3128,39 @@ function renderHabitCalendar() {
     var pct = Math.round(habitCount / total * 100);
     var isToday = today.getDate()===d && today.getMonth()===habitCalMonth && today.getFullYear()===habitCalYear;
 
-    var bg = 'var(--bg3)';
-    var border = isToday ? 'var(--green)' : 'var(--border)';
-    var pctLabel = '';
+    var div = document.createElement('div');
+    div.style.cssText = 'aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:transform 0.1s;';
 
     if (hasData) {
-      if (pct >= 100) { bg = 'var(--green-bg)'; border = isToday ? 'var(--green)' : 'rgba(0,212,160,0.3)'; }
-      else if (pct >= 50 || hasSurvey) { bg = 'var(--amber-bg)'; border = isToday ? 'var(--green)' : 'rgba(245,166,35,0.3)'; }
-      else { bg = 'var(--blue-bg)'; border = isToday ? 'var(--green)' : 'rgba(77,159,255,0.2)'; }
-      pctLabel = '<div style="font-size:8px;font-family:monospace;opacity:0.9;">' + pct + '%</div>';
+      if (pct >= 100) { div.style.background = 'var(--green-bg)'; div.style.border = '1px solid ' + (isToday ? 'var(--green)' : 'rgba(0,212,160,0.3)'); }
+      else if (pct >= 50 || hasSurvey) { div.style.background = 'var(--amber-bg)'; div.style.border = '1px solid ' + (isToday ? 'var(--green)' : 'rgba(245,166,35,0.3)'); }
+      else { div.style.background = 'var(--blue-bg)'; div.style.border = '1px solid ' + (isToday ? 'var(--green)' : 'rgba(77,159,255,0.2)'); }
+      div.style.cursor = 'pointer';
+      div.addEventListener('mouseover', function(){ this.style.transform = 'scale(1.08)'; });
+      div.addEventListener('mouseout', function(){ this.style.transform = 'scale(1)'; });
+      // Closure to capture ds
+      (function(dateStr) {
+        div.addEventListener('click', function() { openHabitDayDetail(dateStr); });
+      })(ds);
+    } else {
+      div.style.background = 'var(--bg3)';
+      div.style.border = '1px solid ' + (isToday ? 'var(--green)' : 'var(--border)');
     }
 
-    var click = hasData ? 'onclick="openHabitDayDetail('' + ds + '')" style="cursor:pointer;"' : '';
-    var hover = hasData ? 'onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'"' : '';
+    var numSpan = document.createElement('span');
+    numSpan.style.cssText = 'font-size:10px;font-family:monospace;font-weight:' + (hasData ? '700' : '400') + ';color:' + (isToday ? 'var(--green)' : hasData ? 'var(--text2)' : 'var(--text3)') + ';';
+    numSpan.textContent = d;
+    div.appendChild(numSpan);
 
-    html += '<div ' + click + ' ' + hover +
-      ' style="aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;' +
-      'background:' + bg + ';border:1px solid ' + border + ';transition:transform 0.1s;">' +
-      '<span style="font-size:10px;font-family:monospace;color:' + (isToday ? 'var(--green)' : hasData ? 'var(--text2)' : 'var(--text3)') + ';font-weight:' + (hasData ? '700' : '400') + ';">' + d + '</span>' +
-      pctLabel +
-    '</div>';
+    if (hasData) {
+      var pctSpan = document.createElement('span');
+      pctSpan.style.cssText = 'font-size:8px;font-family:monospace;opacity:0.9;';
+      pctSpan.textContent = pct + '%';
+      div.appendChild(pctSpan);
+    }
+
+    grid.appendChild(div);
   }
-  grid.innerHTML = html;
 }
 
 
