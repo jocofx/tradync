@@ -487,10 +487,30 @@ document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
 window.addEventListener('scroll',()=>{document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>50);});
 function scrollToSection(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
 document.getElementById('auth-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAuth();});
-sb.auth.getSession().then(({data:{session}})=>{
+sb.auth.getSession().then(function(res){
+  var session = res.data.session;
   if(session){
-    const userName=session.user.user_metadata?.full_name?.split(' ')[0]||session.user.email.split('@')[0];
-    document.getElementById('nav-cta').innerHTML='<span style="font-size:12px;color:var(--text2);white-space:nowrap;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03);">👤 '+userName+'</span><button class="btn-primary" style="white-space:nowrap;" onclick="window.location.replace(window.location.origin+'/tradync-app.html')">Ir al journal →</button><button class="btn-ghost" style="white-space:nowrap;padding:9px 14px;" onclick="doLogout()">Salir</button>';
+    var userName = (session.user.user_metadata && session.user.user_metadata.full_name)
+      ? session.user.user_metadata.full_name.split(' ')[0]
+      : session.user.email.split('@')[0];
+    var cta = document.getElementById('nav-cta');
+    cta.innerHTML = '';
+    var badge = document.createElement('span');
+    badge.style.cssText = 'font-size:12px;color:var(--text2);white-space:nowrap;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03);';
+    badge.textContent = '👤 ' + userName;
+    var btnApp = document.createElement('button');
+    btnApp.className = 'btn-primary';
+    btnApp.style.whiteSpace = 'nowrap';
+    btnApp.textContent = 'Ir al journal →';
+    btnApp.onclick = function(){ window.location.replace(window.location.origin + '/tradync-app.html'); };
+    var btnOut = document.createElement('button');
+    btnOut.className = 'btn-ghost';
+    btnOut.style.cssText = 'white-space:nowrap;padding:9px 14px;';
+    btnOut.textContent = 'Salir';
+    btnOut.onclick = doLogout;
+    cta.appendChild(badge);
+    cta.appendChild(btnApp);
+    cta.appendChild(btnOut);
   }
 });
 async function doLogout(){await sb.auth.signOut();location.reload();}
