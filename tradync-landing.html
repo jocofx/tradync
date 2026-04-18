@@ -413,8 +413,8 @@ footer{border-top:1px solid var(--border);padding:40px 48px;display:flex;align-i
 <footer>
   <div class="footer-logo">Trad<span>ync</span></div>
   <div class="footer-links">
-    <span class="footer-link">Privacidad</span>
-    <span class="footer-link">Términos</span>
+    <span class="footer-link" onclick="window.location.href='privacidad.html'">Privacidad</span>
+    <span class="footer-link" onclick="window.location.href='terminos.html'">Términos</span>
     <span class="footer-link" onclick="scrollToSection('pricing')">Precios</span>
     <span class="footer-link" onclick="openAuth('login')">Acceder</span>
   </div>
@@ -527,5 +527,29 @@ document.getElementById('auth-overlay').addEventListener('click',e=>{if(e.target
 
 async function doLogout(){await sb.auth.signOut();location.reload();}
 </script>
+
+<!-- COOKIE BANNER -->
+<div id="cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--bg2);border-top:1px solid var(--border2);padding:16px 48px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;box-shadow:0 -8px 32px rgba(0,0,0,0.4);">
+  <div style="flex:1;min-width:280px;">
+    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">🍪 Usamos cookies esenciales</div>
+    <div style="font-size:12px;color:var(--text3);line-height:1.6;">Solo usamos cookies necesarias para mantener tu sesión iniciada. Sin publicidad, sin seguimiento. <a href="privacidad.html" style="color:var(--green);">Ver política de privacidad</a></div>
+  </div>
+  <div style="display:flex;gap:10px;flex-shrink:0;">
+    <button onclick="acceptCookies()" style="padding:9px 22px;border:none;border-radius:8px;background:var(--green);color:#000;font-size:13px;font-weight:700;cursor:pointer;">Aceptar</button>
+    <button onclick="document.getElementById('cookie-banner').style.display='none'" style="padding:9px 16px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;cursor:pointer;">Solo esenciales</button>
+  </div>
+</div>
+
+<script>
+function acceptCookies() {
+  localStorage.setItem('tradync_cookies_accepted', '1');
+  document.getElementById('cookie-banner').style.display = 'none';
+}
+// Show banner if not accepted
+if (!localStorage.getItem('tradync_cookies_accepted')) {
+  document.getElementById('cookie-banner').style.display = 'flex';
+}
+</script>
+
 </body>
 </html>
