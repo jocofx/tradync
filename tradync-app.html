@@ -3508,6 +3508,7 @@ function renderConsistencyScore() {
 // ─── ESTADÍSTICAS AVANZADAS ───────────────────────────────────────
 function renderInstrumentStats() {
   const container = document.getElementById('instr-stats');
+  if (!container) return;
   if (!allTrades.length) { container.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace">Sin datos</div>'; return; }
   const instrMap = {};
   allTrades.forEach(t => {
