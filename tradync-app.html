@@ -1377,9 +1377,10 @@ if (typeof supabase === 'undefined') {
               Coach IA activo
             </div>
             <div id="ai-usage-counter" style="margin-bottom:10px;"></div>
-            <div style="font-size:11px;color:var(--text3);font-family:monospace;line-height:1.5;">
+            <div style="font-size:11px;color:var(--text3);font-family:monospace;line-height:1.5;margin-bottom:10px;">
               Powered by Claude Sonnet.<br>Los análisis usan tus datos reales.
             </div>
+            <button onclick="clearChatHistory()" style="width:100%;padding:7px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text3);font-size:11px;font-family:monospace;cursor:pointer;" onmouseover="this.style.color='var(--red)';this.style.borderColor='rgba(255,77,109,0.3)'" onmouseout="this.style.color='var(--text3)';this.style.borderColor='var(--border2)'">🗑️ Borrar historial</button>
           </div>
 
         </div>
@@ -3704,20 +3705,18 @@ function quickAsk(msg) {
   callAi(msg);
 }
 
-function appendAiMsg(text, role) {
+function appendAiMsg(text, role, save) {
+  if (save === undefined) save = true;
   var chat = document.getElementById('ai-chat');
   var icon = role === 'user' ? '👤' : '🤖';
 
-  // Format bot messages with proper HTML
   var formatted = text;
   if (role === 'bot') {
-    // Convert newlines to proper paragraphs
     formatted = text
       .split('\n')
       .filter(function(line) { return line.trim(); })
       .map(function(line) {
         line = line.trim();
-        // Detect section headers (lines starting with emoji)
         if (/^[📊🎯⚠️✅💪🧠📈📋📅📆💼🔥⚡]/.test(line)) {
           var parts = line.split(':');
           if (parts.length > 1) {
@@ -3731,7 +3730,6 @@ function appendAiMsg(text, role) {
           }
           return '<div style="padding:5px 0;font-size:13px;color:var(--text);">' + line + '</div>';
         }
-        // Regular line
         return '<p style="margin:4px 0;font-size:13px;color:var(--text2);line-height:1.6;">' + line + '</p>';
       })
       .join('');
@@ -3744,6 +3742,11 @@ function appendAiMsg(text, role) {
     '<div class="ai-bubble ' + role + '">' + (role === 'bot' ? formatted : text) + '</div>';
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
+
+  // Save to Supabase
+  if (save && currentUser) {
+    saveChatMessage(role, text);
+  }
 }
 
 function showTyping() {
@@ -5923,6 +5926,59 @@ function updateAiUsageUI() {
       '<span style="font-size:11px;font-family:monospace;color:' + color + ';white-space:nowrap;font-weight:700;">' + aiUsageThisMonth + '/' + AI_MONTHLY_LIMIT + '</span>' +
     '</div>' +
     limitMsg;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CHAT HISTORY
+// ═══════════════════════════════════════════════════════════════
+async function loadChatHistory() {
+  if (!currentUser) return;
+  try {
+    const { data, error } = await sb.from('chat_history')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: true })
+      .limit(100);
+    if (error || !data || !data.length) return;
+
+    const chat = document.getElementById('ai-chat');
+    if (!chat) return;
+    // Clear welcome message and render history
+    chat.innerHTML = '';
+    data.forEach(function(row) {
+      appendAiMsg(row.content, row.role, false); // false = don't save again
+    });
+  } catch(e) {
+    console.error('loadChatHistory error:', e);
+  }
+}
+
+async function saveChatMessage(role, content) {
+  if (!currentUser) return;
+  try {
+    await sb.from('chat_history').insert({
+      user_id: currentUser.id,
+      role: role,
+      content: content,
+      created_at: new Date().toISOString()
+    });
+  } catch(e) {
+    console.error('saveChatMessage error:', e);
+  }
+}
+
+async function clearChatHistory() {
+  if (!currentUser) return;
+  const ok = await confirmDialog('¿Borrar historial del chat?', 'Se eliminarán todos los mensajes del Coach IA.');
+  if (!ok) return;
+  try {
+    await sb.from('chat_history').delete().eq('user_id', currentUser.id);
+    const chat = document.getElementById('ai-chat');
+    if (chat) chat.innerHTML = '<div class="ai-msg"><div class="ai-avatar bot">🤖</div><div class="ai-bubble bot">Hola, soy tu Coach IA. Historial borrado. ¿En qué te ayudo?</div></div>';
+    toast('Historial borrado ✓', 'success');
+  } catch(e) {
+    console.error('clearChatHistory error:', e);
+  }
 }
 
 window.addEventListener('load', async () => {
