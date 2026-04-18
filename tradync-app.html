@@ -3105,36 +3105,46 @@ function renderHabitCalendar() {
   var daysInMonth = new Date(habitCalYear, habitCalMonth + 1, 0).getDate();
   var today = new Date();
   var html = '';
-  for (var i = 0; i < offset; i++) html += '<div class="pm-cal-day empty"></div>';
+  for (var i = 0; i < offset; i++) html += '<div style="aspect-ratio:1;"></div>';
   for (var d = 1; d <= daysInMonth; d++) {
     var ds = habitCalYear + '-' + String(habitCalMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-    var habits = {}; try { habits = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + ds)) || '{}'); } catch(e){}
-    var survey = {}; try { survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + ds)) || '{}'); } catch(e){}
-    var habitCount = Object.values(habits).filter(function(v){ return v > 0; }).length;
-    var total = customHabits.length || 1;
+    // Check data from habitsHistory (Supabase) or localStorage
+    var habits = {};
+    var survey = {};
+    if (habitsHistory[ds]) {
+      habits = habitsHistory[ds].habits || {};
+      survey = habitsHistory[ds].survey || {};
+    } else {
+      try { habits = JSON.parse(localStorage.getItem(lsKey('tj_habits_' + ds)) || '{}'); } catch(e){}
+      try { survey = JSON.parse(localStorage.getItem(lsKey('tj_survey_' + ds)) || '{}'); } catch(e){}
+    }
+    var habitCount = customHabits.filter(function(h){ return (habits[h.id]||0) > 0; }).length;
     var hasSurvey = Object.keys(survey).length > 0;
     var hasData = habitCount > 0 || hasSurvey;
-    var pct = total > 0 ? Math.round(habitCount / total * 100) : 0;
+    var total = customHabits.length || 1;
+    var pct = Math.round(habitCount / total * 100);
     var isToday = today.getDate()===d && today.getMonth()===habitCalMonth && today.getFullYear()===habitCalYear;
-    var cls = 'pm-cal-day';
+
+    var bg = 'var(--bg3)';
+    var border = isToday ? 'var(--green)' : 'var(--border)';
     var pctLabel = '';
+
     if (hasData) {
-      if (pct >= 100) cls += ' complete';
-      else if (pct >= 50 || hasSurvey) cls += ' partial';
-      else cls += ' planned';
-      cls += ' has-plan';
-      pctLabel = '<div class="pm-cal-pct">' + pct + '%</div>';
+      if (pct >= 100) { bg = 'var(--green-bg)'; border = isToday ? 'var(--green)' : 'rgba(0,212,160,0.3)'; }
+      else if (pct >= 50 || hasSurvey) { bg = 'var(--amber-bg)'; border = isToday ? 'var(--green)' : 'rgba(245,166,35,0.3)'; }
+      else { bg = 'var(--blue-bg)'; border = isToday ? 'var(--green)' : 'rgba(77,159,255,0.2)'; }
+      pctLabel = '<div style="font-size:8px;font-family:monospace;opacity:0.9;">' + pct + '%</div>';
     }
-    if (isToday) cls += ' today';
-    var div = document.createElement('div');
-    div.className = cls;
-    div.innerHTML = '<span>' + d + '</span>' + pctLabel;
-    if (hasData) {
-      (function(dateStr) {
-        div.onclick = function() { openHabitDayDetail(dateStr); };
-      })(ds);
-    }
-    html += div.outerHTML;
+
+    var click = hasData ? 'onclick="openHabitDayDetail('' + ds + '')" style="cursor:pointer;"' : '';
+    var hover = hasData ? 'onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'"' : '';
+
+    html += '<div ' + click + ' ' + hover +
+      ' style="aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;' +
+      'background:' + bg + ';border:1px solid ' + border + ';transition:transform 0.1s;">' +
+      '<span style="font-size:10px;font-family:monospace;color:' + (isToday ? 'var(--green)' : hasData ? 'var(--text2)' : 'var(--text3)') + ';font-weight:' + (hasData ? '700' : '400') + ';">' + d + '</span>' +
+      pctLabel +
+    '</div>';
   }
   grid.innerHTML = html;
 }
