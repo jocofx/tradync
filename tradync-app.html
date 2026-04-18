@@ -559,6 +559,10 @@ if (typeof supabase === 'undefined') {
     </div>
 
     <div class="nav-section" style="margin-top:auto;padding-top:16px;border-top:1px solid var(--border);">
+      <div class="nav-item" onclick="goTab('logros', this)">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.5 3 3.5.5-2.5 2.5.6 3.5L8 9l-3.1 1.5.6-3.5L3 4.5l3.5-.5z"/><path d="M4 13h8v1.5H4z" opacity=".5"/></svg>
+        Logros
+      </div>
       <div class="nav-item" onclick="goTab('planes', this)" style="background:linear-gradient(135deg,rgba(0,212,160,0.15),rgba(77,159,255,0.15));border:1px solid rgba(0,212,160,0.3);color:var(--green);font-weight:700;">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l2 4 4.5.65-3.25 3.17.77 4.48L8 11.1l-4.02 2.2.77-4.48L1.5 5.65 6 5z"/></svg>
         Hazte Pro+
@@ -1107,9 +1111,13 @@ if (typeof supabase === 'undefined') {
         <div class="card-title">Estadísticas detalladas por cuenta</div>
         <div id="accounts-stats"><div style="color:var(--text3);font-size:12px;font-family:monospace">Añade cuentas para ver estadísticas comparativas</div></div>
       </div>
-    </div>
+      <!-- PROP FIRM TRACKER -->
+      <div class="section-title" style="margin-top:8px;">Tracker Prop Firm</div>
+      <div id="propfirm-tracker" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:18px;">
+        <div style="color:var(--text3);font-size:12px;font-family:monospace;grid-column:1/-1;">Añade una cuenta de tipo Prop Firm para ver el tracker de reglas</div>
+      </div>
 
-<div class="tab-panel" id="panel-premarket">
+    </div><div class="tab-panel" id="panel-premarket">
       <div class="section-title">Preparación de la sesión</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;align-items:start;">
         <div class="card">
@@ -1433,6 +1441,24 @@ if (typeof supabase === 'undefined') {
     </div>
 
     <!-- PLANES -->
+    <div class="tab-panel" id="panel-logros">
+      <div class="section-title">Logros y rachas</div>
+
+      <!-- STREAKS ROW -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;" id="streaks-grid">
+      </div>
+
+      <!-- BADGES -->
+      <div class="section-title">Badges desbloqueados</div>
+      <div id="badges-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px;">
+      </div>
+
+      <!-- PRÓXIMOS LOGROS -->
+      <div class="section-title">Próximos logros</div>
+      <div id="next-badges-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;">
+      </div>
+    </div>
+
     <div class="tab-panel" id="panel-planes">
       <div class="section-title">Elige tu plan</div>
 
@@ -2237,6 +2263,7 @@ function goTab(id, el) {
     ia: 'Coach <span>IA</span>',
     diario: '<span>Diario</span>',
     psicologia: '<span>Psicología</span>',
+    logros: '🏆 <span>Logros</span>',
     planes: '⭐ <span>Hazte Pro+</span>'
   };
   const titleEl = document.getElementById('page-title');
@@ -2253,7 +2280,8 @@ function goTab(id, el) {
   if (id === 'operaciones') setTimeout(() => { try { renderAllTrades(); renderOpsCharts(); } catch(e){} }, 50);
   if (id === 'nueva') setTimeout(() => { try { updateCuentaSelector(); } catch(e){} }, 50);
   if (id === 'estadisticas') { setTimeout(() => { try { if(!isPro()) showUpgradeOverlay('estadisticas','Estadísticas avanzadas'); else renderStatsCharts(); } catch(e){} }, 50); }
-  if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); } catch(e){} }, 50);
+  if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); renderPropFirmTracker(); } catch(e){} }, 50);
+  if (id === 'logros') setTimeout(() => { try { renderLogros(); } catch(e){} }, 50);
   if (id === 'psicologia') { setTimeout(() => { try { if(!isPro()) showUpgradeOverlay('psicologia','Análisis psicológico'); else { renderPsych(); renderPsychCharts(); } } catch(e){} }, 50); }
   if (id === 'habitos') setTimeout(() => { try { initHabits(); renderHabitCalendar(); renderHabitStats(); } catch(e){} }, 50);
   if (id === 'calendario') setTimeout(() => { try { renderCalendar(); } catch(e){} }, 50);
@@ -5015,6 +5043,215 @@ async function loadAllHabitsFromSupabase() {
     renderHabitCalendar();
   } catch(e) {
     console.error('loadAllHabitsFromSupabase error:', e);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROP FIRM TRACKER
+// ═══════════════════════════════════════════════════════════════
+const PROP_RULES = {
+  'FTMO': { maxDD: 10, dailyDD: 5, target: 10, label: 'FTMO' },
+  'TopStep': { maxDD: 6, dailyDD: 4, target: 6, label: 'TopStep' },
+  'MyForexFunds': { maxDD: 12, dailyDD: 5, target: 8, label: 'MyForexFunds' },
+  'Otro': { maxDD: 10, dailyDD: 5, target: 10, label: 'Custom' },
+};
+
+function renderPropFirmTracker() {
+  var container = document.getElementById('propfirm-tracker');
+  if (!container) return;
+  var propAccounts = accounts.filter(function(a) { return a.tipo === 'prop'; });
+  if (!propAccounts.length) {
+    container.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace;grid-column:1/-1;">Añade una cuenta de tipo Prop Firm para ver el tracker de reglas</div>';
+    return;
+  }
+  container.innerHTML = propAccounts.map(function(acc) {
+    var trades = allTrades.filter(function(t) { return t.cuenta === acc.nombre; });
+    var pnl = trades.reduce(function(s,t){ return s+(t.resultado||0); }, 0);
+    var balance = acc.balance || 100000;
+    var rules = PROP_RULES[acc.broker] || PROP_RULES['Otro'];
+
+    // Daily DD
+    var today = new Date().toISOString().slice(0,10);
+    var todayTrades = trades.filter(function(t){ return (t.fecha||'').slice(0,10) === today; });
+    var todayPnl = todayTrades.reduce(function(s,t){ return s+(t.resultado||0); }, 0);
+    var dailyDDpct = Math.abs(Math.min(0, todayPnl)) / balance * 100;
+    var maxDDpct = Math.abs(Math.min(0, pnl)) / balance * 100;
+    var targetPct = Math.max(0, pnl) / balance * 100;
+
+    var dailyColor = dailyDDpct >= rules.dailyDD * 0.8 ? 'var(--red)' : dailyDDpct >= rules.dailyDD * 0.5 ? 'var(--amber)' : 'var(--green)';
+    var maxColor = maxDDpct >= rules.maxDD * 0.8 ? 'var(--red)' : maxDDpct >= rules.maxDD * 0.5 ? 'var(--amber)' : 'var(--green)';
+    var targetColor = targetPct >= rules.target ? 'var(--green)' : 'var(--blue)';
+
+    function bar(pct, max, color) {
+      var w = Math.min(100, pct/max*100).toFixed(1);
+      return '<div style="height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-top:4px;">' +
+        '<div style="width:' + w + '%;height:100%;background:' + color + ';border-radius:3px;transition:width 0.4s;"></div></div>';
+    }
+
+    return '<div style="background:var(--bg2);border:1px solid rgba(245,166,35,0.3);border-radius:14px;padding:20px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+        '<div>' +
+          '<div style="font-size:14px;font-weight:700;color:var(--text);">' + acc.nombre + '</div>' +
+          '<div style="font-size:11px;color:var(--amber);font-family:monospace;">' + rules.label + ' · ' + (acc.fase||'Fase 1') + '</div>' +
+        '</div>' +
+        '<div style="font-size:11px;font-family:monospace;color:' + (pnl>=0?'var(--green)':'var(--red)') + ';font-weight:700;">' + (pnl>=0?'+':'') + '$' + pnl.toFixed(0) + '</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:12px;">' +
+        '<div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);font-family:monospace;">' +
+            '<span>DD diario</span><span style="color:' + dailyColor + ';">' + dailyDDpct.toFixed(2) + '% / ' + rules.dailyDD + '%</span>' +
+          '</div>' + bar(dailyDDpct, rules.dailyDD, dailyColor) +
+        '</div>' +
+        '<div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);font-family:monospace;">' +
+            '<span>DD máximo</span><span style="color:' + maxColor + ';">' + maxDDpct.toFixed(2) + '% / ' + rules.maxDD + '%</span>' +
+          '</div>' + bar(maxDDpct, rules.maxDD, maxColor) +
+        '</div>' +
+        '<div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);font-family:monospace;">' +
+            '<span>Objetivo</span><span style="color:' + targetColor + ';">' + targetPct.toFixed(2) + '% / ' + rules.target + '%</span>' +
+          '</div>' + bar(targetPct, rules.target, targetColor) +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GAMIFICACIÓN — LOGROS Y RACHAS
+// ═══════════════════════════════════════════════════════════════
+const ALL_BADGES = [
+  { id:'first_trade', icon:'🎯', name:'Primera operación', desc:'Registra tu primera operación', check: function(t,h) { return t.length >= 1; } },
+  { id:'ten_trades', icon:'📋', name:'10 operaciones', desc:'Registra 10 operaciones', check: function(t,h) { return t.length >= 10; } },
+  { id:'fifty_trades', icon:'💼', name:'50 operaciones', desc:'Registra 50 operaciones', check: function(t,h) { return t.length >= 50; } },
+  { id:'hundred_trades', icon:'🏆', name:'100 operaciones', desc:'Registra 100 operaciones', check: function(t,h) { return t.length >= 100; } },
+  { id:'first_win', icon:'✅', name:'Primera victoria', desc:'Tu primera operación ganadora', check: function(t,h) { return t.some(function(op){ return (op.resultado||0)>0; }); } },
+  { id:'win_streak_5', icon:'🔥', name:'Racha de 5', desc:'5 operaciones ganadoras seguidas', check: function(t,h) { return getMaxWinStreak(t) >= 5; } },
+  { id:'win_streak_10', icon:'⚡', name:'Racha de 10', desc:'10 operaciones ganadoras seguidas', check: function(t,h) { return getMaxWinStreak(t) >= 10; } },
+  { id:'no_revenge', icon:'🧘', name:'Control total', desc:'Semana sin revenge trading', check: function(t,h) { return checkNoRevenge(t); } },
+  { id:'habit_week', icon:'💪', name:'Semana perfecta', desc:'7 días seguidos con hábitos al 100%', check: function(t,h) { return h >= 7; } },
+  { id:'profit_factor_2', icon:'📈', name:'Factor 2x', desc:'Profit factor superior a 2.0', check: function(t,h) { return getProfitFactor(t) >= 2; } },
+  { id:'wr_70', icon:'🎖️', name:'Win Rate 70%', desc:'Win rate superior al 70%', check: function(t,h) { return t.length>=10 && getWinRate(t)>=70; } },
+  { id:'diary_week', icon:'📔', name:'Diario constante', desc:'7 entradas de diario esta semana', check: function(t,h) { return getDiaryStreak() >= 7; } },
+  { id:'positive_month', icon:'🌟', name:'Mes positivo', desc:'Mes completo en positivo', check: function(t,h) { return checkPositiveMonth(t); } },
+  { id:'disciplined', icon:'⚔️', name:'Trader disciplinado', desc:'Disciplina media superior a 8', check: function(t,h) { var d=t.filter(function(op){return op.disciplina;}).map(function(op){return op.disciplina;}); return d.length>5 && d.reduce(function(a,b){return a+b;},0)/d.length>=8; } },
+];
+
+function getMaxWinStreak(trades) {
+  var sorted = trades.slice().sort(function(a,b){ return new Date(a.fecha)-new Date(b.fecha); });
+  var max=0, cur=0;
+  sorted.forEach(function(t){ if((t.resultado||0)>0){cur++;max=Math.max(max,cur);}else{cur=0;} });
+  return max;
+}
+function getWinRate(trades) {
+  var r = trades.filter(function(t){ return t.resultado!==null; });
+  return r.length ? r.filter(function(t){ return (t.resultado||0)>0; }).length/r.length*100 : 0;
+}
+function getProfitFactor(trades) {
+  var wins = trades.filter(function(t){ return (t.resultado||0)>0; }).reduce(function(s,t){ return s+(t.resultado||0); },0);
+  var losses = Math.abs(trades.filter(function(t){ return (t.resultado||0)<0; }).reduce(function(s,t){ return s+(t.resultado||0); },0));
+  return losses>0 ? wins/losses : 0;
+}
+function checkNoRevenge(trades) {
+  var weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+  return !trades.filter(function(t){ return new Date(t.fecha)>=weekAgo; })
+    .some(function(t){ return (t.errores||'').toLowerCase().includes('revenge'); });
+}
+function checkPositiveMonth(trades) {
+  var now = new Date();
+  var monthTrades = trades.filter(function(t){
+    var d=new Date(t.fecha||''); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  });
+  return monthTrades.length>0 && monthTrades.reduce(function(s,t){return s+(t.resultado||0);},0)>0;
+}
+function getDiaryStreak() {
+  var streak=0, today=new Date();
+  for(var i=0;i<30;i++){
+    var d=new Date(today); d.setDate(d.getDate()-i);
+    if(diaryEntries[d.toISOString().slice(0,10)]) streak++;
+    else if(i>0) break;
+  }
+  return streak;
+}
+function getHabitStreak() {
+  var streak=0, today=new Date();
+  for(var i=0;i<90;i++){
+    var d=new Date(today); d.setDate(d.getDate()-i);
+    var ds=d.toISOString().slice(0,10);
+    var h=habitsHistory[ds]||{};
+    var habits=h.habits||{};
+    var count=customHabits.filter(function(hab){ return (habits[hab.id]||0)>0; }).length;
+    if(count>=customHabits.length&&customHabits.length>0) streak++;
+    else if(i>0) break;
+  }
+  return streak;
+}
+function getCurrentWinStreak() {
+  var sorted=allTrades.slice().sort(function(a,b){return new Date(b.fecha)-new Date(a.fecha);});
+  var streak=0;
+  for(var i=0;i<sorted.length;i++){
+    if((sorted[i].resultado||0)>0) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function renderLogros() {
+  var habitStreak = getHabitStreak();
+  var winStreak = getCurrentWinStreak();
+  var diaryStreak = getDiaryStreak();
+  var totalPnl = allTrades.reduce(function(s,t){return s+(t.resultado||0);},0);
+
+  // Streaks
+  var streaksEl = document.getElementById('streaks-grid');
+  if (streaksEl) {
+    streaksEl.innerHTML = [
+      { icon:'🔥', val: winStreak, label:'Racha ganadora', color:'var(--green)' },
+      { icon:'💪', val: habitStreak, label:'Racha hábitos', color:'var(--blue)' },
+      { icon:'📔', val: diaryStreak, label:'Racha diario', color:'var(--purple)' },
+      { icon:'📊', val: allTrades.length, label:'Operaciones totales', color:'var(--amber)' },
+    ].map(function(s) {
+      return '<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:20px;text-align:center;">' +
+        '<div style="font-size:32px;margin-bottom:8px;">' + s.icon + '</div>' +
+        '<div style="font-size:32px;font-weight:800;color:' + s.color + ';font-family:monospace;letter-spacing:-1px;">' + s.val + '</div>' +
+        '<div style="font-size:11px;color:var(--text3);margin-top:4px;letter-spacing:1px;">' + s.label.toUpperCase() + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // Badges
+  var unlocked = [];
+  var locked = [];
+  ALL_BADGES.forEach(function(badge) {
+    var earned = badge.check(allTrades, habitStreak);
+    if (earned) unlocked.push(badge);
+    else locked.push(badge);
+  });
+
+  var badgesEl = document.getElementById('badges-grid');
+  if (badgesEl) {
+    if (!unlocked.length) {
+      badgesEl.innerHTML = '<div style="color:var(--text3);font-size:12px;font-family:monospace;grid-column:1/-1;">Aún no has desbloqueado ningún logro. ¡Sigue operando!</div>';
+    } else {
+      badgesEl.innerHTML = unlocked.map(function(b) {
+        return '<div style="background:var(--bg2);border:1px solid rgba(0,212,160,0.3);border-radius:12px;padding:16px;text-align:center;box-shadow:0 0 20px rgba(0,212,160,0.08);">' +
+          '<div style="font-size:36px;margin-bottom:8px;">' + b.icon + '</div>' +
+          '<div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:4px;">' + b.name + '</div>' +
+          '<div style="font-size:10px;color:var(--text3);">' + b.desc + '</div>' +
+        '</div>';
+      }).join('');
+    }
+  }
+
+  var nextEl = document.getElementById('next-badges-grid');
+  if (nextEl) {
+    nextEl.innerHTML = locked.slice(0,6).map(function(b) {
+      return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;opacity:0.5;">' +
+        '<div style="font-size:36px;margin-bottom:8px;filter:grayscale(1);">' + b.icon + '</div>' +
+        '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:4px;">' + b.name + '</div>' +
+        '<div style="font-size:10px;color:var(--text3);">' + b.desc + '</div>' +
+      '</div>';
+    }).join('');
   }
 }
 
