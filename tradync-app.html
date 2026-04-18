@@ -439,88 +439,9 @@
   .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99; }
   .sidebar-overlay.open { display:block; }
 
-  /* ── MOBILE BOTTOM NAV ─────────────────────────────────── */
-  .mobile-nav {
-    display: none;
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: var(--bg2);
-    border-top: 1px solid var(--border2);
-    z-index: 300;
-    padding: 6px 0 max(6px, env(safe-area-inset-bottom));
-    justify-content: space-around;
-    align-items: center;
-  }
-  .mobile-nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    padding: 6px 8px;
-    cursor: pointer;
-    border-radius: 10px;
-    transition: all 0.15s;
-    min-width: 52px;
-  }
-  .mobile-nav-item.active .mobile-nav-icon { color: var(--green); }
-  .mobile-nav-item.active .mobile-nav-label { color: var(--green); }
-  .mobile-nav-icon { font-size: 20px; line-height: 1; color: var(--text2); }
-  .mobile-nav-label { font-size: 9px; color: var(--text3); font-family: monospace; letter-spacing: 0.5px; text-transform: uppercase; }
-
-  /* ── MOBILE ONLY (max 768px) ────────────────────────────── */
   @media (max-width: 768px) {
-    /* Sidebar */
     .sidebar { transform: translateX(-100%); transition: transform 0.3s; z-index: 200; }
-    .sidebar.open { transform: translateX(0); }
-
-    /* Main area */
-    .main { margin-left: 0 !important; padding: 16px 12px 80px !important; }
-
-
-    /* Bottom nav visible */
-    .mobile-nav { display: flex !important; }
-
-    /* Sidebar toggle btn */
-    #sidebar-show-btn { display: flex !important; }
-
-    /* Header */
-    .quote-wrap { display: none !important; }
-    .page-title { font-size: 18px !important; }
-
-    /* Cards */
-    .card { padding: 14px 12px; }
-    .card-title { font-size: 13px; }
-
-    /* Metrics 2 columns */
-    .metrics-grid { grid-template-columns: repeat(2,1fr) !important; gap: 10px !important; }
-    .charts-grid { grid-template-columns: 1fr !important; }
-
-    /* Forms single column */
-    .form-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
-    .form-input, .form-select, .form-textarea { font-size: 16px !important; }
-
-    /* Grids responsive */
-    [style*="grid-template-columns:1fr 1fr"],
-    [style*="grid-template-columns: 1fr 1fr"],
-    [style*="grid-template-columns:2fr 1fr"],
-    [style*="grid-template-columns:3fr 1fr"] { grid-template-columns: 1fr !important; }
-    [style*="grid-template-columns:repeat(4"],
-    [style*="grid-template-columns: repeat(4"] { grid-template-columns: repeat(2,1fr) !important; }
-    [style*="grid-template-columns:repeat(3"],
-    [style*="grid-template-columns: repeat(3"] { grid-template-columns: 1fr !important; }
-
-    /* Day summary */
-    .day-summary { grid-template-columns: repeat(2,1fr) !important; }
-
-    /* Modals */
-    .day-modal, .edit-modal { width: 97vw !important; max-height: 88vh; overflow-y: auto; }
-
-    /* AI */
-    .ai-bubble { max-width: 95% !important; font-size: 13px !important; }
-    .ai-chat { max-height: 300px !important; }
-
-    /* Tables scroll */
-    .ops-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .main { margin-left: 0 !important; padding: 16px; }
   }
 </style>
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -7022,49 +6943,6 @@ function renderPsychCharts() {
   </div>
 </div>
 
-
-<!-- MOBILE BOTTOM NAV -->
-<nav class="mobile-nav" id="mobile-nav">
-  <div class="mobile-nav-item active" onclick="goTab('dashboard',this);closeMobileNav(this)" data-tab="dashboard">
-    <div class="mobile-nav-icon">📊</div>
-    <div class="mobile-nav-label">Dashboard</div>
-  </div>
-  <div class="mobile-nav-item" onclick="goTab('operaciones',this);closeMobileNav(this)" data-tab="operaciones">
-    <div class="mobile-nav-icon">📋</div>
-    <div class="mobile-nav-label">Operaciones</div>
-  </div>
-  <div class="mobile-nav-item" onclick="goTab('nueva',this);closeMobileNav(this)" data-tab="nueva">
-    <div class="mobile-nav-icon" style="width:36px;height:36px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#000;margin-top:-8px;">+</div>
-    <div class="mobile-nav-label">Nueva</div>
-  </div>
-  <div class="mobile-nav-item" onclick="goTab('ia',this);closeMobileNav(this)" data-tab="ia">
-    <div class="mobile-nav-icon">🤖</div>
-    <div class="mobile-nav-label">Coach IA</div>
-  </div>
-  <div class="mobile-nav-item" onclick="toggleMobileMenu()" id="mobile-more-btn">
-    <div class="mobile-nav-icon">☰</div>
-    <div class="mobile-nav-label">Más</div>
-  </div>
-</nav>
-
-<script>
-function closeMobileNav(el) {
-  document.querySelectorAll('.mobile-nav-item').forEach(function(i){ i.classList.remove('active'); });
-  if (el) el.classList.add('active');
-  // Close sidebar if open
-  var sidebar = document.querySelector('.sidebar');
-  if (sidebar && sidebar.classList.contains('open')) toggleSidebar();
-}
-function toggleMobileMenu() {
-  var sidebar = document.querySelector('.sidebar');
-  if (sidebar) {
-    toggleSidebar();
-    // Mark "more" as active
-    document.querySelectorAll('.mobile-nav-item').forEach(function(i){ i.classList.remove('active'); });
-    document.getElementById('mobile-more-btn').classList.add('active');
-  }
-}
-</script>
 
 </body>
 </html>
