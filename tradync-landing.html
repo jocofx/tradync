@@ -4,436 +4,187 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tradync — Tu Journal de Trading Profesional</title>
+<meta name="description" content="El journal de trading profesional con Coach IA, control de riesgo, análisis psicológico, Prop Firm tracker y gamificación. Empieza gratis.">
+<meta property="og:title" content="Tradync — Tu Journal de Trading Profesional">
+<meta property="og:url" content="https://www.tradyncapp.com">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  --bg:#05060a;
-  --bg2:#0a0c12;
-  --bg3:#0f1218;
-  --border:rgba(255,255,255,0.07);
-  --border2:rgba(255,255,255,0.14);
-  --text:#eef0f8;
-  --text2:#7880a0;
-  --text3:#3a4060;
-  --green:#00e5a0;
-  --green2:#00b87a;
-  --green-glow:rgba(0,229,160,0.15);
-  --red:#ff4466;
-  --amber:#ffb820;
-  --blue:#4488ff;
-  --purple:#9966ff;
-}
-
+:root{--bg:#05060a;--bg2:#0a0c12;--bg3:#0f1218;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--text:#eef0f8;--text2:#7880a0;--text3:#3a4060;--green:#00e5a0;--green2:#00b87a;--green-glow:rgba(0,229,160,0.15);--red:#ff4466;--amber:#ffb820;--blue:#4488ff;--purple:#9966ff;}
 html{scroll-behavior:smooth;}
-body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
-
-/* NOISE OVERLAY */
-body::before{
-  content:'';position:fixed;inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events:none;z-index:0;opacity:0.4;
-}
-
-/* GRID LINES */
-body::after{
-  content:'';position:fixed;inset:0;
-  background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);
-  background-size:60px 60px;pointer-events:none;z-index:0;
-}
-
-/* NAV */
-nav{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  padding:20px 48px;
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  background:rgba(5,6,10,0.7);backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--border);
-  transition:all 0.3s;
-}
+body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
+body::before{content:"";position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4;}
+body::after{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0;}
+section{position:relative;z-index:1;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 48px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:rgba(5,6,10,0.7);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:all 0.3s;}
 nav.scrolled{padding:14px 48px;}
-.nav-logo{font-family:'Instrument Serif',serif;font-size:24px;letter-spacing:-0.5px;cursor:pointer;}
+.nav-logo{font-family:"Instrument Serif",serif;font-size:24px;letter-spacing:-0.5px;cursor:pointer;}
 .nav-logo span{color:var(--green);}
 .nav-links{display:flex;gap:32px;}
 .nav-link{font-size:14px;color:var(--text2);cursor:pointer;transition:color 0.2s;font-weight:500;}
 .nav-link:hover{color:var(--text);}
-.nav-cta{display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:nowrap;}
-.btn-ghost{padding:9px 20px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.2s;}
+.nav-cta{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.btn-ghost{padding:9px 20px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;font-family:"Outfit",sans-serif;transition:all 0.2s;}
 .btn-ghost:hover{border-color:var(--green);color:var(--green);}
-.btn-primary{padding:9px 22px;border-radius:8px;border:none;background:var(--green);color:#000;font-size:14px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.2s;position:relative;overflow:hidden;}
-.btn-primary::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);pointer-events:none;}
+.btn-primary{padding:9px 22px;border-radius:8px;border:none;background:var(--green);color:#000;font-size:14px;font-weight:700;cursor:pointer;font-family:"Outfit",sans-serif;transition:all 0.2s;}
 .btn-primary:hover{background:var(--green2);transform:translateY(-1px);}
-
-/* SECTIONS */
-section{position:relative;z-index:1;}
-
-/* HERO */
-.hero{
-  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:120px 48px 80px;text-align:center;
-  position:relative;
-}
-.hero-glow{
-  position:absolute;top:20%;left:50%;transform:translate(-50%,-50%);
-  width:600px;height:600px;border-radius:50%;
-  background:radial-gradient(circle,rgba(0,229,160,0.08) 0%,transparent 70%);
-  pointer-events:none;
-}
-.hero-badge{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:6px 16px;border-radius:20px;
-  border:1px solid rgba(0,229,160,0.3);background:rgba(0,229,160,0.06);
-  font-size:12px;font-weight:600;color:var(--green);
-  font-family:'JetBrains Mono',monospace;letter-spacing:1px;
-  margin-bottom:32px;
-  animation:fadeUp 0.8s ease both;
-}
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 48px 80px;text-align:center;position:relative;}
+.hero-glow{position:absolute;top:20%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,160,0.08) 0%,transparent 70%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:20px;border:1px solid rgba(0,229,160,0.3);background:rgba(0,229,160,0.06);font-size:12px;font-weight:600;color:var(--green);font-family:"JetBrains Mono",monospace;letter-spacing:1px;margin-bottom:32px;animation:fadeUp 0.8s ease both;}
 .hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
-
-.hero-title{
-  font-family:'Instrument Serif',serif;
-  font-size:clamp(48px,7vw,96px);
-  line-height:1.0;letter-spacing:-2px;
-  margin-bottom:24px;
-  animation:fadeUp 0.8s 0.1s ease both;
-}
+.hero-title{font-family:"Instrument Serif",serif;font-size:clamp(48px,7vw,96px);line-height:1.0;letter-spacing:-2px;margin-bottom:24px;animation:fadeUp 0.8s 0.1s ease both;}
 .hero-title .accent{color:var(--green);font-style:italic;}
 .hero-title .line2{display:block;color:var(--text2);}
-
-.hero-sub{
-  font-size:clamp(16px,2vw,20px);color:var(--text2);
-  max-width:560px;line-height:1.7;margin:0 auto 48px;
-  animation:fadeUp 0.8s 0.2s ease both;
-  font-weight:300;
-}
-
-.hero-actions{
-  display:flex;gap:14px;justify-content:center;flex-wrap:wrap;
-  animation:fadeUp 0.8s 0.3s ease both;
-}
-.btn-hero{
-  padding:16px 36px;border-radius:12px;font-size:16px;font-weight:700;
-  cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.25s;
-}
-.btn-hero-primary{
-  background:var(--green);color:#000;border:none;
-  box-shadow:0 0 40px rgba(0,229,160,0.25);
-}
+.hero-sub{font-size:clamp(16px,2vw,20px);color:var(--text2);max-width:580px;line-height:1.7;margin:0 auto 48px;animation:fadeUp 0.8s 0.2s ease both;font-weight:300;}
+.hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeUp 0.8s 0.3s ease both;}
+.btn-hero{padding:16px 36px;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:"Outfit",sans-serif;transition:all 0.25s;}
+.btn-hero-primary{background:var(--green);color:#000;border:none;box-shadow:0 0 40px rgba(0,229,160,0.25);}
 .btn-hero-primary:hover{transform:translateY(-2px);box-shadow:0 0 60px rgba(0,229,160,0.35);}
 .btn-hero-secondary{background:transparent;border:1px solid var(--border2);color:var(--text);}
 .btn-hero-secondary:hover{border-color:var(--green);color:var(--green);}
-
-/* FLOATING STATS */
-.hero-stats{
-  display:flex;gap:48px;justify-content:center;margin-top:64px;
-  animation:fadeUp 0.8s 0.4s ease both;
-}
+.hero-stats{display:flex;gap:48px;justify-content:center;margin-top:64px;animation:fadeUp 0.8s 0.4s ease both;flex-wrap:wrap;}
 .hero-stat{text-align:center;}
-.hero-stat-val{font-size:28px;font-weight:700;color:var(--green);font-family:'JetBrains Mono',monospace;}
+.hero-stat-val{font-size:28px;font-weight:700;color:var(--green);font-family:"JetBrains Mono",monospace;}
 .hero-stat-label{font-size:12px;color:var(--text3);margin-top:4px;letter-spacing:1px;text-transform:uppercase;}
-
-/* DASHBOARD PREVIEW */
-.preview-wrap{
-  padding:0 48px 80px;position:relative;z-index:1;
-  animation:fadeUp 0.8s 0.5s ease both;
-}
-.preview-container{
-  max-width:1100px;margin:0 auto;
-  border-radius:20px;border:1px solid var(--border2);
-  background:var(--bg2);overflow:hidden;
-  box-shadow:0 0 120px rgba(0,229,160,0.06),0 40px 80px rgba(0,0,0,0.5);
-  position:relative;
-}
-.preview-container::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--green),transparent);
-}
-.preview-topbar{
-  background:var(--bg3);border-bottom:1px solid var(--border);
-  padding:14px 20px;display:flex;align-items:center;gap:10px;
-}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+.ticker{background:var(--bg3);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px 0;overflow:hidden;position:relative;z-index:1;}
+.ticker-track{display:flex;gap:48px;animation:ticker 30s linear infinite;white-space:nowrap;}
+.ticker-item{display:flex;align-items:center;gap:8px;font-size:12px;font-family:"JetBrains Mono",monospace;color:var(--text3);}
+.ticker-item .up{color:var(--green);}.ticker-item .down{color:var(--red);}
+@keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+.preview-wrap{padding:0 48px 80px;position:relative;z-index:1;animation:fadeUp 0.8s 0.5s ease both;}
+.preview-container{max-width:1100px;margin:0 auto;border-radius:20px;border:1px solid var(--border2);background:var(--bg2);overflow:hidden;box-shadow:0 0 120px rgba(0,229,160,0.06),0 40px 80px rgba(0,0,0,0.5);position:relative;}
+.preview-container::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);}
+.preview-topbar{background:var(--bg3);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:10px;}
 .preview-dot{width:12px;height:12px;border-radius:50%;}
 .preview-mock{padding:24px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
 .mock-metric{background:var(--bg3);border-radius:10px;padding:16px;border:1px solid var(--border);}
-.mock-label{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:2px;margin-bottom:8px;}
-.mock-val{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;}
-.mock-val.green{color:var(--green);}
-.mock-val.red{color:var(--red);}
-.mock-val.blue{color:var(--blue);}
-.mock-val.amber{color:var(--amber);}
+.mock-label{font-size:9px;color:var(--text3);font-family:"JetBrains Mono",monospace;letter-spacing:2px;margin-bottom:8px;}
+.mock-val{font-size:22px;font-weight:700;font-family:"JetBrains Mono",monospace;}
+.mock-val.green{color:var(--green);}.mock-val.red{color:var(--red);}.mock-val.blue{color:var(--blue);}.mock-val.amber{color:var(--amber);}
 .mock-chart{grid-column:span 2;background:var(--bg3);border-radius:10px;padding:16px;border:1px solid var(--border);height:100px;overflow:hidden;}
 .mock-chart svg{width:100%;height:100%;}
-
-@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
-
-/* FEATURES */
 .features{padding:100px 48px;}
 .section-header{text-align:center;margin-bottom:70px;}
-.section-tag{
-  display:inline-block;font-size:11px;font-weight:600;color:var(--green);
-  font-family:'JetBrains Mono',monospace;letter-spacing:2px;text-transform:uppercase;
-  margin-bottom:16px;
-}
-.section-title{
-  font-family:'Instrument Serif',serif;font-size:clamp(36px,4vw,56px);
-  letter-spacing:-1px;line-height:1.1;
-}
+.section-tag{display:inline-block;font-size:11px;font-weight:600;color:var(--green);font-family:"JetBrains Mono",monospace;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
+.section-title{font-family:"Instrument Serif",serif;font-size:clamp(36px,4vw,56px);letter-spacing:-1px;line-height:1.1;}
 .section-title em{color:var(--green);font-style:italic;}
-.section-sub{font-size:18px;color:var(--text2);margin-top:16px;font-weight:300;max-width:500px;margin-left:auto;margin-right:auto;}
-
-.features-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
-  max-width:1100px;margin:0 auto;
-  border:1px solid var(--border);border-radius:20px;overflow:hidden;
-}
-.feature-card{
-  background:var(--bg2);padding:36px 32px;
-  transition:background 0.2s;position:relative;overflow:hidden;
-}
-.feature-card::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(circle at 0 0,var(--green-glow),transparent 60%);
-  opacity:0;transition:opacity 0.3s;
-}
+.section-sub{font-size:18px;color:var(--text2);margin-top:16px;font-weight:300;max-width:520px;margin-left:auto;margin-right:auto;}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;max-width:1100px;margin:0 auto;border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+.feature-card{background:var(--bg2);padding:36px 32px;transition:background 0.2s;position:relative;overflow:hidden;}
+.feature-card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 0 0,var(--green-glow),transparent 60%);opacity:0;transition:opacity 0.3s;}
 .feature-card:hover{background:var(--bg3);}
 .feature-card:hover::before{opacity:1;}
-.feature-icon{
-  width:44px;height:44px;border-radius:12px;
-  border:1px solid var(--border2);
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;margin-bottom:20px;
-  background:var(--bg3);
-}
+.feature-icon{width:44px;height:44px;border-radius:12px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:20px;background:var(--bg3);}
 .feature-title{font-size:18px;font-weight:600;margin-bottom:10px;letter-spacing:-0.3px;}
 .feature-desc{font-size:14px;color:var(--text2);line-height:1.7;font-weight:300;}
-.feature-tag{
-  display:inline-block;margin-top:16px;
-  font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--green);
-  background:rgba(0,229,160,0.08);padding:3px 10px;border-radius:20px;
-}
-
-/* MODULES */
+.feature-tag{display:inline-block;margin-top:16px;font-size:11px;font-family:"JetBrains Mono",monospace;color:var(--green);background:rgba(0,229,160,0.08);padding:3px 10px;border-radius:20px;}
 .modules{padding:100px 48px;background:var(--bg2);}
 .modules-list{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:1px;border:1px solid var(--border);border-radius:20px;overflow:hidden;}
-.module-row{
-  background:var(--bg2);padding:28px 36px;
-  display:flex;align-items:center;gap:24px;
-  transition:background 0.2s;cursor:default;
-  border-bottom:1px solid var(--border);
-}
+.module-row{background:var(--bg2);padding:24px 36px;display:flex;align-items:center;gap:24px;transition:background 0.2s;border-bottom:1px solid var(--border);}
 .module-row:last-child{border-bottom:none;}
 .module-row:hover{background:var(--bg3);}
-.module-num{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);min-width:30px;}
+.module-num{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--text3);min-width:30px;}
 .module-icon{font-size:22px;min-width:34px;}
 .module-name{font-size:16px;font-weight:600;flex:1;}
 .module-desc{font-size:13px;color:var(--text2);flex:2;font-weight:300;}
-.module-badge{
-  font-size:10px;font-family:'JetBrains Mono',monospace;padding:4px 10px;
-  border-radius:20px;white-space:nowrap;font-weight:500;
-}
+.module-badge{font-size:10px;font-family:"JetBrains Mono",monospace;padding:4px 10px;border-radius:20px;white-space:nowrap;font-weight:500;}
 .module-badge.new{background:rgba(0,229,160,0.1);color:var(--green);border:1px solid rgba(0,229,160,0.2);}
 .module-badge.pro{background:rgba(153,102,255,0.1);color:var(--purple);border:1px solid rgba(153,102,255,0.2);}
 .module-badge.ai{background:rgba(68,136,255,0.1);color:var(--blue);border:1px solid rgba(68,136,255,0.2);}
-
-/* PRICING */
 .pricing{padding:100px 48px;}
 .pricing-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;max-width:960px;margin:0 auto;}
-.pricing-card{
-  background:var(--bg2);border:1px solid var(--border);border-radius:20px;
-  padding:36px 32px;position:relative;transition:transform 0.2s;
-}
+.pricing-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px 32px;position:relative;transition:transform 0.2s;}
 .pricing-card:hover{transform:translateY(-4px);}
-.pricing-card.featured{
-  border-color:var(--green);
-  box-shadow:0 0 60px rgba(0,229,160,0.1);
-}
-.pricing-card.featured::before{
-  content:'MÁS POPULAR';position:absolute;top:-1px;left:50%;transform:translateX(-50%);
-  background:var(--green);color:#000;font-size:10px;font-weight:700;
-  font-family:'JetBrains Mono',monospace;letter-spacing:1px;
-  padding:4px 16px;border-radius:0 0 8px 8px;
-}
-.pricing-plan{font-size:13px;font-weight:600;color:var(--text2);letter-spacing:2px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-bottom:16px;}
-.pricing-price{font-family:'Instrument Serif',serif;font-size:52px;letter-spacing:-2px;margin-bottom:4px;}
-.pricing-price span{font-size:20px;color:var(--text2);font-family:'Outfit',sans-serif;font-weight:300;}
+.pricing-card.featured{border-color:var(--green);box-shadow:0 0 60px rgba(0,229,160,0.1);}
+.pricing-card.featured::before{content:"MAS POPULAR";position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;font-size:10px;font-weight:700;font-family:"JetBrains Mono",monospace;letter-spacing:1px;padding:4px 16px;border-radius:0 0 8px 8px;}
+.pricing-plan{font-size:13px;font-weight:600;color:var(--text2);letter-spacing:2px;text-transform:uppercase;font-family:"JetBrains Mono",monospace;margin-bottom:16px;}
+.pricing-price{font-family:"Instrument Serif",serif;font-size:52px;letter-spacing:-2px;margin-bottom:4px;}
+.pricing-price span{font-size:20px;color:var(--text2);font-family:"Outfit",sans-serif;font-weight:300;}
 .pricing-desc{font-size:13px;color:var(--text2);margin-bottom:28px;font-weight:300;}
 .pricing-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:32px;}
 .pricing-features li{font-size:13px;display:flex;align-items:center;gap:10px;}
-.pricing-features li::before{content:'✓';color:var(--green);font-weight:700;font-size:12px;}
+.pricing-features li::before{content:"checkmark";color:var(--green);font-weight:700;font-size:12px;}
 .pricing-features li.no{color:var(--text3);}
-.pricing-features li.no::before{content:'–';color:var(--text3);}
-.pricing-btn{
-  width:100%;padding:13px;border-radius:10px;font-size:14px;font-weight:700;
-  cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.2s;
-  border:1px solid var(--border2);background:transparent;color:var(--text);
-}
+.pricing-features li.no::before{content:"dash";}
+.pricing-btn{width:100%;padding:13px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:"Outfit",sans-serif;transition:all 0.2s;border:1px solid var(--border2);background:transparent;color:var(--text);}
 .pricing-btn.featured-btn{background:var(--green);color:#000;border-color:var(--green);}
 .pricing-btn:hover{opacity:0.85;}
-
-/* TESTIMONIALS */
 .testimonials{padding:100px 48px;background:var(--bg2);}
 .testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto;}
-.testi-card{
-  background:var(--bg3);border:1px solid var(--border);border-radius:16px;
-  padding:28px;position:relative;
-}
-.testi-quote{font-size:32px;color:var(--green);font-family:'Instrument Serif',serif;line-height:1;margin-bottom:12px;}
+.testi-card{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:28px;}
+.testi-quote{font-size:32px;color:var(--green);font-family:"Instrument Serif",serif;line-height:1;margin-bottom:12px;}
 .testi-text{font-size:14px;color:var(--text2);line-height:1.7;font-weight:300;margin-bottom:20px;}
 .testi-author{display:flex;align-items:center;gap:12px;}
 .testi-avatar{width:38px;height:38px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:14px;}
 .testi-name{font-size:13px;font-weight:600;}
-.testi-handle{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
-
-/* CTA */
-.cta-section{
-  padding:120px 48px;text-align:center;
-  position:relative;overflow:hidden;
-}
-.cta-glow{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:800px;height:400px;
-  background:radial-gradient(ellipse,rgba(0,229,160,0.06) 0%,transparent 70%);
-  pointer-events:none;
-}
-.cta-title{font-family:'Instrument Serif',serif;font-size:clamp(40px,5vw,72px);letter-spacing:-2px;margin-bottom:24px;}
+.testi-handle{font-size:11px;color:var(--text3);font-family:"JetBrains Mono",monospace;}
+.cta-section{padding:120px 48px;text-align:center;position:relative;overflow:hidden;}
+.cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:400px;background:radial-gradient(ellipse,rgba(0,229,160,0.06) 0%,transparent 70%);pointer-events:none;}
+.cta-title{font-family:"Instrument Serif",serif;font-size:clamp(40px,5vw,72px);letter-spacing:-2px;margin-bottom:24px;}
 .cta-title em{color:var(--green);font-style:italic;}
 .cta-sub{font-size:18px;color:var(--text2);margin-bottom:48px;font-weight:300;}
-
-/* AUTH MODAL */
-.auth-overlay{
-  display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);
-  z-index:1000;align-items:center;justify-content:center;
-}
+.auth-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center;}
 .auth-overlay.open{display:flex;}
-.auth-modal{
-  background:var(--bg2);border:1px solid var(--border2);border-radius:24px;
-  width:440px;max-width:95vw;overflow:hidden;
-  animation:modalIn 0.25s ease;
-  position:relative;
-}
-@keyframes modalIn{from{opacity:0;transform:scale(0.94)translateY(10px);}to{opacity:1;transform:scale(1)translateY(0);}}
-.auth-modal::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--green),transparent);
-}
+.auth-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:24px;width:440px;max-width:95vw;overflow:hidden;animation:modalIn 0.25s ease;position:relative;}
+@keyframes modalIn{from{opacity:0;transform:scale(0.94) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.auth-modal::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);}
 .auth-header{padding:28px 32px 0;}
-.auth-title{font-family:'Instrument Serif',serif;font-size:28px;letter-spacing:-0.5px;margin-bottom:6px;}
+.auth-title{font-family:"Instrument Serif",serif;font-size:28px;letter-spacing:-0.5px;margin-bottom:6px;}
 .auth-title span{color:var(--green);}
 .auth-sub{font-size:13px;color:var(--text2);font-weight:300;}
 .auth-tabs{display:flex;gap:0;margin:20px 32px 0;border-bottom:1px solid var(--border);}
-.auth-tab{
-  padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;
-  border-bottom:2px solid transparent;color:var(--text2);transition:all 0.2s;
-  margin-bottom:-1px;
-}
+.auth-tab{padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);transition:all 0.2s;margin-bottom:-1px;}
 .auth-tab.active{color:var(--green);border-bottom-color:var(--green);}
 .auth-body{padding:28px 32px;}
 .auth-field{margin-bottom:16px;}
-.auth-label{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-bottom:7px;display:block;}
-.auth-input{
-  width:100%;padding:12px 16px;border-radius:10px;
-  border:1px solid var(--border2);background:var(--bg3);
-  color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;
-  outline:none;transition:border-color 0.2s;
-}
+.auth-label{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;font-family:"JetBrains Mono",monospace;margin-bottom:7px;display:block;}
+.auth-input{width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-family:"Outfit",sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;}
 .auth-input:focus{border-color:var(--green);}
 .auth-input::placeholder{color:var(--text3);}
-.auth-btn{
-  width:100%;padding:14px;border-radius:10px;
-  background:var(--green);color:#000;border:none;
-  font-size:15px;font-weight:700;cursor:pointer;
-  font-family:'Outfit',sans-serif;transition:all 0.2s;
-  margin-top:8px;position:relative;overflow:hidden;
-}
+.auth-btn{width:100%;padding:14px;border-radius:10px;background:var(--green);color:#000;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:"Outfit",sans-serif;transition:all 0.2s;margin-top:8px;}
 .auth-btn:hover{background:var(--green2);}
 .auth-btn:disabled{opacity:0.5;cursor:not-allowed;}
-.auth-divider{
-  display:flex;align-items:center;gap:12px;margin:20px 0;
-  font-size:12px;color:var(--text3);
-}
-.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border);}
-.auth-google{
-  width:100%;padding:12px;border-radius:10px;
-  border:1px solid var(--border2);background:transparent;
-  color:var(--text);font-size:14px;font-weight:500;cursor:pointer;
-  font-family:'Outfit',sans-serif;transition:all 0.2s;
-  display:flex;align-items:center;justify-content:center;gap:10px;
-}
-.auth-google:hover{border-color:var(--border2);background:var(--bg3);}
-.auth-close{
-  position:absolute;top:20px;right:20px;
-  width:32px;height:32px;border-radius:8px;
-  background:var(--bg3);border:1px solid var(--border);
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  font-size:16px;color:var(--text2);transition:all 0.15s;
-}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:20px 0;font-size:12px;color:var(--text3);}
+.auth-divider::before,.auth-divider::after{content:"";flex:1;height:1px;background:var(--border);}
+.auth-google{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border2);background:transparent;color:var(--text);font-size:14px;font-weight:500;cursor:pointer;font-family:"Outfit",sans-serif;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:10px;}
+.auth-google:hover{background:var(--bg3);}
+.auth-close{position:absolute;top:20px;right:20px;width:32px;height:32px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text2);transition:all 0.15s;}
 .auth-close:hover{background:var(--bg2);color:var(--text);}
-.auth-msg{
-  padding:10px 14px;border-radius:8px;font-size:13px;margin-top:12px;
-  display:none;
-}
+.auth-msg{padding:10px 14px;border-radius:8px;font-size:13px;margin-top:12px;display:none;}
 .auth-msg.error{background:rgba(255,68,102,0.1);color:var(--red);border:1px solid rgba(255,68,102,0.2);}
 .auth-msg.success{background:rgba(0,229,160,0.1);color:var(--green);border:1px solid rgba(0,229,160,0.2);}
 .auth-msg.show{display:block;}
 .auth-footer-text{font-size:12px;color:var(--text3);text-align:center;margin-top:16px;}
 .auth-footer-text a{color:var(--green);cursor:pointer;}
-
-/* FOOTER */
-footer{
-  border-top:1px solid var(--border);padding:40px 48px;
-  display:flex;align-items:center;justify-content:space-between;
-  position:relative;z-index:1;
-}
-.footer-logo{font-family:'Instrument Serif',serif;font-size:20px;}
+footer{border-top:1px solid var(--border);padding:40px 48px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;flex-wrap:wrap;gap:16px;}
+.footer-logo{font-family:"Instrument Serif",serif;font-size:20px;}
 .footer-logo span{color:var(--green);}
 .footer-copy{font-size:12px;color:var(--text3);}
-
-/* SCROLL ANIMATIONS */
+.footer-links{display:flex;gap:24px;}
+.footer-link{font-size:12px;color:var(--text3);cursor:pointer;transition:color 0.2s;}
+.footer-link:hover{color:var(--text2);}
 .reveal{opacity:0;transform:translateY(32px);transition:all 0.7s ease;}
 .reveal.visible{opacity:1;transform:translateY(0);}
-
-/* LIVE TICKER */
-.ticker{
-  background:var(--bg3);border-top:1px solid var(--border);border-bottom:1px solid var(--border);
-  padding:10px 0;overflow:hidden;position:relative;z-index:1;
-}
-.ticker-track{display:flex;gap:48px;animation:ticker 30s linear infinite;white-space:nowrap;}
-.ticker-item{
-  display:flex;align-items:center;gap:8px;
-  font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text3);
-}
-.ticker-item .up{color:var(--green);}
-.ticker-item .down{color:var(--red);}
-@keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
-
-@media(max-width:768px){
-  nav{padding:12px 16px;gap:8px;}
-  .nav-links{display:none;}
-  .hero{padding:100px 24px 60px;}
-  .hero-stats{gap:24px;}
-  .features{padding:60px 24px;}
-  .features-grid{grid-template-columns:1fr;}
-  .modules{padding:60px 24px;}
-  .pricing{padding:60px 24px;}
-  .pricing-cards{grid-template-columns:1fr;}
-  .testi-grid{grid-template-columns:1fr;}
-  .testimonials{padding:60px 24px;}
-  .cta-section{padding:80px 24px;}
-  footer{padding:28px 24px;flex-direction:column;gap:12px;text-align:center;}
-  .preview-wrap{padding:0 16px 60px;}
-  .preview-mock{grid-template-columns:1fr 1fr;}
-}
+.social-proof{padding:24px 48px;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.social-proof-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:48px;flex-wrap:wrap;}
+.social-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);}
+.social-item strong{color:var(--text);}
+.how-it-works{padding:100px 48px;}
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;max-width:1100px;margin:0 auto;}
+.step-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;position:relative;}
+.step-num{font-size:11px;font-family:"JetBrains Mono",monospace;color:var(--green);letter-spacing:2px;margin-bottom:16px;}
+.step-icon{font-size:28px;margin-bottom:14px;}
+.step-title{font-size:16px;font-weight:700;margin-bottom:8px;}
+.step-desc{font-size:13px;color:var(--text2);line-height:1.6;font-weight:300;}
+@media(max-width:768px){nav{padding:12px 16px;gap:8px;}.nav-links{display:none;}.hero{padding:100px 24px 60px;}.hero-stats{gap:24px;}.features{padding:60px 24px;}.features-grid{grid-template-columns:1fr;}.modules{padding:60px 24px;}.module-row{flex-wrap:wrap;gap:8px;}.module-desc{flex:auto;width:100%;}.pricing{padding:60px 24px;}.pricing-cards{grid-template-columns:1fr;}.testi-grid{grid-template-columns:1fr;}.testimonials{padding:60px 24px;}.cta-section{padding:80px 24px;}footer{padding:28px 24px;flex-direction:column;align-items:center;text-align:center;}.preview-wrap{padding:0 16px 60px;}.preview-mock{grid-template-columns:1fr 1fr;}.steps-grid{grid-template-columns:1fr 1fr;}.social-proof{padding:20px 24px;}.social-proof-inner{gap:24px;}}
 </style>
-  <!-- Edge Tracking Prevention fix -->
-  <meta http-equiv="origin-trial" content="">
-  <meta name="referrer" content="no-referrer-when-downgrade">
 </head>
 <body>
 
-<!-- NAV -->
 <nav id="navbar">
   <div class="nav-logo" onclick="scrollTo(0,0)">Trad<span>ync</span></div>
   <div class="nav-links">
@@ -441,15 +192,14 @@ footer{
     <span class="nav-link" onclick="scrollToSection('modules')">Módulos</span>
     <span class="nav-link" onclick="scrollToSection('pricing')">Precios</span>
   </div>
-  <div class="nav-cta">
+  <div class="nav-cta" id="nav-cta">
     <button class="btn-ghost" onclick="openAuth('login')">Iniciar sesión</button>
     <button class="btn-primary" onclick="openAuth('register')">Empezar gratis</button>
   </div>
 </nav>
 
-<!-- TICKER -->
 <div class="ticker" style="margin-top:73px;">
-  <div class="ticker-track" id="ticker-track">
+  <div class="ticker-track">
     <span class="ticker-item">ES <span class="up">+0.84%</span></span>
     <span class="ticker-item">NQ <span class="up">+1.12%</span></span>
     <span class="ticker-item">MES <span class="down">-0.23%</span></span>
@@ -457,9 +207,9 @@ footer{
     <span class="ticker-item">EUR/USD <span class="down">-0.18%</span></span>
     <span class="ticker-item">CL <span class="up">+1.34%</span></span>
     <span class="ticker-item">Win Rate HOY <span class="up">72%</span></span>
-    <span class="ticker-item">P&L HOY <span class="up">+$340</span></span>
-    <span class="ticker-item">Operaciones <span class="up">3/5</span></span>
+    <span class="ticker-item">P&amp;L HOY <span class="up">+$340</span></span>
     <span class="ticker-item">Racha <span class="up">7 días ↑</span></span>
+    <span class="ticker-item">Logros <span class="up">14 desbloqueados</span></span>
     <span class="ticker-item">ES <span class="up">+0.84%</span></span>
     <span class="ticker-item">NQ <span class="up">+1.12%</span></span>
     <span class="ticker-item">MES <span class="down">-0.23%</span></span>
@@ -467,22 +217,17 @@ footer{
     <span class="ticker-item">EUR/USD <span class="down">-0.18%</span></span>
     <span class="ticker-item">CL <span class="up">+1.34%</span></span>
     <span class="ticker-item">Win Rate HOY <span class="up">72%</span></span>
-    <span class="ticker-item">P&L HOY <span class="up">+$340</span></span>
-    <span class="ticker-item">Operaciones <span class="up">3/5</span></span>
+    <span class="ticker-item">P&amp;L HOY <span class="up">+$340</span></span>
     <span class="ticker-item">Racha <span class="up">7 días ↑</span></span>
+    <span class="ticker-item">Logros <span class="up">14 desbloqueados</span></span>
   </div>
 </div>
 
-<!-- HERO -->
 <section class="hero">
   <div class="hero-glow"></div>
   <div class="hero-badge"><span class="hero-badge-dot"></span>JOURNAL DE TRADING PROFESIONAL</div>
-  <h1 class="hero-title">
-    El journal que<br>
-    <span class="accent">transforma</span><br>
-    <span class="line2">tu trading</span>
-  </h1>
-  <p class="hero-sub">Registra, analiza y mejora cada operación. Control de riesgo en tiempo real, análisis psicológico, Coach IA y sincronización en la nube.</p>
+  <h1 class="hero-title">El journal que<br><span class="accent">transforma</span><br><span class="line2">tu trading</span></h1>
+  <p class="hero-sub">Registra, analiza y mejora cada operación. Coach IA personal, control de riesgo, análisis psicológico, Prop Firm tracker y gamificación.</p>
   <div class="hero-actions">
     <button class="btn-hero btn-hero-primary" onclick="openAuth('register')">Empezar gratis — sin tarjeta</button>
     <button class="btn-hero btn-hero-secondary" onclick="scrollToSection('modules')">Ver todas las funciones</button>
@@ -490,47 +235,53 @@ footer{
   <div class="hero-stats">
     <div class="hero-stat"><div class="hero-stat-val">15+</div><div class="hero-stat-label">Módulos</div></div>
     <div class="hero-stat"><div class="hero-stat-val">100%</div><div class="hero-stat-label">Privado</div></div>
-    <div class="hero-stat"><div class="hero-stat-val">IA</div><div class="hero-stat-label">Coach integrado</div></div>
-    <div class="hero-stat"><div class="hero-stat-val">∞</div><div class="hero-stat-label">Operaciones</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">IA</div><div class="hero-stat-label">Coach personal</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">14</div><div class="hero-stat-label">Logros</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">∞</div><div class="hero-stat-label">Operaciones Pro</div></div>
   </div>
 </section>
 
-<!-- DASHBOARD PREVIEW -->
 <div class="preview-wrap reveal">
   <div class="preview-container">
     <div class="preview-topbar">
       <div class="preview-dot" style="background:#ff5f57;"></div>
       <div class="preview-dot" style="background:#ffbd2e;margin-left:6px;"></div>
       <div class="preview-dot" style="background:#28ca41;margin-left:6px;"></div>
-      <span style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-left:12px;">tradync.app — Dashboard</span>
+      <span style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-left:12px;">tradyncapp.com — Dashboard</span>
     </div>
     <div class="preview-mock">
-      <div class="mock-metric"><div class="mock-label">P&L TOTAL</div><div class="mock-val green">+$3,840</div></div>
+      <div class="mock-metric"><div class="mock-label">P&amp;L TOTAL</div><div class="mock-val green">+$3,840</div></div>
       <div class="mock-metric"><div class="mock-label">WIN RATE</div><div class="mock-val blue">64.2%</div></div>
       <div class="mock-metric"><div class="mock-label">PROFIT FACTOR</div><div class="mock-val amber">2.31</div></div>
       <div class="mock-metric"><div class="mock-label">MAX DD</div><div class="mock-val red">-$620</div></div>
-      <div class="mock-chart">
-        <svg viewBox="0 0 400 80" preserveAspectRatio="none">
-          <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00e5a0" stop-opacity="0.3"/><stop offset="100%" stop-color="#00e5a0" stop-opacity="0"/></linearGradient></defs>
-          <path d="M0,70 L40,60 L80,65 L120,45 L160,38 L200,25 L240,18 L280,10 L320,5 L360,8 L400,2 L400,80 L0,80Z" fill="url(#g1)"/>
-          <path d="M0,70 L40,60 L80,65 L120,45 L160,38 L200,25 L240,18 L280,10 L320,5 L360,8 L400,2" fill="none" stroke="#00e5a0" stroke-width="2"/>
-        </svg>
-      </div>
-      <div class="mock-chart">
-        <svg viewBox="0 0 400 80" preserveAspectRatio="none">
-          <rect x="20" y="20" width="40" height="60" fill="rgba(0,229,160,0.6)" rx="3"/>
-          <rect x="80" y="35" width="40" height="45" fill="rgba(0,229,160,0.6)" rx="3"/>
-          <rect x="140" y="10" width="40" height="70" fill="rgba(0,229,160,0.6)" rx="3"/>
-          <rect x="200" y="50" width="40" height="30" fill="rgba(255,68,102,0.6)" rx="3"/>
-          <rect x="260" y="30" width="40" height="50" fill="rgba(0,229,160,0.6)" rx="3"/>
-          <rect x="320" y="15" width="40" height="65" fill="rgba(0,229,160,0.6)" rx="3"/>
-        </svg>
-      </div>
+      <div class="mock-chart"><svg viewBox="0 0 400 80" preserveAspectRatio="none"><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00e5a0" stop-opacity="0.3"/><stop offset="100%" stop-color="#00e5a0" stop-opacity="0"/></linearGradient></defs><path d="M0,70 L40,60 L80,65 L120,45 L160,38 L200,25 L240,18 L280,10 L320,5 L360,8 L400,2 L400,80 L0,80Z" fill="url(#g1)"/><path d="M0,70 L40,60 L80,65 L120,45 L160,38 L200,25 L240,18 L280,10 L320,5 L360,8 L400,2" fill="none" stroke="#00e5a0" stroke-width="2"/></svg></div>
+      <div class="mock-chart"><svg viewBox="0 0 400 80" preserveAspectRatio="none"><rect x="20" y="20" width="40" height="60" fill="rgba(0,229,160,0.6)" rx="3"/><rect x="80" y="35" width="40" height="45" fill="rgba(0,229,160,0.6)" rx="3"/><rect x="140" y="10" width="40" height="70" fill="rgba(0,229,160,0.6)" rx="3"/><rect x="200" y="50" width="40" height="30" fill="rgba(255,68,102,0.6)" rx="3"/><rect x="260" y="30" width="40" height="50" fill="rgba(0,229,160,0.6)" rx="3"/><rect x="320" y="15" width="40" height="65" fill="rgba(0,229,160,0.6)" rx="3"/></svg></div>
     </div>
   </div>
 </div>
 
-<!-- FEATURES -->
+<div class="social-proof reveal">
+  <div class="social-proof-inner">
+    <div class="social-item">🔒 <strong>Datos 100% privados</strong></div>
+    <div class="social-item">⚡ <strong>Sin instalación</strong> — funciona en el navegador</div>
+    <div class="social-item">🤖 <strong>IA entrenada</strong> con tus datos reales</div>
+    <div class="social-item">🏆 <strong>Prop Firm</strong> FTMO, TopStep y más</div>
+  </div>
+</div>
+
+<section class="how-it-works">
+  <div class="section-header reveal">
+    <div class="section-tag">Cómo funciona</div>
+    <h2 class="section-title">De 0 a trader <em>consistente</em></h2>
+  </div>
+  <div class="steps-grid reveal">
+    <div class="step-card"><div class="step-num">PASO 01</div><div class="step-icon">📝</div><div class="step-title">Registra</div><div class="step-desc">Añade cada operación con instrumento, dirección, resultado, emoción y setup. Captura de gráfico opcional.</div></div>
+    <div class="step-card"><div class="step-num">PASO 02</div><div class="step-icon">📊</div><div class="step-title">Analiza</div><div class="step-desc">El dashboard muestra tu equity, win rate, profit factor y estadísticas avanzadas por día, sesión e instrumento.</div></div>
+    <div class="step-card"><div class="step-num">PASO 03</div><div class="step-icon">🤖</div><div class="step-title">Mejora con IA</div><div class="step-desc">El Coach IA analiza tus operaciones reales y te da consejos específicos: qué setup funciona, cuándo evitar operar.</div></div>
+    <div class="step-card"><div class="step-num">PASO 04</div><div class="step-icon">🏆</div><div class="step-title">Gana consistencia</div><div class="step-desc">Desbloquea logros, mantén rachas de hábitos y controla tu psicología. La consistencia es la clave.</div></div>
+  </div>
+</section>
+
 <section class="features" id="features">
   <div class="section-header reveal">
     <div class="section-tag">Por qué Tradync</div>
@@ -538,71 +289,39 @@ footer{
     <p class="section-sub">Diseñado por traders, para traders. No es solo un diario — es tu sistema completo de mejora continua.</p>
   </div>
   <div class="features-grid reveal">
-    <div class="feature-card">
-      <div class="feature-icon">📊</div>
-      <div class="feature-title">Dashboard profesional</div>
-      <div class="feature-desc">Curva de equity interactiva, distribución de resultados, win rate por sesión y mucho más. Todo en tiempo real.</div>
-      <span class="feature-tag">Chart.js</span>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🛡️</div>
-      <div class="feature-title">Control de riesgo</div>
-      <div class="feature-desc">Define tu pérdida máxima diaria y el número de operaciones. El sistema te avisa antes de que cruces el límite.</div>
-      <span class="feature-tag">Tiempo real</span>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🧠</div>
-      <div class="feature-title">Coach IA personal</div>
-      <div class="feature-desc">Un asistente que lee tus operaciones reales y te da consejos específicos basados en tus patrones de trading.</div>
-      <span class="feature-tag">Claude AI</span>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📅</div>
-      <div class="feature-title">Calendario de trading</div>
-      <div class="feature-desc">Visualiza tus días en verde o rojo según el P&L. Haz clic en cualquier día para ver el detalle completo.</div>
-      <span class="feature-tag">Interactivo</span>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">💪</div>
-      <div class="feature-title">Tracker de hábitos</div>
-      <div class="feature-desc">Sueño, ejercicio, meditación. Correlaciona tus hábitos con tus resultados y descubre qué te hace operar mejor.</div>
-      <span class="feature-tag">Correlación</span>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📝</div>
-      <div class="feature-title">Diario reflexivo</div>
-      <div class="feature-desc">Escribe lo que piensas después de cada sesión. Emociones, lecciones, reflexiones. Todo guardado y buscable.</div>
-      <span class="feature-tag">Privado</span>
-    </div>
+    <div class="feature-card"><div class="feature-icon">📊</div><div class="feature-title">Dashboard profesional</div><div class="feature-desc">Curva de equity interactiva, comparativas semanales y mensuales, win rate por sesión y proyección de crecimiento.</div><span class="feature-tag">6 gráficos</span></div>
+    <div class="feature-card"><div class="feature-icon">🛡️</div><div class="feature-title">Control de riesgo</div><div class="feature-desc">Define pérdida máxima diaria y operaciones máximas. El sistema te avisa en tiempo real antes de cruzar el límite.</div><span class="feature-tag">Tiempo real</span></div>
+    <div class="feature-card"><div class="feature-icon">🤖</div><div class="feature-title">Coach IA personal</div><div class="feature-desc">Analiza tus operaciones y responde en segundos. Historial de chat persistente, 8 análisis rápidos y consejos accionables.</div><span class="feature-tag">Claude AI</span></div>
+    <div class="feature-card"><div class="feature-icon">🏆</div><div class="feature-title">Logros y gamificación</div><div class="feature-desc">14 badges desbloqueables, rachas ganadoras, racha de hábitos y sistema completo que hace el trading motivador.</div><span class="feature-tag">Nuevo</span></div>
+    <div class="feature-card"><div class="feature-icon">📈</div><div class="feature-title">Prop Firm tracker</div><div class="feature-desc">Seguimiento de reglas FTMO, TopStep y más. Barras de DD diario, DD máximo y objetivo de profit en cada cuenta.</div><span class="feature-tag">FTMO · TopStep</span></div>
+    <div class="feature-card"><div class="feature-icon">🧠</div><div class="feature-title">Análisis psicológico</div><div class="feature-desc">Alertas de revenge trading, correlación emoción/resultados, 10 consejos personalizados y patrones detectados.</div><span class="feature-tag">Único</span></div>
   </div>
 </section>
 
-<!-- MODULES -->
 <section class="modules" id="modules">
   <div class="section-header reveal">
     <div class="section-tag">Módulos</div>
     <h2 class="section-title">15 módulos.<br>Una sola <em>plataforma</em></h2>
   </div>
   <div class="modules-list reveal">
-    <div class="module-row"><span class="module-num">01</span><span class="module-icon">📊</span><span class="module-name">Dashboard</span><span class="module-desc">6 gráficos interactivos: equity, P&L diario, win/loss, setup, sesiones, distribución</span><span class="module-badge new">NUEVO</span></div>
-    <div class="module-row"><span class="module-num">02</span><span class="module-icon">📋</span><span class="module-name">Operaciones</span><span class="module-desc">Registro completo con estado (abierta/cerrada), capturas del gráfico y análisis por activo</span></div>
+    <div class="module-row"><span class="module-num">01</span><span class="module-icon">📊</span><span class="module-name">Dashboard</span><span class="module-desc">6 gráficos interactivos: equity, P&amp;L diario, win/loss, setup, sesiones, comparativa semanal y mensual</span><span class="module-badge new">NUEVO</span></div>
+    <div class="module-row"><span class="module-num">02</span><span class="module-icon">📋</span><span class="module-name">Operaciones</span><span class="module-desc">Registro completo con estado, capturas del gráfico, setup, emoción y análisis por activo</span></div>
     <div class="module-row"><span class="module-num">03</span><span class="module-icon">🛡️</span><span class="module-name">Control de Riesgo</span><span class="module-desc">Límites diarios, calculadora de posición, alertas en tiempo real y barra de estado visible siempre</span></div>
-    <div class="module-row"><span class="module-num">04</span><span class="module-icon">📅</span><span class="module-name">Calendario</span><span class="module-desc">Vista mensual con P&L por día, detalle de operaciones al hacer clic con gráficos incluidos</span></div>
-    <div class="module-row"><span class="module-num">05</span><span class="module-icon">⏰</span><span class="module-name">Pre-Market</span><span class="module-desc">Checklist, plan del día, niveles clave, sesgo y alertas de eventos macro (NFP, FOMC, CPI)</span></div>
-    <div class="module-row"><span class="module-num">06</span><span class="module-icon">💪</span><span class="module-name">Hábitos</span><span class="module-desc">Tracker diario con anillos de progreso, encuesta post-sesión y correlación hábitos/resultados</span></div>
-    <div class="module-row"><span class="module-num">07</span><span class="module-icon">📈</span><span class="module-name">Estadísticas</span><span class="module-desc">P&L por instrumento, comparativa mensual, proyección de crecimiento y simulador what-if</span></div>
-    <div class="module-row"><span class="module-num">08</span><span class="module-icon">👤</span><span class="module-name">Cuentas</span><span class="module-desc">Múltiples cuentas (propia + prop firm) con comparativas de win rate, PF y estadísticas detalladas</span></div>
-    <div class="module-row"><span class="module-num">09</span><span class="module-icon">🧠</span><span class="module-name">Coach IA</span><span class="module-desc">Chat con IA que analiza tus datos reales. Preguntas rápidas y resumen semanal automático</span><span class="module-badge ai">IA</span></div>
-    <div class="module-row"><span class="module-num">10</span><span class="module-icon">📝</span><span class="module-name">Diario</span><span class="module-desc">Escritura libre con selección de emociones, nivel de energía y calendario de entradas</span></div>
-    <div class="module-row"><span class="module-num">11</span><span class="module-icon">🧪</span><span class="module-name">Psicología</span><span class="module-desc">Rendimiento por emoción, errores frecuentes, disciplina y control de impulsos</span></div>
-    <div class="module-row"><span class="module-num">12</span><span class="module-icon">🏆</span><span class="module-name">Prop Firm</span><span class="module-desc">Seguimiento de reglas FTMO, TopStep, etc. Barras de progreso hacia objetivos de fase</span></div>
+    <div class="module-row"><span class="module-num">04</span><span class="module-icon">📅</span><span class="module-name">Calendario</span><span class="module-desc">Vista mensual con P&amp;L por día, detalle de operaciones al hacer clic con gráficos incluidos</span></div>
+    <div class="module-row"><span class="module-num">05</span><span class="module-icon">📈</span><span class="module-name">Estadísticas avanzadas</span><span class="module-desc">Comparador de cuentas, rendimiento por hora y día, proyección de crecimiento con comparativa de períodos</span><span class="module-badge pro">PRO</span></div>
+    <div class="module-row"><span class="module-num">06</span><span class="module-icon">👤</span><span class="module-name">Cuentas + Prop Firm</span><span class="module-desc">Múltiples cuentas con estadísticas individuales y tracker de reglas FTMO, TopStep, MyForexFunds</span><span class="module-badge pro">PRO</span></div>
+    <div class="module-row"><span class="module-num">07</span><span class="module-icon">⏰</span><span class="module-name">Pre-Market</span><span class="module-desc">Checklist, plan del día, niveles clave, sesgo y alertas de eventos macro NFP, FOMC, CPI</span></div>
+    <div class="module-row"><span class="module-num">08</span><span class="module-icon">💪</span><span class="module-name">Hábitos</span><span class="module-desc">Tracker diario con calendario clickable, encuesta post-sesión y detalle histórico por día</span></div>
+    <div class="module-row"><span class="module-num">09</span><span class="module-icon">🤖</span><span class="module-name">Coach IA</span><span class="module-desc">Chat persistente con IA que analiza tus datos reales. 8 análisis rápidos e historial completo guardado</span><span class="module-badge ai">IA</span></div>
+    <div class="module-row"><span class="module-num">10</span><span class="module-icon">📝</span><span class="module-name">Diario</span><span class="module-desc">Escritura libre con emociones, energía y calendario de entradas. Historial completo por fecha</span></div>
+    <div class="module-row"><span class="module-num">11</span><span class="module-icon">🧠</span><span class="module-name">Psicología</span><span class="module-desc">Alertas de riesgo, correlación emocional, 10 consejos personalizados y patrones detectados automáticamente</span><span class="module-badge pro">PRO</span></div>
+    <div class="module-row"><span class="module-num">12</span><span class="module-icon">🏆</span><span class="module-name">Logros</span><span class="module-desc">14 badges desbloqueables, rachas ganadoras, racha de hábitos y sistema de gamificación completo</span><span class="module-badge new">NUEVO</span></div>
     <div class="module-row"><span class="module-num">13</span><span class="module-icon">🌙</span><span class="module-name">Modo claro/oscuro</span><span class="module-desc">Cambia entre temas con un clic. Tu preferencia se guarda automáticamente</span></div>
-    <div class="module-row"><span class="module-num">14</span><span class="module-icon">📱</span><span class="module-name">Responsive</span><span class="module-desc">Accede desde cualquier dispositivo. Móvil, tablet u ordenador — siempre tus datos</span></div>
-    <div class="module-row"><span class="module-num">15</span><span class="module-icon">☁️</span><span class="module-name">Sincronización en la nube</span><span class="module-desc">Tus datos guardados en Supabase. Sin Notion, sin configuración. Listo desde el primer login</span><span class="module-badge pro">PRO</span></div>
+    <div class="module-row"><span class="module-num">14</span><span class="module-icon">📱</span><span class="module-name">Responsive</span><span class="module-desc">Accede desde cualquier dispositivo. Móvil, tablet u ordenador siempre con tus datos sincronizados</span></div>
+    <div class="module-row"><span class="module-num">15</span><span class="module-icon">☁️</span><span class="module-name">Sincronización en la nube</span><span class="module-desc">Datos guardados en Supabase. Sin configuración. Todo disponible desde el primer login</span></div>
   </div>
 </section>
 
-<!-- PRICING -->
 <section class="pricing" id="pricing">
   <div class="section-header reveal">
     <div class="section-tag">Precios</div>
@@ -615,22 +334,17 @@ footer{
       <div class="pricing-desc">Para empezar a registrar tus operaciones</div>
       <ul class="pricing-features">
         <li>Hasta 50 operaciones</li>
-        <li class="no">Operaciones ilimitadas</li>
         <li>Dashboard básico</li>
-        <li class="no">Dashboard completo (6 gráficos)</li>
         <li>Control de riesgo</li>
         <li>Tracker de hábitos</li>
         <li>Diario personal</li>
         <li>Pre-market + Calendario</li>
-        <li class="no">Coach IA con tus datos reales</li>
+        <li>1 cuenta</li>
+        <li class="no">Operaciones ilimitadas</li>
+        <li class="no">Coach IA</li>
         <li class="no">Estadísticas avanzadas</li>
-        <li class="no">Múltiples cuentas + Prop Firm</li>
-        <li class="no">Exportar datos (CSV)</li>
-        <li class="no">Exportar datos (CSV + PDF)</li>
-        <li class="no">14 días de prueba gratis</li>
-        <li class="no">Soporte prioritario</li>
-        <li class="no">Acceso anticipado a funciones</li>
-        <li class="no">Informes mensuales personalizados</li>
+        <li class="no">Cuentas ilimitadas + Prop Firm</li>
+        <li class="no">Análisis psicológico</li>
       </ul>
       <button class="pricing-btn" onclick="openAuth('register')">Crear cuenta gratis</button>
     </div>
@@ -639,23 +353,17 @@ footer{
       <div class="pricing-price">9€<span>/mes</span></div>
       <div class="pricing-desc">Para traders que quieren mejorar en serio</div>
       <ul class="pricing-features">
-        <li class="no">Hasta 50 operaciones</li>
+        <li>Todo del plan Free</li>
         <li>Operaciones ilimitadas</li>
-        <li>Dashboard básico</li>
+        <li>Coach IA (50 análisis/mes)</li>
         <li>Dashboard completo (6 gráficos)</li>
-        <li>Control de riesgo</li>
-        <li>Tracker de hábitos</li>
-        <li>Diario personal</li>
-        <li>Pre-market + Calendario</li>
-        <li>Coach IA con tus datos reales</li>
-        <li>Estadísticas avanzadas</li>
-        <li>Múltiples cuentas + Prop Firm</li>
-        <li>Exportar datos (CSV)</li>
-        <li class="no">Exportar datos (CSV + PDF)</li>
+        <li>Estadísticas avanzadas + comparador</li>
+        <li>Cuentas ilimitadas</li>
+        <li>Prop Firm tracker</li>
+        <li>Análisis psicológico completo</li>
+        <li>Logros y gamificación</li>
+        <li>Historial de chat IA persistente</li>
         <li>14 días de prueba gratis</li>
-        <li class="no">Soporte prioritario</li>
-        <li class="no">Acceso anticipado a funciones</li>
-        <li class="no">Informes mensuales personalizados</li>
       </ul>
       <button class="pricing-btn featured-btn" onclick="openAuth('register')">Empezar 14 días gratis</button>
     </div>
@@ -664,64 +372,32 @@ footer{
       <div class="pricing-price">6,5€<span>/mes</span></div>
       <div class="pricing-desc">79€/año · Ahorra 29€ vs mensual</div>
       <ul class="pricing-features">
-        <li class="no">Hasta 50 operaciones</li>
-        <li>Operaciones ilimitadas</li>
-        <li>Dashboard básico</li>
-        <li>Dashboard completo (6 gráficos)</li>
-        <li>Control de riesgo</li>
-        <li>Tracker de hábitos</li>
-        <li>Diario personal</li>
-        <li>Pre-market + Calendario</li>
-        <li>Coach IA con tus datos reales</li>
-        <li>Estadísticas avanzadas</li>
-        <li>Múltiples cuentas + Prop Firm</li>
-        <li>Exportar datos (CSV)</li>
-        <li>Exportar datos (CSV + PDF)</li>
-        <li>14 días de prueba gratis</li>
-        <li>Soporte prioritario</li>
+        <li>Todo del plan Pro</li>
+        <li>Exportar datos CSV + PDF</li>
+        <li>Soporte prioritario 24h</li>
         <li>Acceso anticipado a funciones</li>
-        <li>Informes mensuales personalizados</li>
+        <li>Informes mensuales por IA</li>
+        <li>14 días de prueba gratis</li>
+        <li>Ahorro de 29€/año</li>
+        <li>Sin permanencia</li>
       </ul>
       <button class="pricing-btn" onclick="openAuth('register')">Empezar Pro Anual</button>
     </div>
   </div>
 </section>
 
-<!-- TESTIMONIALS -->
-<section class="testimonials" id="testimonials">
+<section class="testimonials">
   <div class="section-header reveal">
     <div class="section-tag">Comunidad</div>
     <h2 class="section-title">Lo que dicen los <em>traders</em></h2>
   </div>
   <div class="testi-grid reveal">
-    <div class="testi-card">
-      <div class="testi-quote">"</div>
-      <div class="testi-text">Desde que uso Tradync mi consistencia ha mejorado un 40%. Ver el patrón de que opero peor los lunes me cambió completamente la mentalidad.</div>
-      <div class="testi-author">
-        <div class="testi-avatar">🎯</div>
-        <div><div class="testi-name">Carlos M.</div><div class="testi-handle">@carlostrades · TopStep Funded</div></div>
-      </div>
-    </div>
-    <div class="testi-card">
-      <div class="testi-quote">"</div>
-      <div class="testi-text">El Coach IA es una pasada. Le pregunté qué setup me da más dinero y en segundos analizó mis 200 operaciones y me respondió con datos concretos.</div>
-      <div class="testi-author">
-        <div class="testi-avatar">📈</div>
-        <div><div class="testi-name">Sara L.</div><div class="testi-handle">@sarafutures · NQ Trader</div></div>
-      </div>
-    </div>
-    <div class="testi-card">
-      <div class="testi-quote">"</div>
-      <div class="testi-text">Por fin un journal que tiene todo en un sitio. El tracker de hábitos me hizo darme cuenta de que duermo mal los días que más pierdo. Ahora priorizo el descanso.</div>
-      <div class="testi-author">
-        <div class="testi-avatar">💤</div>
-        <div><div class="testi-name">Miguel A.</div><div class="testi-handle">@migueltrading · ES Scalper</div></div>
-      </div>
-    </div>
+    <div class="testi-card"><div class="testi-quote">"</div><div class="testi-text">Desde que uso Tradync mi consistencia ha mejorado un 40%. Ver que opero peor los lunes me cambió completamente la mentalidad.</div><div class="testi-author"><div class="testi-avatar">🎯</div><div><div class="testi-name">Carlos M.</div><div class="testi-handle">@carlostrades · TopStep Funded</div></div></div></div>
+    <div class="testi-card"><div class="testi-quote">"</div><div class="testi-text">El Coach IA es una pasada. Le pregunté qué setup me da más dinero y en segundos analizó mis 200 operaciones con datos concretos.</div><div class="testi-author"><div class="testi-avatar">📈</div><div><div class="testi-name">Sara L.</div><div class="testi-handle">@sarafutures · NQ Trader</div></div></div></div>
+    <div class="testi-card"><div class="testi-quote">"</div><div class="testi-text">El Prop Firm tracker me salvó la cuenta. Me avisó que estaba al 80% del DD máximo y paré antes de que me descalificaran.</div><div class="testi-author"><div class="testi-avatar">🏆</div><div><div class="testi-name">Miguel A.</div><div class="testi-handle">@migueltrading · FTMO Funded</div></div></div></div>
   </div>
 </section>
 
-<!-- CTA -->
 <section class="cta-section">
   <div class="cta-glow"></div>
   <div class="reveal">
@@ -734,64 +410,42 @@ footer{
   </div>
 </section>
 
-<!-- FOOTER -->
 <footer>
   <div class="footer-logo">Trad<span>ync</span></div>
-  <div class="footer-copy">© 2025 Tradync. Hecho con 💚 para traders.</div>
+  <div class="footer-links">
+    <span class="footer-link">Privacidad</span>
+    <span class="footer-link">Términos</span>
+    <span class="footer-link" onclick="scrollToSection('pricing')">Precios</span>
+    <span class="footer-link" onclick="openAuth('login')">Acceder</span>
+  </div>
+  <div class="footer-copy">© 2026 Tradync · tradyncapp.com</div>
 </footer>
 
-<!-- AUTH MODAL -->
 <div class="auth-overlay" id="auth-overlay">
   <div class="auth-modal">
     <div class="auth-close" onclick="closeAuth()">✕</div>
-    <div class="auth-header">
-      <div class="auth-title">Bienvenido a <span>Tradync</span></div>
-      <div class="auth-sub">Tu journal de trading profesional</div>
-    </div>
+    <div class="auth-header"><div class="auth-title">Bienvenido a <span>Tradync</span></div><div class="auth-sub">Tu journal de trading profesional</div></div>
     <div class="auth-tabs">
       <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Iniciar sesión</div>
       <div class="auth-tab" id="tab-register" onclick="switchTab('register')">Crear cuenta</div>
     </div>
     <div class="auth-body">
-      <!-- LOGIN -->
       <div id="form-login">
-        <div class="auth-field">
-          <label class="auth-label">Email</label>
-          <input class="auth-input" type="email" id="login-email" placeholder="tu@email.com">
-        </div>
-        <div class="auth-field">
-          <label class="auth-label">Contraseña</label>
-          <input class="auth-input" type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
-        </div>
+        <div class="auth-field"><label class="auth-label">Email</label><input class="auth-input" type="email" id="login-email" placeholder="tu@email.com"></div>
+        <div class="auth-field"><label class="auth-label">Contraseña</label><input class="auth-input" type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
         <button class="auth-btn" onclick="doLogin()" id="login-btn">Iniciar sesión</button>
         <div class="auth-divider">o continúa con</div>
-        <button class="auth-google" onclick="doGoogleAuth()">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          Continuar con Google
-        </button>
+        <button class="auth-google" onclick="doGoogleAuth()"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Continuar con Google</button>
         <div class="auth-msg" id="login-msg"></div>
         <div class="auth-footer-text"><a onclick="switchTab('register')">¿No tienes cuenta? Créala gratis</a></div>
       </div>
-      <!-- REGISTER -->
       <div id="form-register" style="display:none;">
-        <div class="auth-field">
-          <label class="auth-label">Nombre</label>
-          <input class="auth-input" type="text" id="reg-name" placeholder="Tu nombre">
-        </div>
-        <div class="auth-field">
-          <label class="auth-label">Email</label>
-          <input class="auth-input" type="email" id="reg-email" placeholder="tu@email.com">
-        </div>
-        <div class="auth-field">
-          <label class="auth-label">Contraseña</label>
-          <input class="auth-input" type="password" id="reg-pass" placeholder="Mínimo 8 caracteres" onkeydown="if(event.key==='Enter')doRegister()">
-        </div>
+        <div class="auth-field"><label class="auth-label">Nombre</label><input class="auth-input" type="text" id="reg-name" placeholder="Tu nombre"></div>
+        <div class="auth-field"><label class="auth-label">Email</label><input class="auth-input" type="email" id="reg-email" placeholder="tu@email.com"></div>
+        <div class="auth-field"><label class="auth-label">Contraseña</label><input class="auth-input" type="password" id="reg-pass" placeholder="Mínimo 8 caracteres" onkeydown="if(event.key==='Enter')doRegister()"></div>
         <button class="auth-btn" onclick="doRegister()" id="reg-btn">Crear cuenta gratis</button>
         <div class="auth-divider">o continúa con</div>
-        <button class="auth-google" onclick="doGoogleAuth()">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          Continuar con Google
-        </button>
+        <button class="auth-google" onclick="doGoogleAuth()"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Continuar con Google</button>
         <div class="auth-msg" id="reg-msg"></div>
         <div class="auth-footer-text"><a onclick="switchTab('login')">¿Ya tienes cuenta? Inicia sesión</a></div>
       </div>
@@ -800,148 +454,46 @@ footer{
 </div>
 
 <script>
-// ── SUPABASE ──────────────────────────────────────────────────────
 const { createClient } = supabase;
-const sb = createClient(
-  'https://oeznlehxublyvivzvuab.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lem5sZWh4dWJseXZpdnp2dWFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjUzMDQsImV4cCI6MjA5MTc0MTMwNH0.OJQRGgV0W64tJcrgQIos_C5e3RD8gsUtEm09LTtEhpE'
-);
-
-// ── AUTH FUNCTIONS ────────────────────────────────────────────────
-function openAuth(tab) {
-  document.getElementById('auth-overlay').classList.add('open');
-  switchTab(tab);
-  document.body.style.overflow = 'hidden';
+const sb = createClient('https://oeznlehxublyvivzvuab.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lem5sZWh4dWJseXZpdnp2dWFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjUzMDQsImV4cCI6MjA5MTc0MTMwNH0.OJQRGgV0W64tJcrgQIos_C5e3RD8gsUtEm09LTtEhpE');
+function openAuth(tab){document.getElementById('auth-overlay').classList.add('open');switchTab(tab);document.body.style.overflow='hidden';}
+function closeAuth(){document.getElementById('auth-overlay').classList.remove('open');document.body.style.overflow='';}
+function switchTab(tab){document.getElementById('tab-login').classList.toggle('active',tab==='login');document.getElementById('tab-register').classList.toggle('active',tab==='register');document.getElementById('form-login').style.display=tab==='login'?'block':'none';document.getElementById('form-register').style.display=tab==='register'?'block':'none';}
+function showMsg(id,text,type){const el=document.getElementById(id);el.textContent=text;el.className='auth-msg '+type+' show';}
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  if(!email||!pass){showMsg('login-msg','Rellena todos los campos','error');return;}
+  const btn=document.getElementById('login-btn');btn.disabled=true;btn.textContent='Entrando...';
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  if(error){showMsg('login-msg',error.message==='Invalid login credentials'?'Email o contraseña incorrectos':error.message,'error');btn.disabled=false;btn.textContent='Iniciar sesión';}
+  else{showMsg('login-msg','Accediendo a tu journal...','success');btn.textContent='Redirigiendo...';window.location.replace(window.location.origin+'/tradync-app.html');}
 }
-
-function closeAuth() {
-  document.getElementById('auth-overlay').classList.remove('open');
-  document.body.style.overflow = '';
+async function doRegister(){
+  const name=document.getElementById('reg-name').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pass=document.getElementById('reg-pass').value;
+  if(!name||!email||!pass){showMsg('reg-msg','Rellena todos los campos','error');return;}
+  if(pass.length<8){showMsg('reg-msg','La contraseña debe tener mínimo 8 caracteres','error');return;}
+  const btn=document.getElementById('reg-btn');btn.disabled=true;btn.textContent='Creando cuenta...';
+  const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name}}});
+  if(error){showMsg('reg-msg',error.message,'error');btn.disabled=false;btn.textContent='Crear cuenta gratis';}
+  else if(data.user&&!data.user.confirmed_at){showMsg('reg-msg','Revisa tu email para confirmar la cuenta','success');btn.textContent='Email enviado';}
+  else{showMsg('reg-msg','Cuenta creada. Entrando...','success');window.location.replace(window.location.origin+'/tradync-app.html');}
 }
-
-function switchTab(tab) {
-  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
-  document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
-  document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
-}
-
-function showMsg(id, text, type) {
-  const el = document.getElementById(id);
-  el.textContent = text;
-  el.className = 'auth-msg ' + type + ' show';
-}
-
-async function doLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pass = document.getElementById('login-pass').value;
-  if (!email || !pass) { showMsg('login-msg', 'Rellena todos los campos', 'error'); return; }
-  const btn = document.getElementById('login-btn');
-  btn.disabled = true; btn.textContent = 'Entrando...';
-  try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-    if (error) {
-      showMsg('login-msg', error.message === 'Invalid login credentials' ? 'Email o contraseña incorrectos' : error.message, 'error');
-      btn.disabled = false; btn.textContent = 'Iniciar sesión';
-    } else {
-      showMsg('login-msg', '✓ Accediendo a tu journal...', 'success');
-      btn.textContent = 'Redirigiendo...';
-      // Direct immediate redirect - don't wait
-      window.location.replace(window.location.origin + '/tradync-app.html');
-    }
-  } catch(e) {
-    showMsg('login-msg', 'Error de conexión. Inténtalo de nuevo.', 'error');
-    btn.disabled = false; btn.textContent = 'Iniciar sesión';
-  }
-}
-
-async function doRegister() {
-  const name = document.getElementById('reg-name').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const pass = document.getElementById('reg-pass').value;
-  if (!name || !email || !pass) { showMsg('reg-msg', 'Rellena todos los campos', 'error'); return; }
-  if (pass.length < 8) { showMsg('reg-msg', 'La contraseña debe tener mínimo 8 caracteres', 'error'); return; }
-  const btn = document.getElementById('reg-btn');
-  btn.disabled = true; btn.textContent = 'Creando cuenta...';
-  const { data, error } = await sb.auth.signUp({
-    email, password: pass,
-    options: { data: { full_name: name } }
-  });
-  if (error) {
-    showMsg('reg-msg', error.message, 'error');
-    btn.disabled = false; btn.textContent = 'Crear cuenta gratis';
-  } else if (data.user && !data.user.confirmed_at) {
-    showMsg('reg-msg', '✓ Revisa tu email para confirmar la cuenta', 'success');
-    btn.textContent = 'Email enviado ✓';
-  } else {
-    showMsg('reg-msg', '✓ Cuenta creada. Entrando...', 'success');
-    btn.textContent = 'Redirigiendo...';
-    window.location.replace(window.location.origin + '/tradync-app.html');
-  }
-}
-
-async function doGoogleAuth() {
-  const { error } = await sb.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.origin + '/app' }
-  });
-  if (error) showMsg('login-msg', error.message, 'error');
-}
-
-function goToApp(user) {
-  // Store user session and redirect to journal
-  localStorage.setItem('tradync_user', JSON.stringify({ id: user.id, email: user.email, name: user.user_metadata?.full_name }));
-  // For now redirect to the journal HTML - in production this would be /app
-  closeAuth();
-  showWelcomeToast(user.user_metadata?.full_name || user.email);
-}
-
-function showWelcomeToast(name) {
-  const toast = document.createElement('div');
-  toast.style.cssText = 'position:fixed;bottom:28px;right:28px;background:#00e5a0;color:#000;padding:14px 22px;border-radius:12px;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 0 40px rgba(0,229,160,0.3);';
-  toast.innerHTML = '✓ Bienvenido' + (name ? ', ' + name.split(' ')[0] : '') + '!<br><span style="font-size:12px;font-weight:500;">Redirigiendo al journal...</span>';
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 5000);
-}
-
-// ── SCROLL ANIMATIONS ─────────────────────────────────────────────
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-}, { threshold: 0.1 });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-// ── NAVBAR SCROLL ─────────────────────────────────────────────────
-window.addEventListener('scroll', () => {
-  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
-});
-
-function scrollToSection(id) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-}
-
-// ── CLOSE ON OVERLAY CLICK ────────────────────────────────────────
-document.getElementById('auth-overlay').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeAuth();
-});
-
-// ── CHECK EXISTING SESSION ────────────────────────────────────────
-sb.auth.getSession().then(({ data: { session } }) => {
-  if (session) {
-    // User already logged in - show "Go to journal" button
-    const userName = session.user.user_metadata?.full_name?.split(' ')[0] || session.user.email.split('@')[0];
-  document.querySelector('.nav-cta').innerHTML = `
-      <span style="font-size:12px;color:var(--text2);white-space:nowrap;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03);">👤 ${userName}</span>
-      <button class="btn-primary" style="white-space:nowrap;" onclick="window.location.replace(window.location.protocol === 'file:' ? 'tradync-app.html' : window.location.origin + '/tradync-app.html')">Ir al journal →</button>
-      <button class="btn-ghost" style="white-space:nowrap;padding:9px 14px;" onclick="doLogout()">Salir</button>
-    `;
+async function doGoogleAuth(){const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+'/tradync-app.html'}});if(error)showMsg('login-msg',error.message,'error');}
+const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+window.addEventListener('scroll',()=>{document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>50);});
+function scrollToSection(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
+document.getElementById('auth-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAuth();});
+sb.auth.getSession().then(({data:{session}})=>{
+  if(session){
+    const userName=session.user.user_metadata?.full_name?.split(' ')[0]||session.user.email.split('@')[0];
+    document.getElementById('nav-cta').innerHTML='<span style="font-size:12px;color:var(--text2);white-space:nowrap;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.03);">👤 '+userName+'</span><button class="btn-primary" style="white-space:nowrap;" onclick="window.location.replace(window.location.origin+'/tradync-app.html')">Ir al journal →</button><button class="btn-ghost" style="white-space:nowrap;padding:9px 14px;" onclick="doLogout()">Salir</button>';
   }
 });
-
-async function doLogout() {
-  await sb.auth.signOut();
-  localStorage.removeItem('tradync_user');
-  location.reload();
-}
+async function doLogout(){await sb.auth.signOut();location.reload();}
 </script>
 </body>
 </html>
