@@ -6565,6 +6565,58 @@ function showWeeklySummaryModal(content) {
   document.body.appendChild(overlay);
 }
 
+// ═══════════════════════════════════════════════════════════════
+// MOBILE LAYOUT PATCHES
+// ═══════════════════════════════════════════════════════════════
+function patchMobileLayouts() {
+  if (window.innerWidth > 768) return;
+
+  // Patch all chart containers in dashboard and operaciones
+  var chartPanels = ['panel-dashboard', 'panel-operaciones'];
+  chartPanels.forEach(function(panelId) {
+    var panel = document.getElementById(panelId);
+    if (!panel) return;
+
+    // Force all grid divs to single column
+    panel.querySelectorAll('[style*="grid-template-columns"]').forEach(function(el) {
+      var s = el.style.gridTemplateColumns;
+      // Keep 2-col for metrics only
+      if (el.classList.contains('metrics-grid')) {
+        el.style.gridTemplateColumns = 'repeat(2,1fr)';
+        el.style.gap = '8px';
+      } else {
+        el.style.gridTemplateColumns = '1fr';
+        el.style.gap = '10px';
+        el.style.marginBottom = '10px';
+      }
+    });
+
+    // Shrink all chart containers
+    panel.querySelectorAll('[style*="position:relative"][style*="height"]').forEach(function(el) {
+      el.style.height = '110px';
+    });
+
+    // Shrink donut/small chart
+    panel.querySelectorAll('[style*="height:130px"]').forEach(function(el) {
+      el.style.height = '90px';
+      el.style.width = '90px';
+    });
+  });
+
+  // Also patch on tab change
+  console.log('Mobile layouts patched ✓');
+}
+
+// Re-patch when switching tabs on mobile
+var _origGoTab = goTab;
+goTab = function(id, el) {
+  _origGoTab(id, el);
+  if (window.innerWidth <= 768) {
+    setTimeout(patchMobileLayouts, 150);
+  }
+};
+
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
@@ -6646,6 +6698,8 @@ window.addEventListener('load', async () => {
     try { initHabits(); } catch(e) {}
     loadDiaryFromNotion().catch(()=>{});
     loadAllHabitsFromSupabase().catch(()=>{});
+    // Apply mobile layout patches
+    if (window.innerWidth <= 768) { setTimeout(patchMobileLayouts, 500); }
     await loadUserPlan();
     checkPlanRestrictions();
     renderFreeLimitBanner();
@@ -7163,14 +7217,14 @@ function renderPsychCharts() {
 
 <!-- MOBILE MENU MODAL -->
 <div id="mobile-menu-overlay" onclick="closeMobileMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:9998;"></div>
-<div id="mobile-menu-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--border2);">
+<div id="mobile-menu-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--border2);max-height:85vh;overflow:hidden;display:flex;flex-direction:column;">
   <!-- Handle -->
   <div style="display:flex;justify-content:center;padding:12px 0 0;">
     <div style="width:40px;height:4px;border-radius:2px;background:var(--border2);"></div>
   </div>
 
   <!-- Scrollable content -->
-  <div style="overflow-y:auto;max-height:75vh;padding:12px 14px max(20px,env(safe-area-inset-bottom));">
+  <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding:12px 14px max(20px,env(safe-area-inset-bottom));overscroll-behavior:contain;">
 
     <!-- Section: Análisis -->
     <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin:8px 4px 10px;">ANÁLISIS</div>
@@ -7297,30 +7351,35 @@ function openMobileMenu() {
     return;
   }
   _mobileMenuOpen = true;
-  // Mark menu button as active
   var menuBtn = document.getElementById('mnav-menu');
   if (menuBtn) menuBtn.classList.add('active');
 
-  document.getElementById('mobile-menu-overlay').style.display = 'block';
+  var overlay = document.getElementById('mobile-menu-overlay');
   var modal = document.getElementById('mobile-menu-modal');
-  modal.style.display = 'block';
+  overlay.style.display = 'block';
+  // Reset display and scroll before animating
+  modal.style.display = 'flex';
+  modal.style.transition = 'none';
   modal.style.transform = 'translateY(100%)';
-  modal.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
+  // Reset scroll inside
+  var inner = modal.querySelector('[style*="overflow-y"]');
+  if (inner) inner.scrollTop = 0;
+  // Force reflow then animate
+  modal.offsetHeight;
+  modal.style.transition = 'transform 0.32s cubic-bezier(0.4,0,0.2,1)';
   requestAnimationFrame(function() {
-    requestAnimationFrame(function() {
-      modal.style.transform = 'translateY(0)';
-    });
+    modal.style.transform = 'translateY(0)';
   });
 }
 
 function closeMobileMenu() {
   _mobileMenuOpen = false;
-  // Remove active from menu button (restore previous tab active state)
   var menuBtn = document.getElementById('mnav-menu');
   if (menuBtn) menuBtn.classList.remove('active');
 
   var modal = document.getElementById('mobile-menu-modal');
   var overlay = document.getElementById('mobile-menu-overlay');
+  modal.style.transition = 'transform 0.28s cubic-bezier(0.4,0,0.2,1)';
   modal.style.transform = 'translateY(100%)';
   setTimeout(function() {
     modal.style.display = 'none';
