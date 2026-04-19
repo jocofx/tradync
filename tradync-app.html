@@ -6871,8 +6871,11 @@ function viewTrade(id) {
   var imgsGrid = document.getElementById('vt-images-grid');
   var imgsSection = document.getElementById('vt-images-section');
   var imgs = [];
-  if (t.img_apertura || t.imgApertura) imgs.push({url: t.img_apertura||t.imgApertura, label:'APERTURA'});
-  if (t.img_cierre || t.imgCierre) imgs.push({url: t.img_cierre||t.imgCierre, label:'CIERRE'});
+  var urlAp = t.imgApertura || t.img_apertura || null;
+  var urlCi = t.imgCierre || t.img_cierre || null;
+  console.log('Trade images:', urlAp, urlCi, 'Full trade:', JSON.stringify({imgApertura:t.imgApertura, img_apertura:t.img_apertura, imgCierre:t.imgCierre, img_cierre:t.img_cierre}));
+  if (urlAp) imgs.push({url: urlAp, label:'APERTURA'});
+  if (urlCi) imgs.push({url: urlCi, label:'CIERRE'});
   if (imgs.length) {
     imgsSection.style.display = 'block';
     imgsGrid.style.gridTemplateColumns = imgs.length === 1 ? '1fr' : '1fr 1fr';
