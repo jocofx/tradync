@@ -7119,58 +7119,79 @@ function renderPsychCharts() {
 
 <!-- MOBILE MENU MODAL -->
 <div id="mobile-menu-overlay" onclick="closeMobileMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:9998;"></div>
-<div id="mobile-menu-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--border2);padding:0 0 max(20px,env(safe-area-inset-bottom)) 0;">
-  <div style="display:flex;justify-content:center;padding:12px 0 4px;">
+<div id="mobile-menu-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--border2);">
+  <!-- Handle -->
+  <div style="display:flex;justify-content:center;padding:12px 0 0;">
     <div style="width:40px;height:4px;border-radius:2px;background:var(--border2);"></div>
   </div>
-  <div style="padding:8px 20px 16px;font-size:11px;color:var(--text3);letter-spacing:2px;font-family:monospace;">NAVEGACIÓN</div>
-  <div style="padding:0 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
 
-    <div class="mmenu-item" onclick="mobileGoTabMenu('riesgo')">
-      <div class="mmenu-icon">🛡️</div>
-      <div class="mmenu-label">Control Riesgo</div>
-    </div>
-    <div class="mmenu-item" onclick="mobileGoTabMenu('calendario')">
-      <div class="mmenu-icon">📅</div>
-      <div class="mmenu-label">Calendario</div>
-    </div>
-    <div class="mmenu-item" onclick="mobileGoTabMenu('estadisticas')">
-      <div class="mmenu-icon">📈</div>
-      <div class="mmenu-label">Estadísticas</div>
-    </div>
-    <div class="mmenu-item" onclick="mobileGoTabMenu('cuentas')">
-      <div class="mmenu-icon">💼</div>
-      <div class="mmenu-label">Cuentas</div>
-    </div>
-    <div class="mmenu-item" onclick="mobileGoTabMenu('premarket')">
-      <div class="mmenu-icon">🌅</div>
-      <div class="mmenu-label">Pre-Market</div>
-    </div>
-    <div class="mmenu-item" onclick="mobileGoTabMenu('habitos')">
-      <div class="mmenu-icon">💪</div>
-      <div class="mmenu-label">Hábitos</div>
-    </div>
-    <div class="mmenu-item" onclick="mobileGoTabMenu('diario')">
-      <div class="mmenu-icon">📔</div>
-      <div class="mmenu-label">Diario</div>
-    </div>
-    <div class="mmenu-item" onclick="mobileGoTabMenu('psicologia')">
-      <div class="mmenu-icon">🧠</div>
-      <div class="mmenu-label">Psicología</div>
-    </div>
-    <div class="mmenu-item" onclick="mobileGoTabMenu('logros')">
-      <div class="mmenu-icon">🏆</div>
-      <div class="mmenu-label">Logros</div>
-    </div>
-    <div class="mmenu-item" onclick="mobileGoTabMenu('planes')" style="border-color:rgba(0,212,160,0.3);background:rgba(0,212,160,0.08);">
-      <div class="mmenu-icon">⭐</div>
-      <div class="mmenu-label" style="color:var(--green);">Hazte Pro+</div>
+  <!-- Scrollable content -->
+  <div style="overflow-y:auto;max-height:75vh;padding:12px 14px max(20px,env(safe-area-inset-bottom));">
+
+    <!-- Section: Análisis -->
+    <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin:8px 4px 10px;">ANÁLISIS</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+      <div class="mmenu-item" onclick="mobileGoTabMenu('riesgo')">
+        <div class="mmenu-icon">🛡️</div>
+        <div class="mmenu-label">Riesgo</div>
+      </div>
+      <div class="mmenu-item" onclick="mobileGoTabMenu('estadisticas')">
+        <div class="mmenu-icon">📊</div>
+        <div class="mmenu-label">Estadísticas</div>
+      </div>
+      <div class="mmenu-item" onclick="mobileGoTabMenu('psicologia')">
+        <div class="mmenu-icon">🧠</div>
+        <div class="mmenu-label">Psicología</div>
+      </div>
     </div>
 
-  </div>
-  <div style="padding:16px 12px 0;display:flex;flex-direction:column;gap:8px;">
-    <button onclick="closeMobileMenu();document.getElementById('logout-btn')&&document.getElementById('logout-btn').click()" style="width:100%;padding:13px;border:1px solid rgba(255,77,109,0.3);border-radius:12px;background:rgba(255,77,109,0.08);color:var(--red);font-size:14px;font-weight:600;cursor:pointer;">🚪 Cerrar sesión</button>
-    <button onclick="closeMobileMenu()" style="width:100%;padding:13px;border:1px solid var(--border2);border-radius:12px;background:var(--bg3);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;">✕ Cerrar menú</button>
+    <!-- Section: Planificación -->
+    <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin:0 4px 10px;">PLANIFICACIÓN</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+      <div class="mmenu-item" onclick="mobileGoTabMenu('calendario')">
+        <div class="mmenu-icon">📅</div>
+        <div class="mmenu-label">Calendario</div>
+      </div>
+      <div class="mmenu-item" onclick="mobileGoTabMenu('premarket')">
+        <div class="mmenu-icon">🌅</div>
+        <div class="mmenu-label">Pre-Market</div>
+      </div>
+      <div class="mmenu-item" onclick="mobileGoTabMenu('cuentas')">
+        <div class="mmenu-icon">💼</div>
+        <div class="mmenu-label">Cuentas</div>
+      </div>
+    </div>
+
+    <!-- Section: Personal -->
+    <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin:0 4px 10px;">PERSONAL</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+      <div class="mmenu-item" onclick="mobileGoTabMenu('habitos')">
+        <div class="mmenu-icon">💪</div>
+        <div class="mmenu-label">Hábitos</div>
+      </div>
+      <div class="mmenu-item" onclick="mobileGoTabMenu('diario')">
+        <div class="mmenu-icon">📔</div>
+        <div class="mmenu-label">Diario</div>
+      </div>
+      <div class="mmenu-item" onclick="mobileGoTabMenu('logros')">
+        <div class="mmenu-icon">🏆</div>
+        <div class="mmenu-label">Logros</div>
+      </div>
+    </div>
+
+    <!-- Pro + Logout -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+      <div class="mmenu-item" onclick="mobileGoTabMenu('planes')" style="border-color:rgba(0,212,160,0.35);background:rgba(0,212,160,0.08);">
+        <div class="mmenu-icon">⭐</div>
+        <div class="mmenu-label" style="color:var(--green);">Hazte Pro+</div>
+      </div>
+      <div class="mmenu-item" onclick="closeMobileMenu();document.getElementById('logout-btn')&&document.getElementById('logout-btn').click()" style="border-color:rgba(255,77,109,0.25);background:rgba(255,77,109,0.07);">
+        <div class="mmenu-icon">🚪</div>
+        <div class="mmenu-label" style="color:var(--red);">Cerrar sesión</div>
+      </div>
+    </div>
+
+    <button onclick="closeMobileMenu()" style="width:100%;padding:13px;border:1px solid var(--border2);border-radius:12px;background:var(--bg3);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;">✕ Cerrar</button>
   </div>
 </div>
 
@@ -7224,7 +7245,18 @@ function mobileGoTabMenu(id) {
   document.getElementById('mnav-menu').classList.add('active');
 }
 
+var _mobileMenuOpen = false;
+
 function openMobileMenu() {
+  if (_mobileMenuOpen) {
+    closeMobileMenu();
+    return;
+  }
+  _mobileMenuOpen = true;
+  // Mark menu button as active
+  var menuBtn = document.getElementById('mnav-menu');
+  if (menuBtn) menuBtn.classList.add('active');
+
   document.getElementById('mobile-menu-overlay').style.display = 'block';
   var modal = document.getElementById('mobile-menu-modal');
   modal.style.display = 'block';
@@ -7238,6 +7270,11 @@ function openMobileMenu() {
 }
 
 function closeMobileMenu() {
+  _mobileMenuOpen = false;
+  // Remove active from menu button (restore previous tab active state)
+  var menuBtn = document.getElementById('mnav-menu');
+  if (menuBtn) menuBtn.classList.remove('active');
+
   var modal = document.getElementById('mobile-menu-modal');
   var overlay = document.getElementById('mobile-menu-overlay');
   modal.style.transform = 'translateY(100%)';
