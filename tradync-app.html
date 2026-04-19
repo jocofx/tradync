@@ -7388,18 +7388,40 @@ function renderPsychCharts() {
 </div>
 
 <script>
+var _nuevaModalOpen = false;
+
 function openNuevaModal() {
+  if (_nuevaModalOpen) {
+    closeNuevaModal();
+    return;
+  }
+  _nuevaModalOpen = true;
+  // Mark nueva button as active
+  var btn = document.getElementById('mnav-nueva');
+  if (btn) btn.classList.add('active');
+
   document.getElementById('nueva-modal-overlay').style.display = 'block';
   var m = document.getElementById('nueva-modal');
   m.style.display = 'block';
+  m.style.transition = 'none';
   m.style.transform = 'translateY(100%)';
+  m.offsetHeight; // force reflow
   m.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
-  requestAnimationFrame(function(){ requestAnimationFrame(function(){ m.style.transform = 'translateY(0)'; }); });
+  requestAnimationFrame(function(){ m.style.transform = 'translateY(0)'; });
 }
+
 function closeNuevaModal() {
+  _nuevaModalOpen = false;
+  // Remove active from nueva button
+  var btn = document.getElementById('mnav-nueva');
+  if (btn) btn.classList.remove('active');
+
   var m = document.getElementById('nueva-modal');
   m.style.transform = 'translateY(100%)';
-  setTimeout(function(){ m.style.display='none'; document.getElementById('nueva-modal-overlay').style.display='none'; }, 300);
+  setTimeout(function(){
+    m.style.display = 'none';
+    document.getElementById('nueva-modal-overlay').style.display = 'none';
+  }, 300);
 }
 
 function mobileGoTab(id, el) {
