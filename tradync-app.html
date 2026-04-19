@@ -564,24 +564,42 @@
     background: var(--bg2);
     border-top: 1px solid var(--border2);
     z-index: 300;
-    padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+    padding: 8px 0 max(12px, env(safe-area-inset-bottom));
     justify-content: space-around;
-    align-items: center;
+    align-items: flex-end;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.3);
   }
   .mobile-nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
-    padding: 6px 8px;
+    gap: 4px;
+    padding: 8px 10px 4px;
     cursor: pointer;
-    border-radius: 10px;
-    min-width: 52px;
+    border-radius: 12px;
+    min-width: 60px;
+    transition: all 0.15s;
   }
   .mobile-nav-item.active .mobile-nav-icon { color: var(--green); }
   .mobile-nav-item.active .mobile-nav-label { color: var(--green); }
-  .mobile-nav-icon { font-size: 20px; line-height: 1; color: var(--text2); }
-  .mobile-nav-label { font-size: 9px; color: var(--text3); font-family: monospace; letter-spacing: 0.5px; text-transform: uppercase; }
+  .mobile-nav-icon { font-size: 24px; line-height: 1; color: var(--text2); display: flex; align-items: center; justify-content: center; }
+  .mobile-nav-label { font-size: 10px; color: var(--text3); font-family: monospace; letter-spacing: 0.5px; text-transform: uppercase; }
+  /* Menu modal items */
+  .mmenu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 10px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mmenu-item:active { background: var(--bg4); border-color: var(--border2); }
+  .mmenu-icon { font-size: 26px; line-height: 1; }
+  .mmenu-label { font-size: 11px; color: var(--text2); font-family: monospace; text-align: center; letter-spacing: 0.5px; }
 </style>
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
@@ -7061,37 +7079,122 @@ function renderPsychCharts() {
 
 <!-- MOBILE BOTTOM NAV -->
 <nav class="mobile-nav" id="mobile-nav">
-  <div class="mobile-nav-item active" onclick="mobileGoTab('dashboard',this)">
+  <div class="mobile-nav-item active" id="mnav-dashboard" onclick="mobileGoTab('dashboard',this)">
     <div class="mobile-nav-icon">📊</div>
     <div class="mobile-nav-label">Dashboard</div>
   </div>
-  <div class="mobile-nav-item" onclick="mobileGoTab('operaciones',this)">
+  <div class="mobile-nav-item" id="mnav-operaciones" onclick="mobileGoTab('operaciones',this)">
     <div class="mobile-nav-icon">📋</div>
-    <div class="mobile-nav-label">Ops</div>
+    <div class="mobile-nav-label">Operaciones</div>
   </div>
-  <div class="mobile-nav-item" onclick="mobileGoTab('nueva',this)">
-    <div class="mobile-nav-icon" style="width:36px;height:36px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#000;margin-top:-8px;">+</div>
+  <div class="mobile-nav-item" id="mnav-nueva" onclick="mobileGoTab('nueva',this)">
+    <div class="mobile-nav-icon">
+      <div style="width:44px;height:44px;background:linear-gradient(135deg,#00d4a0,#4d9fff);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;color:#000;margin-top:-14px;box-shadow:0 4px 16px rgba(0,212,160,0.4);">+</div>
+    </div>
     <div class="mobile-nav-label">Nueva</div>
   </div>
-  <div class="mobile-nav-item" onclick="mobileGoTab('ia',this)">
+  <div class="mobile-nav-item" id="mnav-ia" onclick="mobileGoTab('ia',this)">
     <div class="mobile-nav-icon">🤖</div>
-    <div class="mobile-nav-label">Coach</div>
+    <div class="mobile-nav-label">Coach IA</div>
   </div>
-  <div class="mobile-nav-item" id="mobile-more-btn" onclick="toggleSidebar()">
+  <div class="mobile-nav-item" id="mnav-menu" onclick="openMobileMenu()">
     <div class="mobile-nav-icon">☰</div>
-    <div class="mobile-nav-label">Más</div>
+    <div class="mobile-nav-label">Menú</div>
   </div>
 </nav>
+
+<!-- MOBILE MENU MODAL -->
+<div id="mobile-menu-overlay" onclick="closeMobileMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:9998;"></div>
+<div id="mobile-menu-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--border2);padding:0 0 max(20px,env(safe-area-inset-bottom)) 0;">
+  <div style="display:flex;justify-content:center;padding:12px 0 4px;">
+    <div style="width:40px;height:4px;border-radius:2px;background:var(--border2);"></div>
+  </div>
+  <div style="padding:8px 20px 16px;font-size:11px;color:var(--text3);letter-spacing:2px;font-family:monospace;">NAVEGACIÓN</div>
+  <div style="padding:0 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+
+    <div class="mmenu-item" onclick="mobileGoTabMenu('riesgo')">
+      <div class="mmenu-icon">🛡️</div>
+      <div class="mmenu-label">Control Riesgo</div>
+    </div>
+    <div class="mmenu-item" onclick="mobileGoTabMenu('calendario')">
+      <div class="mmenu-icon">📅</div>
+      <div class="mmenu-label">Calendario</div>
+    </div>
+    <div class="mmenu-item" onclick="mobileGoTabMenu('estadisticas')">
+      <div class="mmenu-icon">📈</div>
+      <div class="mmenu-label">Estadísticas</div>
+    </div>
+    <div class="mmenu-item" onclick="mobileGoTabMenu('cuentas')">
+      <div class="mmenu-icon">💼</div>
+      <div class="mmenu-label">Cuentas</div>
+    </div>
+    <div class="mmenu-item" onclick="mobileGoTabMenu('premarket')">
+      <div class="mmenu-icon">🌅</div>
+      <div class="mmenu-label">Pre-Market</div>
+    </div>
+    <div class="mmenu-item" onclick="mobileGoTabMenu('habitos')">
+      <div class="mmenu-icon">💪</div>
+      <div class="mmenu-label">Hábitos</div>
+    </div>
+    <div class="mmenu-item" onclick="mobileGoTabMenu('diario')">
+      <div class="mmenu-icon">📔</div>
+      <div class="mmenu-label">Diario</div>
+    </div>
+    <div class="mmenu-item" onclick="mobileGoTabMenu('psicologia')">
+      <div class="mmenu-icon">🧠</div>
+      <div class="mmenu-label">Psicología</div>
+    </div>
+    <div class="mmenu-item" onclick="mobileGoTabMenu('logros')">
+      <div class="mmenu-icon">🏆</div>
+      <div class="mmenu-label">Logros</div>
+    </div>
+    <div class="mmenu-item" onclick="mobileGoTabMenu('planes')" style="border-color:rgba(0,212,160,0.3);background:rgba(0,212,160,0.08);">
+      <div class="mmenu-icon">⭐</div>
+      <div class="mmenu-label" style="color:var(--green);">Hazte Pro+</div>
+    </div>
+
+  </div>
+  <div style="padding:16px 12px 0;">
+    <button onclick="closeMobileMenu()" style="width:100%;padding:14px;border:1px solid var(--border2);border-radius:12px;background:var(--bg3);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;">Cerrar</button>
+  </div>
+</div>
+
 <script>
 function mobileGoTab(id, el) {
   goTab(id, document.querySelector('.nav-item[onclick*="' + id + '"]'));
   document.querySelectorAll('.mobile-nav-item').forEach(function(i){ i.classList.remove('active'); });
   if (el) el.classList.add('active');
-  // Close sidebar if open on mobile
-  var sidebar = document.querySelector('.sidebar');
-  if (sidebar && sidebar.classList.contains('open')) toggleSidebar();
+}
+
+function mobileGoTabMenu(id) {
+  closeMobileMenu();
+  goTab(id, document.querySelector('.nav-item[onclick*="' + id + '"]'));
+  document.querySelectorAll('.mobile-nav-item').forEach(function(i){ i.classList.remove('active'); });
+  document.getElementById('mnav-menu').classList.add('active');
+}
+
+function openMobileMenu() {
+  document.getElementById('mobile-menu-overlay').style.display = 'block';
+  var modal = document.getElementById('mobile-menu-modal');
+  modal.style.display = 'block';
+  modal.style.transform = 'translateY(100%)';
+  modal.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      modal.style.transform = 'translateY(0)';
+    });
+  });
+}
+
+function closeMobileMenu() {
+  var modal = document.getElementById('mobile-menu-modal');
+  var overlay = document.getElementById('mobile-menu-overlay');
+  modal.style.transform = 'translateY(100%)';
+  setTimeout(function() {
+    modal.style.display = 'none';
+    overlay.style.display = 'none';
+  }, 300);
 }
 </script>
 
 </body>
-</html>
