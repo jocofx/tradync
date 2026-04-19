@@ -6851,9 +6851,12 @@ function viewTrade(id) {
   document.getElementById('vt-meta').innerHTML = meta;
 
   // Errors
-  if (t.errores && t.errores.length) {
+  var erroresArr = t.errores
+    ? (Array.isArray(t.errores) ? t.errores : (typeof t.errores === 'string' ? t.errores.replace(/[{}"]/g,'').split(',').map(function(x){return x.trim();}).filter(Boolean) : []))
+    : [];
+  if (erroresArr.length) {
     document.getElementById('vt-errors-section').style.display = 'block';
-    document.getElementById('vt-errors').innerHTML = t.errores.map(function(e){
+    document.getElementById('vt-errors').innerHTML = erroresArr.map(function(e){
       return '<span style="background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.25);color:var(--red);border-radius:20px;padding:4px 12px;font-size:11px;font-family:monospace;">' + e + '</span>';
     }).join('');
   } else { document.getElementById('vt-errors-section').style.display='none'; }
