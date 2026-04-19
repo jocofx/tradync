@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Afiliados — Tradync</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#05060a;--bg2:#0a0c12;--bg3:#0f1218;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--text:#eef0f8;--text2:#7880a0;--text3:#3a4060;--green:#00d4a0;--amber:#f5a623;--red:#ff4d6d;--blue:#4d9fff;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px;}
+h1{font-size:22px;font-weight:800;margin-bottom:4px;}
+.sub{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:28px;}
+.tabs{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;width:fit-content;margin-bottom:24px;}
+.tab{padding:7px 18px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);font-family:'Outfit',sans-serif;}
+.tab.active{background:var(--bg3);color:var(--text);}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+.card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:11px;color:var(--text3);letter-spacing:2px;font-family:'JetBrains Mono',monospace;}
+.badge{font-size:10px;padding:2px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+.badge-pending{background:rgba(245,166,35,0.15);color:var(--amber);}
+.badge-active{background:rgba(0,212,160,0.15);color:var(--green);}
+.badge-rejected{background:rgba(255,77,109,0.15);color:var(--red);}
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{text-align:left;font-size:9px;color:var(--text3);letter-spacing:2px;font-family:'JetBrains Mono',monospace;padding:10px 16px 8px;border-bottom:1px solid var(--border);}
+.tbl td{padding:12px 16px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);vertical-align:top;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,0.02);}
+.motivo-text{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;max-width:260px;line-height:1.5;word-break:break-word;}
+/* ACTIONS */
+.btn-approve{padding:6px 14px;border:none;border-radius:6px;background:rgba(0,212,160,0.15);color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;border:1px solid rgba(0,212,160,0.25);}
+.btn-approve:hover{background:rgba(0,212,160,0.25);}
+.btn-reject{padding:6px 14px;border:none;border-radius:6px;background:rgba(255,77,109,0.1);color:var(--red);font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;border:1px solid rgba(255,77,109,0.2);}
+.btn-reject:hover{background:rgba(255,77,109,0.2);}
+.btn-mark-paid{padding:5px 12px;border:1px solid rgba(0,212,160,0.25);border-radius:6px;background:transparent;color:var(--green);font-size:10px;cursor:pointer;font-family:'JetBrains Mono',monospace;}
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.stat-label{font-size:8px;color:var(--text3);letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:8px;}
+.stat-val{font-size:24px;font-weight:800;letter-spacing:-1px;}
+/* AUTH */
+#login-screen{max-width:360px;margin:80px auto;background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:32px;}
+.login-title{font-size:18px;font-weight:800;margin-bottom:6px;}
+.login-sub{font-size:12px;color:var(--text2);margin-bottom:20px;}
+.inp{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;width:100%;margin-bottom:10px;font-family:'Outfit',sans-serif;}
+.inp:focus{border-color:var(--green);}
+.btn-login{width:100%;padding:11px;border:none;border-radius:8px;background:var(--green);color:#000;font-size:14px;font-weight:700;cursor:pointer;}
+.toast{position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:all 0.3s;pointer-events:none;}
+.toast.show{opacity:1;}
+.toast.ok{background:var(--green);color:#000;}
+.toast.err{background:var(--red);color:#fff;}
+#main{display:none;}
+.empty{padding:32px;text-align:center;color:var(--text3);font-size:12px;font-family:'JetBrains Mono',monospace;}
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-title">🔐 Admin Afiliados</div>
+  <div class="login-sub">Acceso exclusivo para administradores de Tradync</div>
+  <input class="inp" type="email" id="admin-email" placeholder="tu@email.com">
+  <input class="inp" type="password" id="admin-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()">
+  <button class="btn-login" onclick="doLogin()">Entrar →</button>
+  <div id="login-err" style="margin-top:10px;font-size:12px;color:var(--red);text-align:center;"></div>
+</div>
+
+<!-- MAIN PANEL -->
+<div id="main">
+  <h1>Panel de Afiliados</h1>
+  <div class="sub" id="admin-user-label">TRADYNC ADMIN</div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-label">SOLICITUDES PENDIENTES</div><div class="stat-val" id="s-pending" style="color:var(--amber)">—</div></div>
+    <div class="stat-box"><div class="stat-label">AFILIADOS ACTIVOS</div><div class="stat-val" id="s-active" style="color:var(--green)">—</div></div>
+    <div class="stat-box"><div class="stat-label">TOTAL COMISIONES</div><div class="stat-val" id="s-total" style="color:var(--blue)">—</div></div>
+    <div class="stat-box"><div class="stat-label">POR PAGAR</div><div class="stat-val" id="s-unpaid" style="color:var(--red)">—</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('pending',this)">⏳ Pendientes</button>
+    <button class="tab" onclick="showTab('active',this)">✅ Activos</button>
+    <button class="tab" onclick="showTab('rejected',this)">❌ Rechazados</button>
+    <button class="tab" onclick="showTab('conversions',this)">💰 Comisiones</button>
+  </div>
+
+  <!-- PENDING TAB -->
+  <div id="tab-pending">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">SOLICITUDES PENDIENTES</span>
+        <button onclick="loadAll()" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:monospace;">↺ Actualizar</button>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>NOMBRE</th><th>EMAIL</th><th>MOTIVO / AUDIENCIA</th><th>PAYPAL</th><th>FECHA</th><th>ACCIONES</th></tr></thead>
+        <tbody id="tbody-pending"><tr><td colspan="6" class="empty">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ACTIVE TAB -->
+  <div id="tab-active" style="display:none;">
+    <div class="card">
+      <div class="card-header"><span class="card-title">AFILIADOS ACTIVOS</span></div>
+      <table class="tbl">
+        <thead><tr><th>NOMBRE</th><th>EMAIL</th><th>CÓDIGO</th><th>CLICKS</th><th>CONVERSIONES</th><th>GANADO</th><th>ACCIONES</th></tr></thead>
+        <tbody id="tbody-active"><tr><td colspan="7" class="empty">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- REJECTED TAB -->
+  <div id="tab-rejected" style="display:none;">
+    <div class="card">
+      <div class="card-header"><span class="card-title">SOLICITUDES RECHAZADAS</span></div>
+      <table class="tbl">
+        <thead><tr><th>NOMBRE</th><th>EMAIL</th><th>MOTIVO</th><th>FECHA</th><th>ACCIONES</th></tr></thead>
+        <tbody id="tbody-rejected"><tr><td colspan="5" class="empty">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CONVERSIONS TAB -->
+  <div id="tab-conversions" style="display:none;">
+    <div class="card">
+      <div class="card-header"><span class="card-title">HISTORIAL DE COMISIONES</span></div>
+      <table class="tbl">
+        <thead><tr><th>AFILIADO</th><th>REFERIDO</th><th>PLAN</th><th>MES</th><th>COMISIÓN</th><th>ESTADO</th><th>ACCIÓN</th></tr></thead>
+        <tbody id="tbody-conversions"><tr><td colspan="7" class="empty">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const SURL='https://oeznlehxublyvivzvuab.supabase.co';
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lem5sZWh4dWJseXZpdnp2dWFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNjUzMDQsImV4cCI6MjA5MTc0MTMwNH0.OJQRGgV0W64tJcrgQIos_C5e3RD8gsUtEm09LTtEhpE';
+var sb;
+
+function initSb() {
+  if (typeof supabase==='undefined'){setTimeout(initSb,100);return;}
+  sb = supabase.createClient(SURL,SKEY);
+  checkSession();
+}
+initSb();
+
+async function checkSession() {
+  var {data:{session}} = await sb.auth.getSession();
+  if (session) {
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main').style.display='block';
+    document.getElementById('admin-user-label').textContent = session.user.email + ' · ADMIN';
+    loadAll();
+  }
+}
+
+async function doLogin() {
+  var email = document.getElementById('admin-email').value.trim();
+  var pass = document.getElementById('admin-pass').value;
+  var err = document.getElementById('login-err');
+  if (!email||!pass) return;
+  var {data,error} = await sb.auth.signInWithPassword({email,password:pass});
+  if (error) { err.textContent='Email o contraseña incorrectos'; return; }
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('main').style.display='block';
+  document.getElementById('admin-user-label').textContent = email + ' · ADMIN';
+  loadAll();
+}
+
+async function loadAll() {
+  var {data:all} = await sb.from('affiliates').select('*').order('created_at',{ascending:false});
+  if (!all) return;
+
+  var pending = all.filter(a=>a.estado==='pending');
+  var active = all.filter(a=>a.estado==='active');
+  var rejected = all.filter(a=>a.estado==='rejected');
+
+  // Stats
+  document.getElementById('s-pending').textContent = pending.length;
+  document.getElementById('s-active').textContent = active.length;
+
+  // Conversions stats
+  var {data:convs} = await sb.from('affiliate_conversions').select('*');
+  var totalComision = (convs||[]).reduce((s,c)=>s+parseFloat(c.comision||0),0);
+  var unpaid = (convs||[]).filter(c=>!c.pagado).reduce((s,c)=>s+parseFloat(c.comision||0),0);
+  document.getElementById('s-total').textContent = totalComision.toFixed(2)+'€';
+  document.getElementById('s-unpaid').textContent = unpaid.toFixed(2)+'€';
+
+  // Render tables
+  renderPending(pending);
+  renderActive(active);
+  renderRejected(rejected);
+  renderConversions(convs||[], all);
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'});
+}
+
+function renderPending(rows) {
+  var tb = document.getElementById('tbody-pending');
+  if (!rows.length) { tb.innerHTML='<tr><td colspan="6" class="empty">Sin solicitudes pendientes</td></tr>'; return; }
+  tb.innerHTML = rows.map(function(r) {
+    return '<tr>'+
+      '<td style="font-weight:600;color:var(--text)">'+r.nombre+'</td>'+
+      '<td>'+r.email+'</td>'+
+      '<td><div class="motivo-text">'+(r.motivo||'—')+'</div></td>'+
+      '<td style="font-family:monospace;font-size:11px;">'+(r.paypal_email||'—')+'</td>'+
+      '<td style="font-size:11px;">'+fmtDate(r.created_at)+'</td>'+
+      '<td><div style="display:flex;gap:6px;">'+
+        '<button class="btn-approve" onclick="updateStatus(\''+r.id+'\',\'active\')">✓ Aprobar</button>'+
+        '<button class="btn-reject" onclick="updateStatus(\''+r.id+'\',\'rejected\')">✕ Rechazar</button>'+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function renderActive(rows) {
+  var tb = document.getElementById('tbody-active');
+  if (!rows.length) { tb.innerHTML='<tr><td colspan="7" class="empty">Sin afiliados activos</td></tr>'; return; }
+  tb.innerHTML = rows.map(function(r) {
+    return '<tr>'+
+      '<td style="font-weight:600;color:var(--text)">'+r.nombre+'</td>'+
+      '<td>'+r.email+'</td>'+
+      '<td><span style="background:var(--bg3);padding:3px 8px;border-radius:6px;font-family:monospace;font-size:11px;color:var(--green)">'+r.codigo+'</span></td>'+
+      '<td style="color:var(--blue)">'+( r.total_clicks||0)+'</td>'+
+      '<td style="color:var(--green)">'+(r.total_conversiones||0)+'</td>'+
+      '<td style="color:var(--green);font-weight:700;">'+(r.total_ganado||0).toFixed(2)+'€</td>'+
+      '<td><button class="btn-reject" style="font-size:10px;" onclick="updateStatus(\''+r.id+'\',\'rejected\')">Desactivar</button></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function renderRejected(rows) {
+  var tb = document.getElementById('tbody-rejected');
+  if (!rows.length) { tb.innerHTML='<tr><td colspan="5" class="empty">Sin solicitudes rechazadas</td></tr>'; return; }
+  tb.innerHTML = rows.map(function(r) {
+    return '<tr>'+
+      '<td style="font-weight:600;color:var(--text)">'+r.nombre+'</td>'+
+      '<td>'+r.email+'</td>'+
+      '<td><div class="motivo-text">'+(r.motivo||'—')+'</div></td>'+
+      '<td style="font-size:11px;">'+fmtDate(r.created_at)+'</td>'+
+      '<td><button class="btn-approve" onclick="updateStatus(\''+r.id+'\',\'active\')">Aprobar</button></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function renderConversions(convs, affiliates) {
+  var tb = document.getElementById('tbody-conversions');
+  if (!convs.length) { tb.innerHTML='<tr><td colspan="7" class="empty">Sin comisiones registradas</td></tr>'; return; }
+  tb.innerHTML = convs.map(function(c) {
+    var aff = affiliates.find(function(a){return a.id===c.affiliate_id;});
+    return '<tr>'+
+      '<td style="font-weight:600;color:var(--text)">'+(aff?aff.nombre:'—')+'</td>'+
+      '<td style="font-family:monospace;font-size:11px;">'+(c.referred_email||'—')+'</td>'+
+      '<td>'+(c.plan||'Pro')+'</td>'+
+      '<td style="font-size:11px;">'+(c.mes||'—')+'</td>'+
+      '<td style="color:var(--green);font-weight:700;">+'+parseFloat(c.comision||0).toFixed(2)+'€</td>'+
+      '<td>'+(c.pagado?'<span class="badge badge-active">PAGADO</span>':'<span class="badge badge-pending">PENDIENTE</span>')+'</td>'+
+      '<td>'+(c.pagado?'':
+        '<button class="btn-mark-paid" onclick="markPaid(\''+c.id+'\')">Marcar pagado</button>'
+      )+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+async function updateStatus(id, estado) {
+  var updates = { estado: estado };
+  if (estado==='active') updates.approved_at = new Date().toISOString();
+  var {error} = await sb.from('affiliates').update(updates).eq('id',id);
+  if (error) { showToast('Error: '+error.message, 'err'); return; }
+  showToast(estado==='active' ? '✓ Afiliado aprobado' : '✕ Solicitud rechazada', 'ok');
+  loadAll();
+}
+
+async function markPaid(id) {
+  var {error} = await sb.from('affiliate_conversions').update({pagado:true}).eq('id',id);
+  if (error) { showToast('Error: '+error.message, 'err'); return; }
+  showToast('✓ Marcado como pagado', 'ok');
+  loadAll();
+}
+
+function showTab(name, btn) {
+  ['pending','active','rejected','conversions'].forEach(function(t){
+    document.getElementById('tab-'+t).style.display = t===name?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+}
+
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast '+type+' show';
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+</script>
+</body>
+</html>
