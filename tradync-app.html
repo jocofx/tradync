@@ -4116,25 +4116,49 @@ function toggleTheme() {
 
 function toggleSidebar() {
   var sidebar = document.querySelector('.sidebar');
-  var overlay = document.getElementById('sidebar-mobile-overlay');
+  var main = document.querySelector('.main');
   var showBtn = document.getElementById('sidebar-show-btn');
+  var toggleBtn = document.getElementById('sidebar-toggle-btn');
   if (!sidebar) return;
-  var isOpen = sidebar.classList.contains('open');
-  if (isOpen) {
-    sidebar.classList.remove('open');
-    if (overlay) overlay.style.display = 'none';
-    if (showBtn) showBtn.style.display = 'flex';
-  } else {
-    sidebar.classList.add('open');
-    if (showBtn) showBtn.style.display = 'none';
-    if (!overlay) {
-      var ov = document.createElement('div');
-      ov.id = 'sidebar-mobile-overlay';
-      ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:199;';
-      ov.onclick = toggleSidebar;
-      document.body.appendChild(ov);
+
+  var isMobile = window.innerWidth <= 768;
+
+  if (isMobile) {
+    // Mobile: use open/close with overlay
+    var isOpen = sidebar.classList.contains('open');
+    if (isOpen) {
+      sidebar.classList.remove('open');
+      var ov = document.getElementById('sidebar-mobile-overlay');
+      if (ov) ov.remove();
+      if (showBtn) showBtn.style.display = 'flex';
     } else {
-      overlay.style.display = 'block';
+      sidebar.classList.add('open');
+      if (showBtn) showBtn.style.display = 'none';
+      var ov2 = document.createElement('div');
+      ov2.id = 'sidebar-mobile-overlay';
+      ov2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:199;';
+      ov2.onclick = toggleSidebar;
+      document.body.appendChild(ov2);
+    }
+  } else {
+    // Desktop: hide/show sidebar, adjust main margin
+    var isHidden = sidebar.classList.contains('hidden');
+    if (isHidden) {
+      // Show sidebar
+      sidebar.classList.remove('hidden');
+      sidebar.style.transform = '';
+      if (main) main.style.marginLeft = '220px';
+      if (showBtn) showBtn.style.display = 'none';
+      if (toggleBtn) { toggleBtn.textContent = '\u2039'; toggleBtn.title = 'Ocultar menú'; }
+      localStorage.setItem('tj_sidebar', 'visible');
+    } else {
+      // Hide sidebar
+      sidebar.classList.add('hidden');
+      sidebar.style.transform = 'translateX(-220px)';
+      if (main) main.style.marginLeft = '0';
+      if (showBtn) showBtn.style.display = 'flex';
+      if (toggleBtn) { toggleBtn.textContent = '\u203a'; toggleBtn.title = 'Mostrar menú'; }
+      localStorage.setItem('tj_sidebar', 'hidden');
     }
   }
 }
