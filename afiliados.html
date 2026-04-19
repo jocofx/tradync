@@ -11,6 +11,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--bg:#05060a;--bg2:#0a0c12;--bg3:#0f1218;--bg4:#151b24;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--text:#eef0f8;--text2:#7880a0;--text3:#3a4060;--green:#00d4a0;--green2:#00b87a;--amber:#f5a623;--red:#ff4d6d;--blue:#4d9fff;}
+.light-mode{--bg:#f8f9fb;--bg2:#ffffff;--bg3:#f1f3f7;--bg4:#e8ecf2;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.14);--text:#0f1117;--text2:#5a6070;--text3:#9aa0b0;--green:#059669;--green2:#047857;--amber:#d97706;--red:#dc2626;--blue:#2563eb;}
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
 
@@ -131,7 +132,10 @@ nav{position:sticky;top:0;z-index:100;padding:14px 48px;display:flex;align-items
 
 <nav>
   <a class="nav-logo" href="tradync-landing.html">Trad<span>ync</span></a>
-  <a class="btn-back" href="javascript:history.back()">← Volver</a>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button id="theme-btn" onclick="toggleTheme()" style="padding:7px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:15px;cursor:pointer;">🌙</button>
+    <a class="btn-back" href="javascript:history.back()">← Volver</a>
+  </div>
 </nav>
 
 <div class="page">
@@ -152,6 +156,15 @@ nav{position:sticky;top:0;z-index:100;padding:14px 48px;display:flex;align-items
   <div id="loading-state" style="text-align:center;padding:60px 0;">
     <div style="width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 16px;"></div>
     <div style="font-size:12px;color:var(--text3);font-family:monospace;">Cargando...</div>
+  </div>
+
+  <!-- PAYMENT NOTICE -->
+  <div style="max-width:640px;margin:0 auto 32px;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.25);border-radius:14px;padding:18px 22px;display:flex;gap:14px;align-items:flex-start;">
+    <div style="font-size:22px;flex-shrink:0;">⏳</div>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:5px;">Sobre el pago de comisiones</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7;">Las comisiones se generan <strong style="color:var(--text);">solo cuando el usuario referido realiza un pago real</strong>. Los 14 días de prueba gratuita no generan comisión. El primer cobro se produce cuando el usuario decide continuar tras el periodo de prueba y se realiza el primer cargo en su tarjeta. Las comisiones pendientes se acumulan en tu saldo y puedes solicitarlas cuando quieras escribiendo a <a href="mailto:hola@tradyncapp.com" style="color:var(--amber);">hola@tradyncapp.com</a>.</div>
+    </div>
   </div>
 
   <!-- AUTH WALL -->
@@ -497,6 +510,21 @@ async function submitApplication() {
 
   document.getElementById('apply-section').style.display='none';
   document.getElementById('pending-section').style.display='block';
+}
+
+function toggleTheme() {
+  var isLight = document.body.classList.toggle('light-mode');
+  var btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = isLight ? '☀️' : '🌙';
+  localStorage.setItem('tradync_theme', isLight ? 'light' : 'dark');
+}
+// Restore theme
+if (localStorage.getItem('tradync_theme') === 'light') {
+  document.body.classList.add('light-mode');
+  document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('theme-btn');
+    if (btn) btn.textContent = '☀️';
+  });
 }
 
 function calcComision() {
