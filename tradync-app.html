@@ -528,9 +528,53 @@
 
     /* ── CHARTS ─────────────────────────────────────────── */
     .charts-grid { grid-template-columns: 1fr !important; }
-    [style*="height:160px"] canvas,
-    [style*="height:180px"] canvas,
-    [style*="height:200px"] canvas { max-height: 180px; }
+
+    /* ── DASHBOARD: force all grids to 1 col ─────────────── */
+    #panel-dashboard [style*="grid-template-columns:repeat(6,1fr)"] {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 8px !important;
+      margin-bottom: 12px !important;
+    }
+    #panel-dashboard [style*="grid-template-columns:2fr 1fr"],
+    #panel-dashboard [style*="grid-template-columns:180px 1fr 200px"],
+    #panel-dashboard [style*="grid-template-columns:260px 1fr"] {
+      grid-template-columns: 1fr !important;
+      gap: 10px !important;
+      margin-bottom: 12px !important;
+    }
+    /* Compact metric cards */
+    #panel-dashboard .metric-card {
+      padding: 10px 10px 8px !important;
+    }
+    #panel-dashboard .metric-value {
+      font-size: 16px !important;
+      letter-spacing: -0.5px !important;
+    }
+    #panel-dashboard .metric-label { font-size: 8px !important; margin-bottom: 4px !important; }
+    #panel-dashboard .metric-sub { font-size: 9px !important; margin-top: 3px !important; }
+    /* Chart heights - compact */
+    #panel-dashboard [style*="position:relative;height:160px"] { height: 120px !important; }
+    #panel-dashboard [style*="position:relative;height:140px"] { height: 100px !important; }
+    #panel-dashboard [style*="position:relative;height:130px"] { height: 90px !important; }
+    /* Win/Loss donut row - stack vertically */
+    #panel-dashboard [style*="display:flex;flex-direction:column;align-items:center"] {
+      padding: 12px !important;
+    }
+    /* Recent trades table - scroll */
+    #panel-dashboard .card > div[style*="overflow-x"] { overflow-x: auto !important; }
+
+    /* ── OPERACIONES: force all grids to 1 col ─────────────── */
+    #panel-operaciones [style*="grid-template-columns:1fr 1fr 1fr"],
+    #panel-operaciones [style*="grid-template-columns:1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+      gap: 10px !important;
+      margin-bottom: 12px !important;
+    }
+    #panel-operaciones [style*="position:relative;height:180px"],
+    #panel-operaciones [style*="position:relative;height:160px"] { height: 120px !important; }
+    /* Filter bar wraps */
+    #panel-operaciones .card > div[style*="display:flex"] { flex-wrap: wrap !important; gap: 8px !important; }
+    #panel-operaciones select.form-select { width: calc(50% - 4px) !important; min-width: 120px !important; }
 
     /* ── MODALS ─────────────────────────────────────────── */
     .day-modal, .edit-modal, .modal {
