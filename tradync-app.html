@@ -194,8 +194,8 @@
   .dash-grid-3col { display:grid; grid-template-columns:180px 1fr 200px; gap:18px; margin-bottom:18px; }
   .dash-grid-2col { display:grid; grid-template-columns:260px 1fr; gap:18px; margin-bottom:18px; }
   /* OPERACIONES GRID CLASSES */
-  .ops-charts-3col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:16px; }
-  .ops-charts-2col { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  .ops-charts-3col { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:16px; }
+  .ops-charts-2col { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:16px; }
 
 
   .section-title { font-size: 10px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; font-family: 'DM Mono', monospace; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
@@ -205,6 +205,23 @@
   .tag.fomo { background: var(--amber-bg); color: var(--amber); border-color: rgba(245,166,35,0.2); }
   .tag.overtrading { background: var(--purple-bg); color: var(--purple); border-color: rgba(167,139,250,0.2); }
   .tag.discipline { background: var(--green-bg); color: var(--green); border-color: rgba(0,212,160,0.2); }
+  /* ── ERROR TAGS ─────────────────────────────────────────── */
+  .error-tag {
+    font-size: 11px; font-family: 'DM Mono', monospace; padding: 7px 12px;
+    border-radius: 20px; border: 1px solid var(--border2);
+    cursor: pointer; transition: all 0.15s; display: flex; align-items: center;
+    gap: 6px; justify-content: center; background: var(--bg3); color: var(--text2);
+    user-select: none;
+  }
+  .error-tag.inactive { opacity: 0.35; }
+  .error-tag:not(.inactive) { opacity: 1; box-shadow: 0 0 0 1.5px currentColor; }
+  .error-tag.revenge { background: rgba(255,77,109,0.12); color: var(--red); border-color: rgba(255,77,109,0.3); }
+  .error-tag.fomo { background: rgba(245,166,35,0.12); color: var(--amber); border-color: rgba(245,166,35,0.3); }
+  .error-tag.overtrading { background: rgba(167,139,250,0.12); color: #a78bfa; border-color: rgba(167,139,250,0.3); }
+  .error-tag.discipline { background: rgba(0,212,160,0.12); color: var(--green); border-color: rgba(0,212,160,0.3); }
+  .error-tag.emotions { background: rgba(77,159,255,0.12); color: var(--blue); border-color: rgba(77,159,255,0.3); }
+  .error-tag.sizing { background: rgba(255,77,109,0.12); color: var(--red); border-color: rgba(255,77,109,0.3); }
+
   .tag.neutral { background: var(--bg4); color: var(--text3); border-color: var(--border); }
   .tag.inactive { opacity: 0.25; filter: grayscale(0.8); }
   .tag.sl-move { background: rgba(68,136,255,0.12); color: #4d9fff; border-color: rgba(68,136,255,0.3); }
