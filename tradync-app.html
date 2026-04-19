@@ -572,9 +572,11 @@
     }
     #panel-operaciones [style*="position:relative;height:180px"],
     #panel-operaciones [style*="position:relative;height:160px"] { height: 120px !important; }
-    /* Filter bar wraps */
-    #panel-operaciones .card > div[style*="display:flex"] { flex-wrap: wrap !important; gap: 8px !important; }
-    #panel-operaciones select.form-select { width: calc(50% - 4px) !important; min-width: 120px !important; }
+    /* Filter bar - single column on mobile */
+    .ops-filter-bar { flex-direction: column !important; align-items: stretch !important; gap: 8px !important; }
+    .ops-filter-select { width: 100% !important; font-size: 15px !important; }
+    .ops-filter-bar .btn { width: 100% !important; text-align: center !important; }
+    #ops-filter-count { margin-left: 0 !important; text-align: center; }
 
     /* ── MODALS ─────────────────────────────────────────── */
     .day-modal, .edit-modal, .modal {
@@ -872,19 +874,19 @@ if (typeof supabase === 'undefined') {
 
       <!-- FILTER BAR -->
       <div class="card" style="margin-bottom:16px;padding:14px 18px;">
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-          <select id="ops-filter-activo" class="form-select" style="width:140px;padding:7px 10px;font-size:12px;" onchange="renderOpsCharts()">
+        <div class="ops-filter-bar" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <select id="ops-filter-activo" class="form-select ops-filter-select" style="width:140px;padding:7px 10px;font-size:12px;" onchange="renderOpsCharts()">
             <option value="">Todos los activos</option>
           </select>
-          <select id="ops-filter-dir" class="form-select" style="width:120px;padding:7px 10px;font-size:12px;" onchange="renderOpsCharts()">
+          <select id="ops-filter-dir" class="form-select ops-filter-select" style="width:120px;padding:7px 10px;font-size:12px;" onchange="renderOpsCharts()">
             <option value="">LONG y SHORT</option>
             <option value="LONG">Solo LONG</option>
             <option value="SHORT">Solo SHORT</option>
           </select>
-          <select id="ops-filter-sesion" class="form-select" style="width:150px;padding:7px 10px;font-size:12px;" onchange="renderOpsCharts()">
+          <select id="ops-filter-sesion" class="form-select ops-filter-select" style="width:150px;padding:7px 10px;font-size:12px;" onchange="renderOpsCharts()">
             <option value="">Todas las sesiones</option>
           </select>
-          <select id="ops-filter-cuenta" class="form-select" style="width:150px;padding:7px 10px;font-size:12px;" onchange="renderOpsCharts()">
+          <select id="ops-filter-cuenta" class="form-select ops-filter-select" style="width:150px;padding:7px 10px;font-size:12px;" onchange="renderOpsCharts()">
             <option value="">Todas las cuentas</option>
           </select>
           <button class="btn" style="font-size:12px;padding:7px 14px;" onclick="resetOpsFilters()">↺ Reset</button>
@@ -7217,7 +7219,7 @@ function renderPsychCharts() {
 
 <!-- MOBILE MENU MODAL -->
 <div id="mobile-menu-overlay" onclick="closeMobileMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:9998;"></div>
-<div id="mobile-menu-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--border2);max-height:85vh;overflow:hidden;display:flex;flex-direction:column;">
+<div id="mobile-menu-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--border2);max-height:85vh;overflow:hidden;flex-direction:column;">
   <!-- Handle -->
   <div style="display:flex;justify-content:center;padding:12px 0 0;">
     <div style="width:40px;height:4px;border-radius:2px;background:var(--border2);"></div>
