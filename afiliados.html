@@ -111,6 +111,7 @@ nav{position:sticky;top:0;z-index:100;padding:14px 48px;display:flex;align-items
 /* AUTH */
 #auth-wall{text-align:center;padding:80px 24px;}
 
+@keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:768px){
   nav{padding:12px 16px;}
   .steps{grid-template-columns:1fr;}
@@ -145,6 +146,12 @@ nav{position:sticky;top:0;z-index:100;padding:14px 48px;display:flex;align-items
       <div class="stat-item"><div class="stat-num">∞</div><div class="stat-label">SIN LÍMITE</div></div>
       <div class="stat-item"><div class="stat-num">9€</div><div class="stat-label">PRECIO PRO/MES</div></div>
     </div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading-state" style="text-align:center;padding:60px 0;">
+    <div style="width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 16px;"></div>
+    <div style="font-size:12px;color:var(--text3);font-family:monospace;">Cargando...</div>
   </div>
 
   <!-- AUTH WALL -->
@@ -252,7 +259,7 @@ nav{position:sticky;top:0;z-index:100;padding:14px 48px;display:flex;align-items
   </div>
 
   <!-- HOW IT WORKS (always visible below auth content) -->
-  <div id="info-section">
+  <div id="info-section" style="display:none;">
     <div style="height:48px;"></div>
     <div class="sec-tag">CÓMO FUNCIONA</div>
     <h2 class="sec-title">3 pasos simples</h2>
@@ -362,8 +369,10 @@ async function checkAuth() {
       setTimeout(resolve, 2000);
     });
   }
+  document.getElementById('loading-state').style.display='none';
   if (!session) {
     document.getElementById('auth-wall').style.display='block';
+    document.getElementById('info-section').style.display='block';
     calcComision();
     return;
   }
@@ -388,10 +397,12 @@ async function loadAffiliate() {
 
   if (!data) {
     document.getElementById('apply-section').style.display='block';
+    document.getElementById('info-section').style.display='block';
     return;
   }
   if (data.estado==='pending') {
     document.getElementById('pending-section').style.display='block';
+    document.getElementById('info-section').style.display='block';
     return;
   }
   if (data.estado==='active') {
