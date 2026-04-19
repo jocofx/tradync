@@ -3,7 +3,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Trading Journal — Notion Sync</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -457,7 +457,9 @@
       margin-left: 0 !important;
       padding: 16px 12px 80px 12px;
     }
-    #sidebar-show-btn { display: flex !important; }
+    #sidebar-show-btn { display: none !important; }
+    #sidebar-toggle-btn { display: none !important; }
+    .hamburger { display: none !important; }
     .quote-wrap { display: none !important; }
 
     /* ── HEADER ─────────────────────────────────────────── */
@@ -563,22 +565,29 @@
     bottom: 0; left: 0; right: 0;
     background: var(--bg2);
     border-top: 1px solid var(--border2);
-    z-index: 300;
-    padding: 8px 0 max(12px, env(safe-area-inset-bottom));
+    z-index: 99999;
+    height: 70px;
+    padding: 0;
     justify-content: space-around;
-    align-items: flex-end;
+    align-items: center;
     box-shadow: 0 -4px 24px rgba(0,0,0,0.3);
+    /* Prevent zoom from affecting size */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
   }
   .mobile-nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 8px 10px 4px;
+    justify-content: center;
+    gap: 3px;
+    padding: 0 8px;
     cursor: pointer;
     border-radius: 12px;
+    height: 70px;
     min-width: 60px;
     transition: all 0.15s;
+    flex: 1;
   }
   .mobile-nav-item.active .mobile-nav-icon { color: var(--green); }
   .mobile-nav-item.active .mobile-nav-label { color: var(--green); }
