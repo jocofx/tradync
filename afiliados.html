@@ -390,10 +390,15 @@ async function trackRef() {
 }
 
 async function loadAffiliate() {
-  var result = await sb.from('affiliates').select('*').eq('user_id',currentUser.id).limit(1).catch(()=>({data:[],error:'catch'}));
-  var data = (result.data && result.data.length > 0) ? result.data[0] : null;
+  var data = null;
+  try {
+    var result = await sb.from('affiliates').select('*').eq('user_id', currentUser.id).limit(1);
+    data = (result.data && result.data.length > 0) ? result.data[0] : null;
+    console.log('Affiliate data:', data, 'Error:', result.error);
+  } catch(e) {
+    console.error('loadAffiliate error:', e);
+  }
   affData = data;
-  console.log('Affiliate data:', data, 'Error:', result.error);
 
   if (!data) {
     document.getElementById('apply-section').style.display='block';
