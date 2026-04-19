@@ -7452,8 +7452,15 @@ function renderPsychCharts() {
       </div>
     </div>
 
-    <div style="display:flex;justify-content:center;margin-bottom:4px;">
-      <a href="afiliados.html" onclick="closeMobileMenu()" style="font-size:12px;color:var(--text3);text-decoration:none;font-family:monospace;letter-spacing:1px;">🤝 PROGRAMA DE AFILIADOS</a>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div class="mmenu-item" onclick="closeMobileMenu();window.location.href='afiliados.html'" style="border-color:rgba(77,159,255,0.25);background:rgba(77,159,255,0.07);">
+        <div class="mmenu-icon">🤝</div>
+        <div class="mmenu-label" style="color:var(--blue);">Afiliados</div>
+      </div>
+      <div class="mmenu-item" onclick="closeMobileMenu();document.getElementById('logout-btn')&&document.getElementById('logout-btn').click()" style="border-color:rgba(255,77,109,0.25);background:rgba(255,77,109,0.07);">
+        <div class="mmenu-icon">🚪</div>
+        <div class="mmenu-label" style="color:var(--red);">Salir</div>
+      </div>
     </div>
     <button onclick="closeMobileMenu()" style="width:100%;padding:13px;border:1px solid var(--border2);border-radius:12px;background:var(--bg3);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;">✕ Cerrar</button>
   </div>
