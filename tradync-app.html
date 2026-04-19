@@ -25,7 +25,7 @@
 <style>
   /* TAB PANELS */
   .tab-panel { display: none !important; width: 100%; box-sizing: border-box; }
-  .tab-panel.active { display: block !important; }
+  .tab-panel.active { display: block !important; position: relative; }
 
 
   .mobile-nav-icon { font-size: 20px; line-height: 1; }
@@ -5371,7 +5371,7 @@ function showUpgradeOverlay(panelId, featureName) {
 
   const overlay = document.createElement('div');
   overlay.className = 'upgrade-overlay';
-  overlay.style.cssText = 'position:absolute;inset:0;background:rgba(10,11,14,0.85);backdrop-filter:blur(8px);z-index:50;display:flex;align-items:center;justify-content:center;border-radius:14px;';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,11,14,0.88);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding-top:120px;';
   overlay.innerHTML = `
     <div style="text-align:center;padding:40px 32px;max-width:380px;">
       <div style="font-size:48px;margin-bottom:16px;">⭐</div>
