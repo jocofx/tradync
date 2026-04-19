@@ -5365,27 +5365,33 @@ function updatePlanUI() {
 function showUpgradeOverlay(panelId, featureName) {
   const panel = document.getElementById('panel-' + panelId);
   if (!panel) return;
-  // Remove existing overlay if any
   const existing = panel.querySelector('.upgrade-overlay');
   if (existing) existing.remove();
 
   const overlay = document.createElement('div');
   overlay.className = 'upgrade-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,11,14,0.88);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding-top:120px;';
-  overlay.innerHTML = `
-    <div style="text-align:center;padding:40px 32px;max-width:380px;">
-      <div style="font-size:48px;margin-bottom:16px;">⭐</div>
-      <div style="font-size:20px;font-weight:800;color:var(--text);margin-bottom:10px;letter-spacing:-0.5px;">${featureName}</div>
-      <div style="font-size:13px;color:var(--text3);margin-bottom:28px;line-height:1.7;">Esta función está disponible en el plan <strong style="color:var(--green);">Pro</strong>. Mejora tu plan para desbloquearla.</div>
-      <button onclick="goTab('planes',document.querySelector('[onclick*=planes]'))" 
-        style="padding:13px 32px;border:none;border-radius:10px;background:linear-gradient(135deg,#00d4a0,#4d9fff);color:#0d1117;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px;">
-        Ver planes →
-      </button>
-      <div style="font-size:11px;color:var(--text3);">Desde 6,5€/mes · Sin permanencia</div>
-    </div>`;
-  panel.style.position = 'relative';
+  overlay.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,11,14,0.82);backdrop-filter:blur(6px);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding-top:80px;';
+
+  const box = document.createElement('div');
+  box.style.cssText = 'text-align:center;padding:36px 32px;max-width:360px;background:var(--bg2);border:1px solid var(--border2);border-radius:18px;position:relative;';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '✕';
+  closeBtn.style.cssText = 'position:absolute;top:12px;right:14px;background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;';
+  closeBtn.onclick = function() { overlay.remove(); };
+
+  box.innerHTML = '<div style="font-size:44px;margin-bottom:14px;">⭐</div>' +
+    '<div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:10px;letter-spacing:-0.5px;">' + featureName + '</div>' +
+    '<div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:22px;">Esta función está disponible en el plan <span style="color:var(--green);font-weight:700;">Pro</span>. Mejora tu plan para desbloquearla.</div>' +
+    '<button onclick="goTab('planes',null)" style="width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#00d4a0,#4d9fff);color:#000;font-size:14px;font-weight:700;cursor:pointer;">Ver planes →</button>' +
+    '<div style="font-size:11px;color:var(--text3);margin-top:10px;">Desde 6,5€/mes · Sin permanencia</div>';
+
+  box.appendChild(closeBtn);
+  overlay.appendChild(box);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
   panel.appendChild(overlay);
 }
+
 
 function checkPlanRestrictions() {
   // Remove any existing overlays first
