@@ -2566,6 +2566,12 @@ async function doInlineRegister() {
     document.getElementById('auth-register-form').style.display = 'none';
     document.getElementById('auth-confirm-msg').style.display = 'block';
     msg.style.display = 'none';
+    // Send welcome email
+    fetch('/api/welcome-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    }).catch(() => {});
   }
 }
 
@@ -2609,7 +2615,23 @@ async function doInlineLogin() {
   }
 }
 
+function sendWelcomeEmailIfNew(user) {
+  // Only send once per user (track in localStorage)
+  var key = 'tj_welcome_sent_' + user.id.slice(0,8);
+  if (localStorage.getItem(key)) return;
+  var isNew = user.created_at && (new Date() - new Date(user.created_at)) < 300000; // within 5 min
+  if (isNew) {
+    localStorage.setItem(key, '1');
+    fetch('/api/welcome-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: user.email, name: user.user_metadata?.full_name || '' })
+    }).catch(() => {});
+  }
+}
+
 function updateUserUI(user) {
+  sendWelcomeEmailIfNew(user);
   const headerActions = document.querySelector('.header-actions');
   if (headerActions && !document.getElementById('logout-btn')) {
     const btn = document.createElement('button');
