@@ -173,6 +173,15 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .two-col { display: grid; grid-template-columns: 1fr 340px; gap: 18px; margin-bottom: 18px; }
+  /* DASHBOARD GRID CLASSES */
+  .dash-grid-2-1 { display:grid; grid-template-columns:2fr 1fr; gap:18px; margin-bottom:18px; }
+  .dash-grid-3col { display:grid; grid-template-columns:180px 1fr 200px; gap:18px; margin-bottom:18px; }
+  .dash-grid-2col { display:grid; grid-template-columns:260px 1fr; gap:18px; margin-bottom:18px; }
+  /* OPERACIONES GRID CLASSES */
+  .ops-charts-3col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:16px; }
+  .ops-charts-2col { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+
+
   .section-title { font-size: 10px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; font-family: 'DM Mono', monospace; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
   .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
   .tag { font-size: 9px; font-family: 'DM Mono', monospace; padding: 3px 10px; border-radius: 20px; cursor: pointer; border: 1px solid; transition: opacity 0.15s; display: inline-block; }
@@ -529,6 +538,29 @@
     /* ── CHARTS ─────────────────────────────────────────── */
     .charts-grid { grid-template-columns: 1fr !important; }
 
+    /* ── DASHBOARD RESPONSIVE ───────────────────────────── */
+    .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+    .metric-card { padding: 10px 8px !important; }
+    .metric-value { font-size: 16px !important; }
+    .metric-label { font-size: 8px !important; }
+    .metric-sub { font-size: 9px !important; }
+    .dash-grid-2-1,
+    .dash-grid-3col,
+    .dash-grid-2col { grid-template-columns: 1fr !important; gap: 10px !important; margin-bottom: 12px !important; }
+    /* Chart heights */
+    .dash-grid-2-1 [style*="height:160px"],
+    .dash-grid-3col [style*="height:140px"],
+    .dash-grid-3col [style*="height:130px"],
+    .dash-grid-2col [style*="height:160px"] { height: 110px !important; }
+    /* Donut size */
+    .dash-grid-3col [style*="width:130px"] { width: 90px !important; height: 90px !important; }
+
+    /* ── OPERACIONES RESPONSIVE ─────────────────────────── */
+    .ops-charts-3col,
+    .ops-charts-2col { grid-template-columns: 1fr !important; gap: 10px !important; margin-bottom: 12px !important; }
+    .ops-charts-3col [style*="height:180px"],
+    .ops-charts-2col [style*="height:160px"] { height: 110px !important; }
+
     /* ── DASHBOARD: force all grids to 1 col ─────────────── */
     #panel-dashboard [style*="grid-template-columns:repeat(6,1fr)"] {
       grid-template-columns: repeat(2, 1fr) !important;
@@ -804,8 +836,8 @@ if (typeof supabase === 'undefined') {
         <div class="metric-card green"><div class="metric-label">RR Medio</div><div class="metric-value green" id="m-rr-dash">—</div><div class="metric-sub">ratio riesgo</div></div>
       </div>
 
-      <!-- EQUITY + DAILY P&L ROW -->
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px;">
+      <!-- EQUITY + DAILY -->
+      <div class="dash-grid-2-1">
         <div class="card">
           <div class="card-title">Curva de equity <span class="card-title-badge" id="equity-badge">—</span></div>
           <div style="position:relative;height:160px;"><canvas id="equity-chart"></canvas></div>
@@ -816,8 +848,8 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
 
-      <!-- WIN/LOSS DONUT + SETUP BAR + CALENDAR MINI -->
-      <div style="display:grid;grid-template-columns:180px 1fr 200px;gap:18px;margin-bottom:18px;">
+      <!-- WIN/LOSS + SETUP + STATS -->
+      <div class="dash-grid-3col">
         <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
           <div class="card-title" style="text-align:center;width:100%;">Win / Loss</div>
           <div style="position:relative;height:130px;width:130px;"><canvas id="winloss-chart"></canvas></div>
@@ -840,8 +872,8 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
 
-      <!-- SESSION HEATMAP + RECENT TRADES -->
-      <div style="display:grid;grid-template-columns:260px 1fr;gap:18px;margin-bottom:18px;">
+      <!-- SESSION + DISTRIBUTION -->
+      <div class="dash-grid-2col">
         <div class="card">
           <div class="card-title">Por sesión</div>
           <div style="position:relative;height:160px;"><canvas id="session-chart"></canvas></div>
@@ -863,6 +895,7 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
     </div>
+
 
 <div class="tab-panel" id="panel-operaciones">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
@@ -896,7 +929,7 @@ if (typeof supabase === 'undefined') {
       </div>
 
       <!-- CHARTS ROW -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+      <div class="ops-charts-3col">
         <div class="card">
           <div class="card-title">P&L por activo</div>
           <div style="position:relative;height:180px;"><canvas id="ops-activo-chart"></canvas></div>
@@ -910,7 +943,7 @@ if (typeof supabase === 'undefined') {
           <div style="position:relative;height:180px;"><canvas id="ops-session-chart2"></canvas></div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+      <div class="ops-charts-2col">
         <div class="card">
           <div class="card-title">Rendimiento por hora del día</div>
           <div style="position:relative;height:160px;"><canvas id="ops-hour-chart"></canvas></div>
@@ -6701,8 +6734,6 @@ window.addEventListener('load', async () => {
     try { initHabits(); } catch(e) {}
     loadDiaryFromNotion().catch(()=>{});
     loadAllHabitsFromSupabase().catch(()=>{});
-    // Apply mobile layout patches
-    if (window.innerWidth <= 768) { setTimeout(patchMobileLayouts, 500); }
     await loadUserPlan();
     checkPlanRestrictions();
     renderFreeLimitBanner();
@@ -7392,57 +7423,5 @@ function closeMobileMenu() {
 </script>
 
 
-<script>
-// ── FIXED NAV ZOOM COMPENSATION ─────────────────────────────
-(function() {
-  var nav = null;
-  var lastRatio = window.devicePixelRatio || 1;
-  var BASE_HEIGHT = 70; // px at 1x zoom
-
-  function fixNav() {
-    if (window.innerWidth > 768) return; // desktop only needs natural behavior
-    if (!nav) nav = document.getElementById('mobile-nav');
-    if (!nav) return;
-
-    // Current device pixel ratio (zoom level)
-    var ratio = window.devicePixelRatio || 1;
-    // Visual viewport scale if available
-    var vvScale = (window.visualViewport && window.visualViewport.scale) ? window.visualViewport.scale : 1;
-    var totalScale = vvScale;
-
-    if (Math.abs(totalScale - 1) < 0.01) {
-      // No zoom - normal state
-      nav.style.transform = 'none';
-      nav.style.width = '100%';
-      nav.style.left = '0';
-      nav.style.right = '0';
-      nav.style.bottom = '0';
-    } else {
-      // Compensate for zoom: scale nav inversely
-      var compensate = 1 / totalScale;
-      var offsetX = window.visualViewport ? window.visualViewport.offsetLeft : 0;
-      nav.style.transformOrigin = 'bottom left';
-      nav.style.transform = 'scale(' + compensate + ')';
-      nav.style.width = (100 * totalScale) + 'vw';
-      nav.style.left = offsetX + 'px';
-      nav.style.bottom = '0';
-    }
-  }
-
-  // Listen to visual viewport changes (zoom, scroll)
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', fixNav);
-    window.visualViewport.addEventListener('scroll', fixNav);
-  }
-  // Also listen to window resize
-  window.addEventListener('resize', fixNav);
-  // Run on load
-  window.addEventListener('load', function() {
-    setTimeout(fixNav, 300);
-  });
-  // Run periodically as fallback
-  setInterval(fixNav, 500);
-})();
-</script>
 
 </body>
