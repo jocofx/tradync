@@ -463,11 +463,16 @@
     .quote-wrap { display: none !important; }
 
     /* ── HEADER ─────────────────────────────────────────── */
-    .header { flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
-    .header-left { flex-direction: row; flex-wrap: wrap; gap: 8px; }
-    .header-left h1 { font-size: 18px !important; }
-    .header-actions { flex-wrap: wrap; gap: 6px; }
-    .header-actions .btn { font-size: 12px; padding: 7px 12px; }
+    .header { flex-wrap: nowrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .header-left { gap: 8px; min-width: 0; flex: 1; }
+    .header-left h1 { font-size: 17px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .header-date { display: none !important; }
+    /* Hide all header action buttons except theme on mobile */
+    .header-actions .btn:not(#theme-btn) { display: none !important; }
+    #logout-btn { display: none !important; }
+    .header-actions { gap: 4px; flex-shrink: 0; }
+    /* Hide quote separator line */
+    .header-left > div[style*="width:1px"] { display: none !important; }
 
     /* ── RISK BAR ───────────────────────────────────────── */
     #fixed-risk-bar { flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px 12px; }
@@ -7096,7 +7101,7 @@ function renderPsychCharts() {
     <div class="mobile-nav-icon">📋</div>
     <div class="mobile-nav-label">Operaciones</div>
   </div>
-  <div class="mobile-nav-item" id="mnav-nueva" onclick="mobileGoTab('nueva',this)">
+  <div class="mobile-nav-item" id="mnav-nueva" onclick="openNuevaModal()">
     <div class="mobile-nav-icon">
       <div style="width:44px;height:44px;background:linear-gradient(135deg,#00d4a0,#4d9fff);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;color:#000;margin-top:-14px;box-shadow:0 4px 16px rgba(0,212,160,0.4);">+</div>
     </div>
@@ -7163,12 +7168,49 @@ function renderPsychCharts() {
     </div>
 
   </div>
-  <div style="padding:16px 12px 0;">
-    <button onclick="closeMobileMenu()" style="width:100%;padding:14px;border:1px solid var(--border2);border-radius:12px;background:var(--bg3);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;">Cerrar</button>
+  <div style="padding:16px 12px 0;display:flex;flex-direction:column;gap:8px;">
+    <button onclick="closeMobileMenu();document.getElementById('logout-btn')&&document.getElementById('logout-btn').click()" style="width:100%;padding:13px;border:1px solid rgba(255,77,109,0.3);border-radius:12px;background:rgba(255,77,109,0.08);color:var(--red);font-size:14px;font-weight:600;cursor:pointer;">🚪 Cerrar sesión</button>
+    <button onclick="closeMobileMenu()" style="width:100%;padding:13px;border:1px solid var(--border2);border-radius:12px;background:var(--bg3);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;">✕ Cerrar menú</button>
   </div>
 </div>
 
+<!-- NUEVA MODAL -->
+<div id="nueva-modal-overlay" onclick="closeNuevaModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:9998;"></div>
+<div id="nueva-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--border2);padding:24px 16px max(24px,env(safe-area-inset-bottom));">
+  <div style="display:flex;justify-content:center;margin-bottom:16px;">
+    <div style="width:40px;height:4px;border-radius:2px;background:var(--border2);"></div>
+  </div>
+  <div style="font-size:11px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:16px;text-align:center;">¿QUÉ QUIERES CREAR?</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+    <div onclick="closeNuevaModal();mobileGoTab('nueva',document.getElementById('mnav-nueva'))" style="background:linear-gradient(135deg,rgba(0,212,160,0.15),rgba(77,159,255,0.1));border:1px solid rgba(0,212,160,0.3);border-radius:16px;padding:24px 16px;text-align:center;cursor:pointer;">
+      <div style="font-size:36px;margin-bottom:10px;">📈</div>
+      <div style="font-size:14px;font-weight:700;color:var(--green);">Nueva operación</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">Registra un trade</div>
+    </div>
+    <div onclick="closeNuevaModal();openModal()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:16px;padding:24px 16px;text-align:center;cursor:pointer;">
+      <div style="font-size:36px;margin-bottom:10px;">💼</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);">Nueva cuenta</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">Añade una cuenta</div>
+    </div>
+  </div>
+  <button onclick="closeNuevaModal()" style="width:100%;padding:13px;border:1px solid var(--border2);border-radius:12px;background:var(--bg3);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+</div>
+
 <script>
+function openNuevaModal() {
+  document.getElementById('nueva-modal-overlay').style.display = 'block';
+  var m = document.getElementById('nueva-modal');
+  m.style.display = 'block';
+  m.style.transform = 'translateY(100%)';
+  m.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ m.style.transform = 'translateY(0)'; }); });
+}
+function closeNuevaModal() {
+  var m = document.getElementById('nueva-modal');
+  m.style.transform = 'translateY(100%)';
+  setTimeout(function(){ m.style.display='none'; document.getElementById('nueva-modal-overlay').style.display='none'; }, 300);
+}
+
 function mobileGoTab(id, el) {
   goTab(id, document.querySelector('.nav-item[onclick*="' + id + '"]'));
   document.querySelectorAll('.mobile-nav-item').forEach(function(i){ i.classList.remove('active'); });
