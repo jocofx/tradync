@@ -445,9 +445,143 @@
   .sidebar-overlay.open { display:block; }
 
   @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); transition: transform 0.3s; z-index: 200; }
-    .main { margin-left: 0 !important; padding: 16px; }
+    /* ── LAYOUT ─────────────────────────────────────────── */
+    .sidebar {
+      transform: translateX(-100%);
+      transition: transform 0.3s;
+      z-index: 200;
+      position: fixed;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main {
+      margin-left: 0 !important;
+      padding: 16px 12px 80px 12px;
+    }
+    #sidebar-show-btn { display: flex !important; }
+    .quote-wrap { display: none !important; }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    .header { flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    .header-left { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+    .header-left h1 { font-size: 18px !important; }
+    .header-actions { flex-wrap: wrap; gap: 6px; }
+    .header-actions .btn { font-size: 12px; padding: 7px 12px; }
+
+    /* ── RISK BAR ───────────────────────────────────────── */
+    #fixed-risk-bar { flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px 12px; }
+
+    /* ── METRICS ────────────────────────────────────────── */
+    .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+
+    /* ── CARDS ──────────────────────────────────────────── */
+    .card { padding: 14px 12px; }
+    .card-title { font-size: 11px; flex-wrap: wrap; gap: 6px; }
+
+    /* ── ALL GRID LAYOUTS → single column ───────────────── */
+    .two-col,
+    .stats-3col,
+    [style*="grid-template-columns:2fr 1fr"],
+    [style*="grid-template-columns: 2fr 1fr"],
+    [style*="grid-template-columns:3fr 1fr"],
+    [style*="grid-template-columns: 3fr 1fr"],
+    [style*="grid-template-columns:1fr 1fr"],
+    [style*="grid-template-columns: 1fr 1fr"],
+    [style*="grid-template-columns:1fr 300px"],
+    [style*="grid-template-columns:1fr 280px"],
+    [style*="grid-template-columns:1fr 320px"],
+    [style*="grid-template-columns:260px 1fr"],
+    [style*="grid-template-columns:180px 1fr"],
+    [style*="grid-template-columns:160px 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+
+    /* 3-col grids → 1 col */
+    [style*="grid-template-columns:repeat(3"],
+    [style*="grid-template-columns: repeat(3"],
+    [style*="grid-template-columns:1fr 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+
+    /* 4-col grids → 2 col */
+    .risk-meters,
+    [style*="grid-template-columns:repeat(4"],
+    [style*="grid-template-columns: repeat(4"],
+    [style*="grid-template-columns:repeat(6"],
+    [style*="grid-template-columns: repeat(6"] {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    /* ── FORMS ──────────────────────────────────────────── */
+    .form-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+    .form-input, .form-select, .form-textarea { font-size: 16px !important; }
+
+    /* ── TABLES ─────────────────────────────────────────── */
+    .trade-table-wrap, [style*="overflow-x:auto"] { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .trade-table { min-width: 600px; }
+
+    /* ── CHARTS ─────────────────────────────────────────── */
+    .charts-grid { grid-template-columns: 1fr !important; }
+    [style*="height:160px"] canvas,
+    [style*="height:180px"] canvas,
+    [style*="height:200px"] canvas { max-height: 180px; }
+
+    /* ── MODALS ─────────────────────────────────────────── */
+    .day-modal, .edit-modal, .modal {
+      width: 96vw !important;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    /* ── AI CHAT ────────────────────────────────────────── */
+    .ai-bubble { max-width: 95% !important; font-size: 13px !important; }
+    [style*="height:580px"] { height: auto !important; min-height: 300px; }
+
+    /* ── HABITS GRID ────────────────────────────────────── */
+    .habit-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    #habits-today-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* ── PLAN CARDS ─────────────────────────────────────── */
+    [style*="grid-template-columns:repeat(3,1fr)"] { grid-template-columns: 1fr !important; }
+
+    /* ── DAY SUMMARY ────────────────────────────────────── */
+    .day-summary { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* ── ACCOUNTS GRID ──────────────────────────────────── */
+    .accounts-grid { grid-template-columns: 1fr !important; }
+
+    /* ── SECTION TITLE ──────────────────────────────────── */
+    .section-title { font-size: 9px; }
+
+    /* ── BOTTOM NAV ─────────────────────────────────────── */
+    .mobile-nav { display: flex !important; }
   }
+
+  /* ── MOBILE BOTTOM NAV STYLES ───────────────────────────── */
+  .mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg2);
+    border-top: 1px solid var(--border2);
+    z-index: 300;
+    padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+    justify-content: space-around;
+    align-items: center;
+  }
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 10px;
+    min-width: 52px;
+  }
+  .mobile-nav-item.active .mobile-nav-icon { color: var(--green); }
+  .mobile-nav-item.active .mobile-nav-label { color: var(--green); }
+  .mobile-nav-icon { font-size: 20px; line-height: 1; color: var(--text2); }
+  .mobile-nav-label { font-size: 9px; color: var(--text3); font-family: monospace; letter-spacing: 0.5px; text-transform: uppercase; }
 </style>
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
@@ -6923,6 +7057,41 @@ function renderPsychCharts() {
   </div>
 </div>
 
+
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav" id="mobile-nav">
+  <div class="mobile-nav-item active" onclick="mobileGoTab('dashboard',this)">
+    <div class="mobile-nav-icon">📊</div>
+    <div class="mobile-nav-label">Dashboard</div>
+  </div>
+  <div class="mobile-nav-item" onclick="mobileGoTab('operaciones',this)">
+    <div class="mobile-nav-icon">📋</div>
+    <div class="mobile-nav-label">Ops</div>
+  </div>
+  <div class="mobile-nav-item" onclick="mobileGoTab('nueva',this)">
+    <div class="mobile-nav-icon" style="width:36px;height:36px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#000;margin-top:-8px;">+</div>
+    <div class="mobile-nav-label">Nueva</div>
+  </div>
+  <div class="mobile-nav-item" onclick="mobileGoTab('ia',this)">
+    <div class="mobile-nav-icon">🤖</div>
+    <div class="mobile-nav-label">Coach</div>
+  </div>
+  <div class="mobile-nav-item" id="mobile-more-btn" onclick="toggleSidebar()">
+    <div class="mobile-nav-icon">☰</div>
+    <div class="mobile-nav-label">Más</div>
+  </div>
+</nav>
+<script>
+function mobileGoTab(id, el) {
+  goTab(id, document.querySelector('.nav-item[onclick*="' + id + '"]'));
+  document.querySelectorAll('.mobile-nav-item').forEach(function(i){ i.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  // Close sidebar if open on mobile
+  var sidebar = document.querySelector('.sidebar');
+  if (sidebar && sidebar.classList.contains('open')) toggleSidebar();
+}
+</script>
 
 </body>
 </html>
