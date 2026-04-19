@@ -470,229 +470,237 @@
   .sidebar-overlay.open { display:block; }
 
   @media (max-width: 768px) {
-    /* ── LAYOUT ─────────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════
+       MOBILE RESPONSIVE — iPhone 15 Pro Max (430pt)
+    ═══════════════════════════════════════════════════════ */
+
+    /* ── LAYOUT BASE ─────────────────────────────────────── */
+    html, body { overflow-x: hidden; }
     .sidebar {
       transform: translateX(-100%);
-      transition: transform 0.3s;
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
       z-index: 200;
       position: fixed;
+      width: 280px !important;
     }
     .sidebar.open { transform: translateX(0); }
+    .layout { display: block !important; }
     .main {
       margin-left: 0 !important;
-      padding: 10px 8px 80px 8px !important;
+      padding: 12px 10px 82px 10px !important;
+      min-height: 100vh;
     }
-    #sidebar-show-btn { display: none !important; }
-    #sidebar-toggle-btn { display: none !important; }
-    .hamburger { display: none !important; }
-    .quote-wrap { display: none !important; }
 
     /* ── HEADER ─────────────────────────────────────────── */
-    .header { flex-wrap: nowrap; align-items: center; gap: 8px; margin-bottom: 12px; }
-    .header-left { gap: 8px; min-width: 0; flex: 1; }
-    .header-left h1 { font-size: 17px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      flex-wrap: nowrap !important;
+      margin-bottom: 12px !important;
+      gap: 8px !important;
+    }
+    .header-left {
+      gap: 0 !important;
+      flex: 1;
+      min-width: 0;
+    }
+    .header-left h1 {
+      font-size: 18px !important;
+      font-weight: 800 !important;
+      letter-spacing: -0.5px !important;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .header-date { display: none !important; }
-    /* Hide all header action buttons except theme on mobile */
+    .header-left > div[style*="width:1px"] { display: none !important; }
+    .quote-wrap { display: none !important; }
+    .hamburger { display: none !important; }
+    #sidebar-show-btn { display: none !important; }
+    #sidebar-toggle-btn { display: none !important; }
+    /* Hide all header buttons except theme */
     .header-actions .btn:not(#theme-btn) { display: none !important; }
     #logout-btn { display: none !important; }
-    .header-actions { gap: 4px; flex-shrink: 0; }
-    /* Hide quote separator line */
-    .header-left > div[style*="width:1px"] { display: none !important; }
+    .header-actions { flex-shrink: 0; }
+    #theme-btn { padding: 7px 10px !important; font-size: 15px !important; }
 
     /* ── RISK BAR ───────────────────────────────────────── */
-    #fixed-risk-bar { flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px 12px; }
+    #fixed-risk-bar {
+      padding: 9px 12px !important;
+      border-radius: 10px !important;
+      margin-bottom: 10px !important;
+      flex-direction: row !important;
+      align-items: center !important;
+    }
+    #fixed-risk-text { font-size: 12px !important; }
+    #fixed-risk-detail { font-size: 10px !important; }
 
-    /* ── METRICS ────────────────────────────────────────── */
-    .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+    /* ── SECTION TITLE ──────────────────────────────────── */
+    .section-title { font-size: 9px !important; margin-bottom: 10px !important; }
 
     /* ── CARDS ──────────────────────────────────────────── */
-    .card { padding: 14px 12px; }
-    .card-title { font-size: 11px; flex-wrap: wrap; gap: 6px; }
-
-    /* ── ALL GRID LAYOUTS → single column ───────────────── */
-    .two-col,
-    .stats-3col,
-    [style*="grid-template-columns:2fr 1fr"],
-    [style*="grid-template-columns: 2fr 1fr"],
-    [style*="grid-template-columns:3fr 1fr"],
-    [style*="grid-template-columns: 3fr 1fr"],
-    [style*="grid-template-columns:1fr 1fr"],
-    [style*="grid-template-columns: 1fr 1fr"],
-    [style*="grid-template-columns:1fr 300px"],
-    [style*="grid-template-columns:1fr 280px"],
-    [style*="grid-template-columns:1fr 320px"],
-    [style*="grid-template-columns:260px 1fr"],
-    [style*="grid-template-columns:180px 1fr"],
-    [style*="grid-template-columns:160px 1fr"] {
-      grid-template-columns: 1fr !important;
+    .card {
+      padding: 12px 11px 10px !important;
+      border-radius: 12px !important;
+    }
+    .card-title {
+      font-size: 10px !important;
+      margin-bottom: 10px !important;
+      flex-wrap: wrap;
+      gap: 4px;
     }
 
-    /* 3-col grids → 1 col */
-    [style*="grid-template-columns:repeat(3"],
-    [style*="grid-template-columns: repeat(3"],
-    [style*="grid-template-columns:1fr 1fr 1fr"] {
-      grid-template-columns: 1fr !important;
-    }
-
-    /* 4-col grids → 2 col */
-    .risk-meters,
-    [style*="grid-template-columns:repeat(4"],
-    [style*="grid-template-columns: repeat(4"],
-    [style*="grid-template-columns:repeat(6"],
-    [style*="grid-template-columns: repeat(6"] {
-      grid-template-columns: repeat(2, 1fr) !important;
-    }
-
-    /* ── FORMS ──────────────────────────────────────────── */
-    .form-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
-    .form-input, .form-select, .form-textarea { font-size: 16px !important; }
-
-    /* ── TABLES ─────────────────────────────────────────── */
-    .trade-table-wrap, [style*="overflow-x:auto"] { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .trade-table { min-width: 600px; }
-
-    /* ── CHARTS ─────────────────────────────────────────── */
-    .charts-grid { grid-template-columns: 1fr !important; }
-
-    /* ── DASHBOARD RESPONSIVE ───────────────────────────── */
-    /* Métricas: 3 col compactas */
+    /* ── METRICS ────────────────────────────────────────── */
     .metrics-grid {
       grid-template-columns: repeat(3, 1fr) !important;
       gap: 6px !important;
-      margin-bottom: 12px !important;
+      margin-bottom: 10px !important;
     }
     .metric-card {
-      padding: 8px 6px 6px !important;
+      padding: 8px 7px 6px !important;
       border-radius: 10px !important;
     }
-    .metric-card::after { height: 1px !important; }
-    .metric-value { font-size: 13px !important; letter-spacing: -0.5px !important; }
-    .metric-label { font-size: 7px !important; margin-bottom: 3px !important; letter-spacing: 0.5px !important; }
+    .metric-value {
+      font-size: 14px !important;
+      letter-spacing: -0.5px !important;
+    }
+    .metric-label {
+      font-size: 7px !important;
+      margin-bottom: 4px !important;
+      letter-spacing: 0.8px !important;
+    }
     .metric-sub { font-size: 8px !important; margin-top: 2px !important; }
 
-    /* Todos los grids del dashboard → 1 col */
+    /* ── DASHBOARD GRIDS ────────────────────────────────── */
     .dash-grid-2-1,
     .dash-grid-3col,
     .dash-grid-2col {
       grid-template-columns: 1fr !important;
       gap: 8px !important;
-      margin-bottom: 10px !important;
+      margin-bottom: 8px !important;
     }
-    /* Gráficas compactas */
+    /* Chart heights */
     .dash-grid-2-1 .card [style*="height:160px"],
     .dash-grid-2col .card [style*="height:160px"],
-    .dash-grid-3col .card [style*="height:140px"] { height: 90px !important; }
-    /* Donut más pequeño */
+    .dash-grid-3col .card [style*="height:140px"] { height: 100px !important; }
     .dash-grid-3col .card [style*="height:130px"],
     .dash-grid-3col .card [style*="width:130px"] { height: 80px !important; width: 80px !important; }
-    /* Cards más compactas */
-    #panel-dashboard .card { padding: 10px 10px 8px !important; }
-    #panel-dashboard .card-title { font-size: 10px !important; margin-bottom: 10px !important; }
+    /* Stats rows compact */
     #panel-dashboard .stat-row { padding: 5px 0 !important; }
     #panel-dashboard .stat-name { font-size: 11px !important; }
     #panel-dashboard .stat-val { font-size: 11px !important; }
-    /* Risk bar compacto */
-    #fixed-risk-bar { padding: 8px 10px !important; border-radius: 8px !important; margin-bottom: 10px !important; }
-    #fixed-risk-text { font-size: 11px !important; }
-    #fixed-risk-detail { font-size: 9px !important; }
 
-    /* ── OPERACIONES RESPONSIVE ─────────────────────────── */
+    /* ── OPERACIONES GRIDS ──────────────────────────────── */
     .ops-charts-3col,
     .ops-charts-2col {
       grid-template-columns: 1fr !important;
       gap: 8px !important;
-      margin-bottom: 10px !important;
+      margin-bottom: 8px !important;
     }
     .ops-charts-3col .card [style*="height:180px"],
-    .ops-charts-2col .card [style*="height:160px"] { height: 90px !important; }
-    #panel-operaciones .card { padding: 10px 10px 8px !important; }
-    #panel-operaciones .card-title { font-size: 10px !important; margin-bottom: 10px !important; }
+    .ops-charts-2col .card [style*="height:160px"] { height: 100px !important; }
+    #panel-operaciones .card { padding: 12px 10px 8px !important; }
     /* Filter bar */
     .ops-filter-bar {
       flex-direction: column !important;
       gap: 6px !important;
     }
     .ops-filter-select,
-    .ops-filter-bar .btn { width: 100% !important; font-size: 14px !important; }
+    .ops-filter-bar .btn { width: 100% !important; font-size: 15px !important; }
 
-    /* ── DASHBOARD: force all grids to 1 col ─────────────── */
-    #panel-dashboard [style*="grid-template-columns:repeat(6,1fr)"] {
+    /* ── ALL OTHER GRIDS → 1 col ────────────────────────── */
+    .two-col,
+    .stats-3col,
+    [style*="grid-template-columns:2fr 1fr"],
+    [style*="grid-template-columns: 2fr 1fr"],
+    [style*="grid-template-columns:3fr 1fr"],
+    [style*="grid-template-columns:1fr 1fr"],
+    [style*="grid-template-columns: 1fr 1fr"],
+    [style*="grid-template-columns:1fr 300px"],
+    [style*="grid-template-columns:1fr 280px"],
+    [style*="grid-template-columns:1fr 320px"],
+    [style*="grid-template-columns:1fr 340px"],
+    [style*="grid-template-columns:260px 1fr"],
+    [style*="grid-template-columns:180px 1fr"],
+    [style*="grid-template-columns:160px 1fr"] {
+      grid-template-columns: 1fr !important;
+      gap: 8px !important;
+    }
+    [style*="grid-template-columns:repeat(3"],
+    [style*="grid-template-columns: repeat(3"],
+    [style*="grid-template-columns:1fr 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+      gap: 8px !important;
+    }
+    [style*="grid-template-columns:repeat(4"],
+    [style*="grid-template-columns: repeat(4"] {
       grid-template-columns: repeat(2, 1fr) !important;
       gap: 8px !important;
-      margin-bottom: 12px !important;
     }
-    #panel-dashboard [style*="grid-template-columns:2fr 1fr"],
-    #panel-dashboard [style*="grid-template-columns:180px 1fr 200px"],
-    #panel-dashboard [style*="grid-template-columns:260px 1fr"] {
-      grid-template-columns: 1fr !important;
-      gap: 10px !important;
-      margin-bottom: 12px !important;
-    }
-    /* Compact metric cards */
-    #panel-dashboard .metric-card {
-      padding: 10px 10px 8px !important;
-    }
-    #panel-dashboard .metric-value {
-      font-size: 16px !important;
-      letter-spacing: -0.5px !important;
-    }
-    #panel-dashboard .metric-label { font-size: 8px !important; margin-bottom: 4px !important; }
-    #panel-dashboard .metric-sub { font-size: 9px !important; margin-top: 3px !important; }
-    /* Chart heights - compact */
-    #panel-dashboard [style*="position:relative;height:160px"] { height: 120px !important; }
-    #panel-dashboard [style*="position:relative;height:140px"] { height: 100px !important; }
-    #panel-dashboard [style*="position:relative;height:130px"] { height: 90px !important; }
-    /* Win/Loss donut row - stack vertically */
-    #panel-dashboard [style*="display:flex;flex-direction:column;align-items:center"] {
-      padding: 12px !important;
-    }
-    /* Recent trades table - scroll */
-    #panel-dashboard .card > div[style*="overflow-x"] { overflow-x: auto !important; }
 
-    /* ── OPERACIONES: force all grids to 1 col ─────────────── */
-    #panel-operaciones [style*="grid-template-columns:1fr 1fr 1fr"],
-    #panel-operaciones [style*="grid-template-columns:1fr 1fr"] {
-      grid-template-columns: 1fr !important;
-      gap: 10px !important;
-      margin-bottom: 12px !important;
+    /* ── FORMS ──────────────────────────────────────────── */
+    .form-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+    .form-input, .form-select, .form-textarea {
+      font-size: 16px !important;
+      padding: 10px 12px !important;
     }
-    #panel-operaciones [style*="position:relative;height:180px"],
-    #panel-operaciones [style*="position:relative;height:160px"] { height: 120px !important; }
-    /* Filter bar - single column on mobile */
-    .ops-filter-bar { flex-direction: column !important; align-items: stretch !important; gap: 8px !important; }
-    .ops-filter-select { width: 100% !important; font-size: 15px !important; }
-    .ops-filter-bar .btn { width: 100% !important; text-align: center !important; }
-    #ops-filter-count { margin-left: 0 !important; text-align: center; }
+
+    /* ── TABLES ─────────────────────────────────────────── */
+    [style*="overflow-x:auto"] { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+    .trade-table { min-width: 580px; font-size: 11px !important; }
+    .trade-table th { font-size: 8px !important; padding-bottom: 8px !important; }
+    .trade-table td { padding: 7px 8px 7px 0 !important; }
 
     /* ── MODALS ─────────────────────────────────────────── */
     .day-modal, .edit-modal, .modal {
-      width: 96vw !important;
-      max-height: 90vh;
-      overflow-y: auto;
+      width: 97vw !important;
+      max-width: 97vw !important;
+      max-height: 88vh !important;
+      overflow-y: auto !important;
+      border-radius: 16px !important;
     }
+    .modal-overlay { padding: 10px !important; }
 
     /* ── AI CHAT ────────────────────────────────────────── */
-    .ai-bubble { max-width: 95% !important; font-size: 13px !important; }
-    [style*="height:580px"] { height: auto !important; min-height: 300px; }
+    .ai-bubble { max-width: 94% !important; font-size: 13px !important; }
+    .ai-chat { max-height: 280px !important; }
+    [style*="height:580px"] { height: auto !important; min-height: 280px !important; }
+    [style*="height:420px"] { max-height: 260px !important; }
 
-    /* ── HABITS GRID ────────────────────────────────────── */
+    /* ── HABITS ─────────────────────────────────────────── */
     .habit-grid { grid-template-columns: repeat(2, 1fr) !important; }
     #habits-today-grid { grid-template-columns: repeat(2, 1fr) !important; }
-
-    /* ── PLAN CARDS ─────────────────────────────────────── */
-    [style*="grid-template-columns:repeat(3,1fr)"] { grid-template-columns: 1fr !important; }
 
     /* ── DAY SUMMARY ────────────────────────────────────── */
     .day-summary { grid-template-columns: repeat(2, 1fr) !important; }
 
-    /* ── ACCOUNTS GRID ──────────────────────────────────── */
+    /* ── ACCOUNTS ───────────────────────────────────────── */
     .accounts-grid { grid-template-columns: 1fr !important; }
 
-    /* ── SECTION TITLE ──────────────────────────────────── */
-    .section-title { font-size: 9px; }
+    /* ── PLAN CARDS ─────────────────────────────────────── */
+    [style*="grid-template-columns:repeat(3,1fr)"] { grid-template-columns: 1fr !important; }
+    [style*="max-width:940px"] { max-width: 100% !important; }
+
+    /* ── CHARTS GENERAL ─────────────────────────────────── */
+    .charts-grid { grid-template-columns: 1fr !important; }
+
+    /* ── RISK METERS ────────────────────────────────────── */
+    .risk-meters { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+    .risk-meter { padding: 10px !important; }
+    .risk-meter-value { font-size: 18px !important; }
+
+    /* ── SURVEY ─────────────────────────────────────────── */
+    .survey-options { gap: 6px !important; }
+    .survey-option { font-size: 12px !important; padding: 6px 10px !important; }
+
+    /* ── CALENDAR ───────────────────────────────────────── */
+    .cal-day { font-size: 11px !important; border-radius: 6px !important; }
+    .cal-pnl { font-size: 8px !important; }
 
     /* ── BOTTOM NAV ─────────────────────────────────────── */
     .mobile-nav { display: flex !important; }
+
   }
 
   /* ── MOBILE BOTTOM NAV STYLES ───────────────────────────── */
