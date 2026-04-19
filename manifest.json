@@ -1,0 +1,26 @@
+{
+  "name": "Tradync — Trading Journal",
+  "short_name": "Tradync",
+  "description": "Tu journal de trading profesional con Coach IA",
+  "start_url": "/tradync-app.html",
+  "display": "standalone",
+  "background_color": "#05060a",
+  "theme_color": "#00d4a0",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity"],
+  "lang": "es"
+}
