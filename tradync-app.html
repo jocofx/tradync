@@ -5380,11 +5380,32 @@ function showUpgradeOverlay(panelId, featureName) {
   closeBtn.style.cssText = 'position:absolute;top:12px;right:14px;background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;';
   closeBtn.onclick = function() { overlay.remove(); };
 
-  box.innerHTML = '<div style="font-size:44px;margin-bottom:14px;">⭐</div>' +
-    '<div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:10px;letter-spacing:-0.5px;">' + featureName + '</div>' +
-    '<div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:22px;">Esta función está disponible en el plan <span style="color:var(--green);font-weight:700;">Pro</span>. Mejora tu plan para desbloquearla.</div>' +
-    '<button onclick="goTab('planes',null)" style="width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#00d4a0,#4d9fff);color:#000;font-size:14px;font-weight:700;cursor:pointer;">Ver planes →</button>' +
-    '<div style="font-size:11px;color:var(--text3);margin-top:10px;">Desde 6,5€/mes · Sin permanencia</div>';
+  var icon = document.createElement('div');
+  icon.style.cssText = 'font-size:44px;margin-bottom:14px;';
+  icon.textContent = '⭐';
+
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:18px;font-weight:800;color:var(--text);margin-bottom:10px;letter-spacing:-0.5px;';
+  title.textContent = featureName;
+
+  var desc = document.createElement('div');
+  desc.style.cssText = 'font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:22px;';
+  desc.innerHTML = 'Esta función está disponible en el plan <span style="color:var(--green);font-weight:700;">Pro</span>. Mejora tu plan para desbloquearla.';
+
+  var planBtn = document.createElement('button');
+  planBtn.style.cssText = 'width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#00d4a0,#4d9fff);color:#000;font-size:14px;font-weight:700;cursor:pointer;';
+  planBtn.textContent = 'Ver planes →';
+  planBtn.onclick = function() { overlay.remove(); goTab('planes', null); };
+
+  var desde = document.createElement('div');
+  desde.style.cssText = 'font-size:11px;color:var(--text3);margin-top:10px;';
+  desde.textContent = 'Desde 6,5€/mes · Sin permanencia';
+
+  box.appendChild(icon);
+  box.appendChild(title);
+  box.appendChild(desc);
+  box.appendChild(planBtn);
+  box.appendChild(desde);
 
   box.appendChild(closeBtn);
   overlay.appendChild(box);
