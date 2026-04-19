@@ -6876,15 +6876,36 @@ function viewTrade(id) {
   if (imgs.length) {
     imgsSection.style.display = 'block';
     imgsGrid.style.gridTemplateColumns = imgs.length === 1 ? '1fr' : '1fr 1fr';
-    imgsGrid.innerHTML = imgs.map(function(img) {
-      return '<div style="cursor:zoom-in;" onclick="openFullscreenImg('' + img.url.replace(/'/g,"\'") + '','' + img.label + '')">' +
-        '<div style="font-size:8px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:6px;">' + img.label + '</div>' +
-        '<div style="border-radius:10px;overflow:hidden;border:1px solid var(--border2);background:var(--bg3);position:relative;">' +
-          '<img src="' + img.url + '" style="width:100%;height:160px;object-fit:cover;display:block;" onerror="this.parentElement.innerHTML='<div style=&quot;height:160px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;&quot;>Error al cargar</div>'">' +
-          '<div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.6);border-radius:4px;padding:3px 7px;font-size:10px;color:#fff;font-family:monospace;">🔍 Ver</div>' +
-        '</div>' +
-      '</div>';
-    }).join('');
+    imgsGrid.innerHTML = '';
+    imgs.forEach(function(img) {
+      var wrapper = document.createElement('div');
+      wrapper.style.cursor = 'zoom-in';
+      wrapper.onclick = function() { openFullscreenImg(img.url, img.label); };
+
+      var labelEl = document.createElement('div');
+      labelEl.style.cssText = 'font-size:8px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:6px;';
+      labelEl.textContent = img.label;
+
+      var imgWrap = document.createElement('div');
+      imgWrap.style.cssText = 'border-radius:10px;overflow:hidden;border:1px solid var(--border2);background:var(--bg3);position:relative;';
+
+      var imgEl = document.createElement('img');
+      imgEl.src = img.url;
+      imgEl.style.cssText = 'width:100%;height:160px;object-fit:cover;display:block;';
+      imgEl.onerror = function() {
+        imgWrap.innerHTML = '<div style="height:160px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;font-family:monospace;">Error al cargar</div>';
+      };
+
+      var badge = document.createElement('div');
+      badge.style.cssText = 'position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.6);border-radius:4px;padding:3px 7px;font-size:10px;color:#fff;font-family:monospace;';
+      badge.textContent = 'Ver';
+
+      imgWrap.appendChild(imgEl);
+      imgWrap.appendChild(badge);
+      wrapper.appendChild(labelEl);
+      wrapper.appendChild(imgWrap);
+      imgsGrid.appendChild(wrapper);
+    });
   } else {
     imgsSection.style.display = 'none';
   }
