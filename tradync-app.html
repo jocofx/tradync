@@ -7440,26 +7440,21 @@ function renderPsychCharts() {
       </div>
     </div>
 
-    <!-- Pro + Logout -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+    <!-- Pro + Afiliados + Cerrar sesión -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
       <div class="mmenu-item" onclick="mobileGoTabMenu('planes')" style="border-color:rgba(0,212,160,0.35);background:rgba(0,212,160,0.08);">
         <div class="mmenu-icon">⭐</div>
         <div class="mmenu-label" style="color:var(--green);">Hazte Pro+</div>
       </div>
-      <div class="mmenu-item" onclick="closeMobileMenu();document.getElementById('logout-btn')&&document.getElementById('logout-btn').click()" style="border-color:rgba(255,77,109,0.25);background:rgba(255,77,109,0.07);">
-        <div class="mmenu-icon">🚪</div>
-        <div class="mmenu-label" style="color:var(--red);">Cerrar sesión</div>
-      </div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
       <div class="mmenu-item" onclick="closeMobileMenu();window.location.href='afiliados.html'" style="border-color:rgba(77,159,255,0.25);background:rgba(77,159,255,0.07);">
         <div class="mmenu-icon">🤝</div>
         <div class="mmenu-label" style="color:var(--blue);">Afiliados</div>
       </div>
+    </div>
+    <div style="margin-bottom:8px;">
       <div class="mmenu-item" onclick="closeMobileMenu();document.getElementById('logout-btn')&&document.getElementById('logout-btn').click()" style="border-color:rgba(255,77,109,0.25);background:rgba(255,77,109,0.07);">
         <div class="mmenu-icon">🚪</div>
-        <div class="mmenu-label" style="color:var(--red);">Salir</div>
+        <div class="mmenu-label" style="color:var(--red);">Cerrar sesión</div>
       </div>
     </div>
     <button onclick="closeMobileMenu()" style="width:100%;padding:13px;border:1px solid var(--border2);border-radius:12px;background:var(--bg3);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;">✕ Cerrar</button>
