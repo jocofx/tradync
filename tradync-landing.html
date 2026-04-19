@@ -190,6 +190,14 @@ footer{border-top:1px solid var(--border);padding:40px 48px;display:flex;align-i
   gtag('js', new Date());
   gtag('config', 'G-3QLHE2P52P');
 </script>
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#00d4a0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tradync">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 </head>
 <body>
 
@@ -579,5 +587,16 @@ if (!localStorage.getItem('tradync_cookies_accepted')) {
 }
 </script>
 
+
+<script>
+// Register service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js')
+      .then(function(reg) { console.log('SW registered ✓'); })
+      .catch(function(err) { console.log('SW error:', err); });
+  });
+}
+</script>
 </body>
 </html>
