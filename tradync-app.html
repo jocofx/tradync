@@ -622,9 +622,10 @@
     justify-content: space-around;
     align-items: center;
     box-shadow: 0 -4px 24px rgba(0,0,0,0.3);
-    /* Prevent zoom from affecting size */
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
+    transform-origin: bottom left;
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
   .mobile-nav-item {
     display: flex;
@@ -7388,6 +7389,60 @@ function closeMobileMenu() {
     overlay.style.display = 'none';
   }, 300);
 }
+</script>
+
+
+<script>
+// ── FIXED NAV ZOOM COMPENSATION ─────────────────────────────
+(function() {
+  var nav = null;
+  var lastRatio = window.devicePixelRatio || 1;
+  var BASE_HEIGHT = 70; // px at 1x zoom
+
+  function fixNav() {
+    if (window.innerWidth > 768) return; // desktop only needs natural behavior
+    if (!nav) nav = document.getElementById('mobile-nav');
+    if (!nav) return;
+
+    // Current device pixel ratio (zoom level)
+    var ratio = window.devicePixelRatio || 1;
+    // Visual viewport scale if available
+    var vvScale = (window.visualViewport && window.visualViewport.scale) ? window.visualViewport.scale : 1;
+    var totalScale = vvScale;
+
+    if (Math.abs(totalScale - 1) < 0.01) {
+      // No zoom - normal state
+      nav.style.transform = 'none';
+      nav.style.width = '100%';
+      nav.style.left = '0';
+      nav.style.right = '0';
+      nav.style.bottom = '0';
+    } else {
+      // Compensate for zoom: scale nav inversely
+      var compensate = 1 / totalScale;
+      var offsetX = window.visualViewport ? window.visualViewport.offsetLeft : 0;
+      nav.style.transformOrigin = 'bottom left';
+      nav.style.transform = 'scale(' + compensate + ')';
+      nav.style.width = (100 * totalScale) + 'vw';
+      nav.style.left = offsetX + 'px';
+      nav.style.bottom = '0';
+    }
+  }
+
+  // Listen to visual viewport changes (zoom, scroll)
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fixNav);
+    window.visualViewport.addEventListener('scroll', fixNav);
+  }
+  // Also listen to window resize
+  window.addEventListener('resize', fixNav);
+  // Run on load
+  window.addEventListener('load', function() {
+    setTimeout(fixNav, 300);
+  });
+  // Run periodically as fallback
+  setInterval(fixNav, 500);
+})();
 </script>
 
 </body>
