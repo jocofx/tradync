@@ -152,11 +152,14 @@ initSb();
 
 async function checkSession() {
   var {data:{session}} = await sb.auth.getSession();
-  if (session) {
+  var ADMIN_EMAIL = 'jocofx@gmail.com';
+  if (session && session.user.email === ADMIN_EMAIL) {
     document.getElementById('login-screen').style.display='none';
     document.getElementById('main').style.display='block';
     document.getElementById('admin-user-label').textContent = session.user.email + ' · ADMIN';
     loadAll();
+  } else if (session && session.user.email !== ADMIN_EMAIL) {
+    await sb.auth.signOut();
   }
 }
 
@@ -167,6 +170,13 @@ async function doLogin() {
   if (!email||!pass) return;
   var {data,error} = await sb.auth.signInWithPassword({email,password:pass});
   if (error) { err.textContent='Email o contraseña incorrectos'; return; }
+  // Only allow admin email
+  var ADMIN_EMAIL = 'jocofx@gmail.com';
+  if (data.user.email !== ADMIN_EMAIL) {
+    await sb.auth.signOut();
+    err.textContent = 'Acceso denegado. Solo el administrador puede entrar.';
+    return;
+  }
   document.getElementById('login-screen').style.display='none';
   document.getElementById('main').style.display='block';
   document.getElementById('admin-user-label').textContent = email + ' · ADMIN';
