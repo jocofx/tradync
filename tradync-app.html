@@ -464,7 +464,7 @@
     .sidebar.open { transform: translateX(0); }
     .main {
       margin-left: 0 !important;
-      padding: 16px 12px 80px 12px;
+      padding: 10px 8px 80px 8px !important;
     }
     #sidebar-show-btn { display: none !important; }
     #sidebar-toggle-btn { display: none !important; }
@@ -539,27 +539,65 @@
     .charts-grid { grid-template-columns: 1fr !important; }
 
     /* ── DASHBOARD RESPONSIVE ───────────────────────────── */
-    .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-    .metric-card { padding: 10px 8px !important; }
-    .metric-value { font-size: 16px !important; }
-    .metric-label { font-size: 8px !important; }
-    .metric-sub { font-size: 9px !important; }
+    /* Métricas: 3 col compactas */
+    .metrics-grid {
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 6px !important;
+      margin-bottom: 12px !important;
+    }
+    .metric-card {
+      padding: 8px 6px 6px !important;
+      border-radius: 10px !important;
+    }
+    .metric-card::after { height: 1px !important; }
+    .metric-value { font-size: 13px !important; letter-spacing: -0.5px !important; }
+    .metric-label { font-size: 7px !important; margin-bottom: 3px !important; letter-spacing: 0.5px !important; }
+    .metric-sub { font-size: 8px !important; margin-top: 2px !important; }
+
+    /* Todos los grids del dashboard → 1 col */
     .dash-grid-2-1,
     .dash-grid-3col,
-    .dash-grid-2col { grid-template-columns: 1fr !important; gap: 10px !important; margin-bottom: 12px !important; }
-    /* Chart heights */
-    .dash-grid-2-1 [style*="height:160px"],
-    .dash-grid-3col [style*="height:140px"],
-    .dash-grid-3col [style*="height:130px"],
-    .dash-grid-2col [style*="height:160px"] { height: 110px !important; }
-    /* Donut size */
-    .dash-grid-3col [style*="width:130px"] { width: 90px !important; height: 90px !important; }
+    .dash-grid-2col {
+      grid-template-columns: 1fr !important;
+      gap: 8px !important;
+      margin-bottom: 10px !important;
+    }
+    /* Gráficas compactas */
+    .dash-grid-2-1 .card [style*="height:160px"],
+    .dash-grid-2col .card [style*="height:160px"],
+    .dash-grid-3col .card [style*="height:140px"] { height: 90px !important; }
+    /* Donut más pequeño */
+    .dash-grid-3col .card [style*="height:130px"],
+    .dash-grid-3col .card [style*="width:130px"] { height: 80px !important; width: 80px !important; }
+    /* Cards más compactas */
+    #panel-dashboard .card { padding: 10px 10px 8px !important; }
+    #panel-dashboard .card-title { font-size: 10px !important; margin-bottom: 10px !important; }
+    #panel-dashboard .stat-row { padding: 5px 0 !important; }
+    #panel-dashboard .stat-name { font-size: 11px !important; }
+    #panel-dashboard .stat-val { font-size: 11px !important; }
+    /* Risk bar compacto */
+    #fixed-risk-bar { padding: 8px 10px !important; border-radius: 8px !important; margin-bottom: 10px !important; }
+    #fixed-risk-text { font-size: 11px !important; }
+    #fixed-risk-detail { font-size: 9px !important; }
 
     /* ── OPERACIONES RESPONSIVE ─────────────────────────── */
     .ops-charts-3col,
-    .ops-charts-2col { grid-template-columns: 1fr !important; gap: 10px !important; margin-bottom: 12px !important; }
-    .ops-charts-3col [style*="height:180px"],
-    .ops-charts-2col [style*="height:160px"] { height: 110px !important; }
+    .ops-charts-2col {
+      grid-template-columns: 1fr !important;
+      gap: 8px !important;
+      margin-bottom: 10px !important;
+    }
+    .ops-charts-3col .card [style*="height:180px"],
+    .ops-charts-2col .card [style*="height:160px"] { height: 90px !important; }
+    #panel-operaciones .card { padding: 10px 10px 8px !important; }
+    #panel-operaciones .card-title { font-size: 10px !important; margin-bottom: 10px !important; }
+    /* Filter bar */
+    .ops-filter-bar {
+      flex-direction: column !important;
+      gap: 6px !important;
+    }
+    .ops-filter-select,
+    .ops-filter-bar .btn { width: 100% !important; font-size: 14px !important; }
 
     /* ── DASHBOARD: force all grids to 1 col ─────────────── */
     #panel-dashboard [style*="grid-template-columns:repeat(6,1fr)"] {
