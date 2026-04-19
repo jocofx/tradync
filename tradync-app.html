@@ -6867,6 +6867,28 @@ function viewTrade(id) {
     document.getElementById('vt-notes').textContent = t.notas;
   } else { document.getElementById('vt-notes-section').style.display='none'; }
 
+  // Images
+  var imgsGrid = document.getElementById('vt-images-grid');
+  var imgsSection = document.getElementById('vt-images-section');
+  var imgs = [];
+  if (t.img_apertura || t.imgApertura) imgs.push({url: t.img_apertura||t.imgApertura, label:'APERTURA'});
+  if (t.img_cierre || t.imgCierre) imgs.push({url: t.img_cierre||t.imgCierre, label:'CIERRE'});
+  if (imgs.length) {
+    imgsSection.style.display = 'block';
+    imgsGrid.style.gridTemplateColumns = imgs.length === 1 ? '1fr' : '1fr 1fr';
+    imgsGrid.innerHTML = imgs.map(function(img) {
+      return '<div style="cursor:zoom-in;" onclick="openFullscreenImg('' + img.url.replace(/'/g,"\'") + '','' + img.label + '')">' +
+        '<div style="font-size:8px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:6px;">' + img.label + '</div>' +
+        '<div style="border-radius:10px;overflow:hidden;border:1px solid var(--border2);background:var(--bg3);position:relative;">' +
+          '<img src="' + img.url + '" style="width:100%;height:160px;object-fit:cover;display:block;" onerror="this.parentElement.innerHTML='<div style=&quot;height:160px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;&quot;>Error al cargar</div>'">' +
+          '<div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.6);border-radius:4px;padding:3px 7px;font-size:10px;color:#fff;font-family:monospace;">🔍 Ver</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } else {
+    imgsSection.style.display = 'none';
+  }
+
   // Edit button
   document.getElementById('vt-edit-btn').onclick = function(){ closeViewTrade(); editTrade(t); };
 
@@ -6878,6 +6900,23 @@ function viewTrade(id) {
 function closeViewTrade() {
   document.getElementById('view-trade-overlay').style.display='none';
   document.getElementById('view-trade-modal').style.display='none';
+}
+
+function openFullscreenImg(url, label) {
+  var overlay = document.getElementById('img-fullscreen-overlay');
+  document.getElementById('img-fullscreen-img').src = url;
+  document.getElementById('img-fullscreen-label').textContent = label || '';
+  overlay.style.display = 'flex';
+  // Close on ESC
+  document._imgEscHandler = function(e) {
+    if (e.key === 'Escape') closeFullscreenImg();
+  };
+  document.addEventListener('keydown', document._imgEscHandler);
+}
+
+function closeFullscreenImg() {
+  document.getElementById('img-fullscreen-overlay').style.display = 'none';
+  document.removeEventListener('keydown', document._imgEscHandler);
 }
 
 
@@ -7727,10 +7766,23 @@ if ('serviceWorker' in navigator) {
     <div id="vt-notes" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px;color:var(--text2);line-height:1.6;"></div>
   </div>
 
+  <!-- Images -->
+  <div id="vt-images-section" style="display:none;margin-bottom:20px;">
+    <div style="font-size:9px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:10px;">CAPTURAS DEL GRÁFICO</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="vt-images-grid"></div>
+  </div>
+
   <!-- Actions -->
   <div style="display:flex;gap:8px;">
     <button id="vt-edit-btn" style="flex:1;padding:10px;border:1px solid var(--border2);border-radius:10px;background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">✏️ Editar operación</button>
   </div>
+</div>
+
+<!-- FULLSCREEN IMAGE VIEWER -->
+<div id="img-fullscreen-overlay" onclick="closeFullscreenImg()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:2000;display:none;align-items:center;justify-content:center;cursor:zoom-out;">
+  <img id="img-fullscreen-img" src="" style="max-width:95vw;max-height:92vh;object-fit:contain;border-radius:8px;">
+  <button onclick="closeFullscreenImg()" style="position:fixed;top:20px;right:20px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:8px 14px;color:#fff;font-size:14px;cursor:pointer;z-index:2001;">✕ Cerrar</button>
+  <div id="img-fullscreen-label" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);font-size:12px;color:rgba(255,255,255,0.4);font-family:monospace;letter-spacing:1px;"></div>
 </div>
 
 </body>
