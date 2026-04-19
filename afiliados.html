@@ -346,7 +346,22 @@ function initSb() {
 initSb();
 
 async function checkAuth() {
-  var {data:{session}} = await sb.auth.getSession();
+  var session = null;
+  for (var i = 0; i < 3; i++) {
+    try { session = (await sb.auth.getSession()).data?.session; } catch(e) {}
+    if (session) break;
+    await new Promise(r => setTimeout(r, i === 0 ? 500 : 1000));
+  }
+  if (!session) {
+    await new Promise(function(resolve) {
+      var sub = sb.auth.onAuthStateChange(function(event, s) {
+        if (s) session = s;
+        sub.data.subscription.unsubscribe();
+        resolve();
+      });
+      setTimeout(resolve, 2000);
+    });
+  }
   if (!session) {
     document.getElementById('auth-wall').style.display='block';
     calcComision();
@@ -366,8 +381,10 @@ async function trackRef() {
 }
 
 async function loadAffiliate() {
-  var {data} = await sb.from('affiliates').select('*').eq('user_id',currentUser.id).single().catch(()=>({data:null}));
+  var result = await sb.from('affiliates').select('*').eq('user_id',currentUser.id).limit(1).catch(()=>({data:[],error:'catch'}));
+  var data = (result.data && result.data.length > 0) ? result.data[0] : null;
   affData = data;
+  console.log('Affiliate data:', data, 'Error:', result.error);
 
   if (!data) {
     document.getElementById('apply-section').style.display='block';
