@@ -981,7 +981,7 @@ if (typeof supabase === 'undefined') {
         <div class="card-title">Últimas operaciones <span class="card-title-badge" style="cursor:pointer" onclick="goTab('operaciones',null)">Ver todas →</span></div>
         <div style="overflow-x:auto;">
           <table class="trade-table">
-            <thead><tr><th>Fecha</th><th>Instrumento</th><th>Tipo</th><th>Dir.</th><th>Entrada</th><th>SL</th><th>TP</th><th>Contratos</th><th>Resultado</th><th>Emoción</th><th>Estado</th><th></th></tr></thead>
+            <thead><tr><th></th><th>Fecha</th><th>Instrumento</th><th>Tipo</th><th>Dir.</th><th>Entrada</th><th>SL</th><th>TP</th><th>Contratos</th><th>Resultado</th><th>Emoción</th><th>Estado</th><th></th></tr></thead>
             <tbody id="recent-trades-body"><tr class="loading-row"><td colspan="12"><span class="spinner"></span>Cargando...</td></tr></tbody>
           </table>
         </div>
@@ -2903,6 +2903,9 @@ function tradeRow(t, full=false) {
   const pnlClass = (t.resultado || 0) >= 0 ? 'pnl-pos' : 'pnl-neg';
   const pnlStr = t.resultado !== null ? ((t.resultado >= 0 ? '+' : '') + '$' + Math.abs(t.resultado).toFixed(2)) : '—';
   let row = `<tr>
+    <td style="padding-right:0;width:32px;">
+      <button onclick="viewTrade('${t.id}')" style="background:none;border:1px solid var(--border2);border-radius:6px;padding:3px 7px;cursor:pointer;color:var(--text3);font-size:12px;line-height:1;" title="Ver operación">👁</button>
+    </td>
     <td>${fmtDate(t.fecha)}</td>
     <td><span class="${tipoClass}">${t.instrumento}</span></td>
     <td style="color:var(--text3)">${t.tipo}</td>
@@ -6799,6 +6802,82 @@ goTab = function(id, el) {
 };
 
 
+function viewTrade(id) {
+  var t = allTrades.find(function(x){ return x.id == id; });
+  if (!t) return;
+
+  // Instrument + date
+  document.getElementById('vt-instrument').textContent = (t.instrumento || '—').toUpperCase();
+  document.getElementById('vt-date').textContent = fmtDate(t.fecha) + (t.sesion ? ' · ' + t.sesion : '');
+
+  // PnL
+  var pnl = t.resultado !== null && t.resultado !== undefined;
+  var pnlEl = document.getElementById('vt-pnl');
+  if (pnl) {
+    pnlEl.textContent = (t.resultado >= 0 ? '+' : '') + '$' + Math.abs(t.resultado).toFixed(2);
+    pnlEl.style.color = t.resultado >= 0 ? 'var(--green)' : 'var(--red)';
+  } else { pnlEl.textContent = '—'; pnlEl.style.color = 'var(--text2)'; }
+
+  // Badges
+  var badges = '';
+  if (t.tipo) badges += '<span style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;font-size:11px;font-family:monospace;">' + t.tipo + '</span>';
+  if (t.direccion) {
+    var dc = t.direccion === 'LONG' ? 'var(--green)' : 'var(--red)';
+    badges += '<span style="background:' + (t.direccion==='LONG'?'rgba(0,212,160,0.1)':'rgba(255,77,109,0.1)') + ';border:1px solid ' + (t.direccion==='LONG'?'rgba(0,212,160,0.3)':'rgba(255,77,109,0.3)') + ';color:' + dc + ';border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;font-family:monospace;">' + t.direccion + '</span>';
+  }
+  if (t.estado) badges += '<span style="background:rgba(0,212,160,0.1);border:1px solid rgba(0,212,160,0.25);color:var(--green);border-radius:20px;padding:4px 12px;font-size:11px;font-family:monospace;">' + t.estado + '</span>';
+  document.getElementById('vt-badges').innerHTML = badges;
+
+  // Grid data
+  function cell(label, val, color) {
+    return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;">' +
+      '<div style="font-size:8px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:6px;">' + label + '</div>' +
+      '<div style="font-size:16px;font-weight:700;font-family:monospace;color:' + (color||'var(--text)') + ';">' + (val||'—') + '</div>' +
+    '</div>';
+  }
+  var rr = (t.entrada && t.sl && t.tp) ? (Math.abs(t.tp-t.entrada)/Math.abs(t.entrada-t.sl)).toFixed(2)+':1' : '—';
+  document.getElementById('vt-grid').innerHTML =
+    cell('ENTRADA', t.entrada) +
+    cell('STOP LOSS', t.sl, 'var(--red)') +
+    cell('TAKE PROFIT', t.tp, 'var(--green)') +
+    cell('CONTRATOS', t.contratos) +
+    cell('RR RATIO', rr, 'var(--blue)') +
+    cell('RESULTADO', pnl ? ((t.resultado>=0?'+':'')+'$'+Math.abs(t.resultado).toFixed(2)) : '—', pnl?(t.resultado>=0?'var(--green)':'var(--red)'):'var(--text2)');
+
+  // Meta
+  var meta = '';
+  if (t.setup) meta += '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;"><div style="font-size:8px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:6px;">SETUP</div><div style="font-size:14px;font-weight:600;">' + t.setup + '</div></div>';
+  if (t.emocion) meta += '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;"><div style="font-size:8px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:6px;">EMOCIÓN</div><div style="font-size:14px;font-weight:600;">' + t.emocion + '</div></div>';
+  document.getElementById('vt-meta').innerHTML = meta;
+
+  // Errors
+  if (t.errores && t.errores.length) {
+    document.getElementById('vt-errors-section').style.display = 'block';
+    document.getElementById('vt-errors').innerHTML = t.errores.map(function(e){
+      return '<span style="background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.25);color:var(--red);border-radius:20px;padding:4px 12px;font-size:11px;font-family:monospace;">' + e + '</span>';
+    }).join('');
+  } else { document.getElementById('vt-errors-section').style.display='none'; }
+
+  // Notes
+  if (t.notas) {
+    document.getElementById('vt-notes-section').style.display='block';
+    document.getElementById('vt-notes').textContent = t.notas;
+  } else { document.getElementById('vt-notes-section').style.display='none'; }
+
+  // Edit button
+  document.getElementById('vt-edit-btn').onclick = function(){ closeViewTrade(); editTrade(t); };
+
+  // Show modal
+  document.getElementById('view-trade-overlay').style.display='block';
+  document.getElementById('view-trade-modal').style.display='block';
+}
+
+function closeViewTrade() {
+  document.getElementById('view-trade-overlay').style.display='none';
+  document.getElementById('view-trade-modal').style.display='none';
+}
+
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
@@ -7608,4 +7687,47 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+<!-- VIEW TRADE MODAL -->
+<div id="view-trade-overlay" onclick="closeViewTrade()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:1000;"></div>
+<div id="view-trade-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1001;width:min(580px,96vw);max-height:90vh;overflow-y:auto;background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:28px;">
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+    <div>
+      <div id="vt-instrument" style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"></div>
+      <div id="vt-date" style="font-size:11px;color:var(--text3);font-family:monospace;margin-top:2px;"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span id="vt-pnl" style="font-size:20px;font-weight:800;font-family:monospace;"></span>
+      <button onclick="closeViewTrade()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;cursor:pointer;color:var(--text2);font-size:14px;">✕</button>
+    </div>
+  </div>
+
+  <!-- Badges row -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;" id="vt-badges"></div>
+
+  <!-- Grid data -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;" id="vt-grid"></div>
+
+  <!-- Setup & Emotion -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;" id="vt-meta"></div>
+
+  <!-- Errors -->
+  <div id="vt-errors-section" style="display:none;margin-bottom:16px;">
+    <div style="font-size:9px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:8px;">ERRORES PSICOLÓGICOS</div>
+    <div id="vt-errors" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+  </div>
+
+  <!-- Notes -->
+  <div id="vt-notes-section" style="display:none;margin-bottom:20px;">
+    <div style="font-size:9px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:8px;">NOTAS</div>
+    <div id="vt-notes" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px;color:var(--text2);line-height:1.6;"></div>
+  </div>
+
+  <!-- Actions -->
+  <div style="display:flex;gap:8px;">
+    <button id="vt-edit-btn" style="flex:1;padding:10px;border:1px solid var(--border2);border-radius:10px;background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">✏️ Editar operación</button>
+  </div>
+</div>
+
 </body>
