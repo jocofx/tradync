@@ -989,6 +989,103 @@ if (typeof supabase === 'undefined') {
     </div>
 
 
+<div class="tab-panel" id="panel-insights">
+      <div class="section-title">Insights Automaticos</div>
+
+      <!-- Loading state -->
+      <div id="insights-loading" style="text-align:center;padding:60px 0;display:none;">
+        <span class="spinner"></span>
+        <div style="font-size:12px;color:var(--text3);font-family:monospace;margin-top:12px;">Analizando tus operaciones...</div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="insights-empty" style="display:none;text-align:center;padding:60px 20px;">
+        <div style="font-size:48px;margin-bottom:16px;">🔍</div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Necesitas mas operaciones</div>
+        <div style="font-size:13px;color:var(--text2);max-width:360px;margin:0 auto;line-height:1.6;">Registra al menos 5 operaciones finalizadas para que el sistema pueda detectar patrones y generar insights personalizados.</div>
+      </div>
+
+      <!-- Insights content -->
+      <div id="insights-content" style="display:none;">
+
+        <!-- Trader Score -->
+        <div class="card" style="margin-bottom:18px;">
+          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;">
+              <div class="card-title" style="margin-bottom:6px;">Tu Perfil de Trader</div>
+              <div id="insights-trader-type" style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"></div>
+              <div id="insights-trader-desc" style="font-size:13px;color:var(--text2);margin-top:4px;line-height:1.5;"></div>
+            </div>
+            <div style="text-align:center;flex-shrink:0;">
+              <div style="position:relative;width:100px;height:100px;">
+                <canvas id="insights-score-chart" width="100" height="100"></canvas>
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                  <div id="insights-score-val" style="font-size:28px;font-weight:800;font-family:monospace;"></div>
+                  <div style="font-size:9px;color:var(--text3);font-family:monospace;">SCORE</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Score breakdown -->
+          <div id="insights-score-bars" style="margin-top:16px;display:grid;gap:8px;"></div>
+        </div>
+
+        <!-- Key Insights Grid -->
+        <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">INSIGHTS DETECTADOS</div>
+        <div id="insights-grid" style="display:grid;gap:12px;margin-bottom:18px;"></div>
+
+        <!-- Alerts -->
+        <div id="insights-alerts-section" style="display:none;margin-bottom:18px;">
+          <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">ALERTAS ACTIVAS</div>
+          <div id="insights-alerts" style="display:grid;gap:8px;"></div>
+        </div>
+
+        <!-- Best conditions -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;" class="dash-grid-2col">
+          <div class="card">
+            <div class="card-title">Mejor sesion</div>
+            <div id="insights-best-session" style="font-size:22px;font-weight:800;color:var(--green);margin:8px 0 4px;"></div>
+            <div id="insights-best-session-sub" style="font-size:12px;color:var(--text2);"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Mejor activo</div>
+            <div id="insights-best-asset" style="font-size:22px;font-weight:800;color:var(--green);margin:8px 0 4px;"></div>
+            <div id="insights-best-asset-sub" style="font-size:12px;color:var(--text2);"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;" class="dash-grid-2col">
+          <div class="card">
+            <div class="card-title">Mejor dia de la semana</div>
+            <div id="insights-best-day" style="font-size:22px;font-weight:800;color:var(--green);margin:8px 0 4px;"></div>
+            <div id="insights-best-day-sub" style="font-size:12px;color:var(--text2);"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Setup mas rentable</div>
+            <div id="insights-best-setup" style="font-size:22px;font-weight:800;color:var(--green);margin:8px 0 4px;"></div>
+            <div id="insights-best-setup-sub" style="font-size:12px;color:var(--text2);"></div>
+          </div>
+        </div>
+
+        <!-- Psychological errors -->
+        <div class="card" style="margin-bottom:18px;">
+          <div class="card-title">Errores psicologicos mas frecuentes</div>
+          <div id="insights-errors" style="margin-top:8px;display:grid;gap:6px;"></div>
+        </div>
+
+        <!-- Weekly recommendation -->
+        <div class="card" id="insights-recommendation" style="background:linear-gradient(135deg,rgba(0,212,160,0.08),rgba(77,159,255,0.06));border-color:rgba(0,212,160,0.2);display:none;">
+          <div style="font-size:10px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:8px;">RECOMENDACION SEMANAL</div>
+          <div id="insights-rec-text" style="font-size:14px;color:var(--text);line-height:1.7;"></div>
+        </div>
+
+        <!-- Last updated -->
+        <div style="text-align:center;margin-top:16px;">
+          <span id="insights-updated" style="font-size:11px;color:var(--text3);font-family:monospace;"></span>
+          <button onclick="runInsights()" style="margin-left:12px;font-size:11px;color:var(--green);background:none;border:none;cursor:pointer;font-family:monospace;">↺ Actualizar</button>
+        </div>
+      </div>
+    </div>
+
 <div class="tab-panel" id="panel-operaciones">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
         <div class="section-title" style="margin-bottom:0;">Análisis de operaciones</div>
@@ -2705,6 +2802,7 @@ function goTab(id, el) {
     premarket: '<span>Pre-Market</span>',
     habitos: '<span>Hábitos</span>',
     estadisticas: '<span>Estadísticas</span>',
+    insights: '💡 <span>Insights</span>',
     cuentas: '<span>Cuentas</span>',
     ia: 'Coach <span>IA</span>',
     diario: '<span>Diario</span>',
@@ -2724,6 +2822,7 @@ function goTab(id, el) {
     setTimeout(() => { try { renderRiskPanel(); } catch(e){} }, 50);
   }
   if (id === 'operaciones') setTimeout(() => { try { renderAllTrades(); renderOpsCharts(); } catch(e){} }, 50);
+  if (id === 'insights') setTimeout(() => { try { runInsights(); } catch(e){ console.warn('Insights error:', e); } }, 50);
   if (id === 'nueva') setTimeout(() => { try { updateCuentaSelector(); } catch(e){} }, 50);
   if (id === 'estadisticas') { setTimeout(() => { try { if(!isPro()) showUpgradeOverlay('estadisticas','Estadísticas avanzadas'); else { renderStatsCharts(); renderComparisons(); } } catch(e){} }, 50); }
   if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); renderPropFirmTracker(); } catch(e){} }, 50);
@@ -6971,6 +7070,416 @@ function closeFullscreenImg() {
 }
 
 
+// ═══════════════════════════════════════════════════════════════
+// INSIGHTS ENGINE — Automatic pattern detection
+// ═══════════════════════════════════════════════════════════════
+
+function runInsights() {
+  var trades = allTrades.filter(function(t) {
+    return t.estado === 'Finalizada' || t.estado === 'Cerrada';
+  });
+
+  // Show loading
+  document.getElementById('insights-loading').style.display = 'block';
+  document.getElementById('insights-content').style.display = 'none';
+  document.getElementById('insights-empty').style.display = 'none';
+
+  setTimeout(function() {
+    document.getElementById('insights-loading').style.display = 'none';
+
+    if (trades.length < 5) {
+      document.getElementById('insights-empty').style.display = 'block';
+      return;
+    }
+
+    document.getElementById('insights-content').style.display = 'block';
+
+    var data = computeInsightsData(trades);
+    renderTraderProfile(data);
+    renderInsightsGrid(data);
+    renderAlerts(data);
+    renderBestConditions(data);
+    renderPsychErrors(data);
+    renderRecommendation(data);
+
+    document.getElementById('insights-badge').style.display = 'none';
+    var now = new Date();
+    document.getElementById('insights-updated').textContent =
+      'Actualizado ' + now.toLocaleDateString('es-ES') + ' a las ' +
+      now.toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'});
+  }, 600);
+}
+
+function computeInsightsData(trades) {
+  var d = {};
+  d.total = trades.length;
+  d.wins = trades.filter(function(t){ return (t.resultado||0) > 0; }).length;
+  d.losses = trades.filter(function(t){ return (t.resultado||0) < 0; }).length;
+  d.winrate = d.total > 0 ? Math.round(d.wins/d.total*100) : 0;
+  d.totalPnl = trades.reduce(function(s,t){ return s+(t.resultado||0); }, 0);
+  d.avgWin = d.wins > 0 ? trades.filter(function(t){ return (t.resultado||0)>0; }).reduce(function(s,t){ return s+(t.resultado||0); },0)/d.wins : 0;
+  d.avgLoss = d.losses > 0 ? Math.abs(trades.filter(function(t){ return (t.resultado||0)<0; }).reduce(function(s,t){ return s+(t.resultado||0); },0)/d.losses) : 0;
+  d.profitFactor = d.avgLoss > 0 ? (d.avgWin*d.wins)/(d.avgLoss*d.losses) : 0;
+
+  // By session
+  var sessions = {};
+  trades.forEach(function(t) {
+    var s = t.sesion || 'Sin sesion';
+    if (!sessions[s]) sessions[s] = {wins:0,losses:0,pnl:0,total:0};
+    sessions[s].total++;
+    sessions[s].pnl += t.resultado||0;
+    if ((t.resultado||0)>0) sessions[s].wins++; else sessions[s].losses++;
+  });
+  d.sessions = sessions;
+  var bestSess = Object.keys(sessions).sort(function(a,b){ return sessions[b].pnl-sessions[a].pnl; });
+  d.bestSession = bestSess[0] || '—';
+  d.bestSessionStats = sessions[d.bestSession] || {};
+
+  // By asset
+  var assets = {};
+  trades.forEach(function(t) {
+    var a = (t.instrumento||'—').toUpperCase();
+    if (!assets[a]) assets[a] = {wins:0,losses:0,pnl:0,total:0};
+    assets[a].total++;
+    assets[a].pnl += t.resultado||0;
+    if ((t.resultado||0)>0) assets[a].wins++; else assets[a].losses++;
+  });
+  d.assets = assets;
+  var bestAsset = Object.keys(assets).filter(function(a){ return assets[a].total >= 2; }).sort(function(a,b){ return assets[b].pnl-assets[a].pnl; });
+  d.bestAsset = bestAsset[0] || '—';
+  d.bestAssetStats = assets[d.bestAsset] || {};
+
+  // By day of week
+  var days = {0:{name:'Domingo',wins:0,losses:0,pnl:0,total:0},
+               1:{name:'Lunes',wins:0,losses:0,pnl:0,total:0},
+               2:{name:'Martes',wins:0,losses:0,pnl:0,total:0},
+               3:{name:'Miercoles',wins:0,losses:0,pnl:0,total:0},
+               4:{name:'Jueves',wins:0,losses:0,pnl:0,total:0},
+               5:{name:'Viernes',wins:0,losses:0,pnl:0,total:0},
+               6:{name:'Sabado',wins:0,losses:0,pnl:0,total:0}};
+  trades.forEach(function(t) {
+    var dw = new Date(t.fecha).getDay();
+    days[dw].total++;
+    days[dw].pnl += t.resultado||0;
+    if ((t.resultado||0)>0) days[dw].wins++; else days[dw].losses++;
+  });
+  d.days = days;
+  var bestDay = [0,1,2,3,4,5,6].filter(function(i){ return days[i].total>=2; }).sort(function(a,b){ return days[b].pnl-days[a].pnl; });
+  d.bestDay = bestDay.length ? days[bestDay[0]].name : '—';
+  d.bestDayStats = bestDay.length ? days[bestDay[0]] : {};
+  d.worstDay = bestDay.length ? days[bestDay[bestDay.length-1]].name : '—';
+
+  // By setup
+  var setups = {};
+  trades.forEach(function(t) {
+    var s = t.setup || 'Sin setup';
+    if (!setups[s]) setups[s] = {wins:0,losses:0,pnl:0,total:0};
+    setups[s].total++;
+    setups[s].pnl += t.resultado||0;
+    if ((t.resultado||0)>0) setups[s].wins++; else setups[s].losses++;
+  });
+  d.setups = setups;
+  var bestSetup = Object.keys(setups).filter(function(s){ return setups[s].total>=2 && s!=='Sin setup'; }).sort(function(a,b){ return setups[b].pnl-setups[a].pnl; });
+  d.bestSetup = bestSetup[0] || '—';
+  d.bestSetupStats = setups[d.bestSetup] || {};
+
+  // Psychological errors
+  var errors = {};
+  trades.forEach(function(t) {
+    var errs = t.errores;
+    if (!errs) return;
+    var arr = Array.isArray(errs) ? errs : (typeof errs==='string' ? errs.replace(/[{}"]/g,'').split(',').map(function(x){return x.trim();}).filter(Boolean) : []);
+    arr.forEach(function(e) {
+      if (!errors[e]) errors[e] = {count:0,pnl:0};
+      errors[e].count++;
+      errors[e].pnl += t.resultado||0;
+    });
+  });
+  d.errors = errors;
+
+  // Consecutive losses check
+  var cons = 0; var maxCons = 0;
+  for (var i=trades.length-1; i>=0; i--) {
+    if ((trades[i].resultado||0) < 0) { cons++; maxCons=Math.max(maxCons,cons); }
+    else cons=0;
+  }
+  d.currentConsLosses = 0;
+  for (var j=trades.length-1; j>=0; j--) {
+    if ((trades[j].resultado||0) < 0) d.currentConsLosses++;
+    else break;
+  }
+  d.maxConsLosses = maxCons;
+
+  // Premarket compliance
+  var premarket_days = 0;
+  try {
+    var keys = Object.keys(localStorage).filter(function(k){ return k.includes('tj_pm_'); });
+    premarket_days = keys.length;
+  } catch(e){}
+  d.premkt = premarket_days;
+
+  // Overtrading detection
+  var tradesByDay = {};
+  trades.forEach(function(t) {
+    var day = t.fecha ? t.fecha.slice(0,10) : 'unknown';
+    tradesByDay[day] = (tradesByDay[day]||0)+1;
+  });
+  var overtradingDays = Object.values(tradesByDay).filter(function(c){ return c > (riskSettings.maxOps||5); }).length;
+  d.overtradingDays = overtradingDays;
+  d.avgTradesPerDay = d.total / Math.max(1, Object.keys(tradesByDay).length);
+
+  // Emotion analysis
+  var emotions = {};
+  trades.forEach(function(t) {
+    var em = t.emocion || 'Sin registro';
+    if (!emotions[em]) emotions[em] = {count:0,pnl:0,wins:0};
+    emotions[em].count++;
+    emotions[em].pnl += t.resultado||0;
+    if ((t.resultado||0)>0) emotions[em].wins++;
+  });
+  d.emotions = emotions;
+  var bestEmotion = Object.keys(emotions).filter(function(e){ return emotions[e].count>=2; }).sort(function(a,b){ return (emotions[b].pnl/emotions[b].count)-(emotions[a].pnl/emotions[a].count); });
+  d.bestEmotion = bestEmotion[0] || '—';
+
+  // Discipline score (0-100)
+  var score = 0;
+  // Win rate component (30 pts)
+  score += Math.min(30, d.winrate * 0.5);
+  // Profit factor (25 pts)
+  score += Math.min(25, d.profitFactor * 10);
+  // No overtrading (15 pts)
+  var otRate = d.overtradingDays / Math.max(1, Object.keys(tradesByDay).length);
+  score += Math.round((1-otRate) * 15);
+  // Consistency (15 pts) — less max consecutive losses
+  score += Math.max(0, 15 - d.maxConsLosses * 3);
+  // Error count (15 pts)
+  var totalErrors = Object.values(d.errors).reduce(function(s,e){ return s+e.count; },0);
+  var errorRate = totalErrors / d.total;
+  score += Math.round(Math.max(0, 15 - errorRate*20));
+  d.score = Math.min(100, Math.round(score));
+
+  // Trader type
+  if (d.score >= 75) { d.traderType = 'Trader Disciplinado'; d.traderDesc = 'Tu operativa muestra consistencia y control emocional por encima de la media.'; d.traderColor = 'var(--green)'; }
+  else if (d.score >= 50) { d.traderType = 'Trader en Desarrollo'; d.traderDesc = 'Tienes buenas bases pero hay patrones que puedes mejorar para aumentar tu rentabilidad.'; d.traderColor = 'var(--blue)'; }
+  else if (d.score >= 30) { d.traderType = 'Trader Inconsistente'; d.traderDesc = 'Tu operativa muestra inconsistencias importantes. Los insights a continuacion te ayudaran a identificarlas.'; d.traderColor = 'var(--amber)'; }
+  else { d.traderType = 'Trader Impulsivo'; d.traderDesc = 'Tu operativa muestra senales claras de trading emocional. Trabajar los insights detectados mejorara significativamente tus resultados.'; d.traderColor = 'var(--red)'; }
+
+  return d;
+}
+
+function renderTraderProfile(d) {
+  document.getElementById('insights-trader-type').textContent = d.traderType;
+  document.getElementById('insights-trader-type').style.color = d.traderColor;
+  document.getElementById('insights-trader-desc').textContent = d.traderDesc;
+  document.getElementById('insights-score-val').textContent = d.score;
+  document.getElementById('insights-score-val').style.color = d.traderColor;
+
+  // Score donut
+  try {
+    var ctx = document.getElementById('insights-score-chart').getContext('2d');
+    var th2 = getChartTheme();
+    if (window._insightsScoreChart) window._insightsScoreChart.destroy();
+    window._insightsScoreChart = new Chart(ctx, {
+      type:'doughnut',
+      data:{ datasets:[{
+        data:[d.score,100-d.score],
+        backgroundColor:[d.traderColor==='var(--green)'?'#00d4a0':d.traderColor==='var(--blue)'?'#4d9fff':d.traderColor==='var(--amber)'?'#f5a623':'#ff4d6d', th2.border],
+        borderWidth:0
+      }]},
+      options:{ cutout:'78%', plugins:{legend:{display:false},tooltip:{enabled:false}}, animation:{duration:800} }
+    });
+  } catch(e){}
+
+  // Score breakdown bars
+  var bars = [
+    {label:'Win Rate', val:d.winrate, max:100, unit:'%'},
+    {label:'Profit Factor', val:Math.round(d.profitFactor*10)/10, max:3, unit:''},
+    {label:'Consistencia', val:Math.max(0,100-d.maxConsLosses*15), max:100, unit:'pts'},
+  ];
+  var container = document.getElementById('insights-score-bars');
+  container.innerHTML = bars.map(function(b) {
+    var pct = Math.min(100, (b.val/b.max)*100);
+    var col = pct>66?'var(--green)':pct>33?'var(--amber)':'var(--red)';
+    return '<div style="display:flex;align-items:center;gap:10px;">' +
+      '<div style="font-size:11px;color:var(--text2);width:110px;flex-shrink:0;">'+b.label+'</div>' +
+      '<div style="flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;">' +
+        '<div style="height:100%;width:'+pct+'%;background:'+col+';border-radius:3px;transition:width 0.8s;"></div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--text2);font-family:monospace;width:50px;text-align:right;">'+b.val+b.unit+'</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderInsightsGrid(d) {
+  var insights = [];
+
+  // Win rate insight
+  if (d.winrate < 40) {
+    insights.push({icon:'📉', color:'var(--red)', title:'Win rate por debajo del 40%', body:'Tu win rate actual es '+d.winrate+'%. Con este nivel necesitas un RR de al menos 1:1.5 para ser rentable. Revisa tus entradas y setups.'});
+  } else if (d.winrate >= 60) {
+    insights.push({icon:'✅', color:'var(--green)', title:'Win rate solido del '+d.winrate+'%', body:'Tu porcentaje de aciertos esta por encima de la media. Mantén la disciplina en tus entradas.'});
+  }
+
+  // Best session
+  if (d.bestSession !== '—' && d.bestSessionStats.total >= 2) {
+    var wr = Math.round(d.bestSessionStats.wins/d.bestSessionStats.total*100);
+    insights.push({icon:'⏰', color:'var(--blue)', title:'Mejor sesion: '+d.bestSession, body:'En la sesion '+d.bestSession+' tienes un '+wr+'% de win rate y '+d.bestSessionStats.pnl.toFixed(0)+'$ de P&L. Concentra tus operaciones aqui.'});
+  }
+
+  // Worst day warning
+  if (d.worstDay !== '—' && d.worstDay !== d.bestDay) {
+    var wdStats = Object.values(d.days).find(function(dy){ return dy.name===d.worstDay; });
+    if (wdStats && wdStats.total >= 2 && wdStats.pnl < 0) {
+      insights.push({icon:'⚠️', color:'var(--amber)', title:'Los '+d.worstDay+'s son tu dia mas negativo', body:'Llevas '+wdStats.pnl.toFixed(0)+'$ en '+d.worstDay+'s. Considera reducir el tamano de posicion o no operar ese dia.'});
+    }
+  }
+
+  // Overtrading
+  if (d.overtradingDays > 0) {
+    insights.push({icon:'🔄', color:'var(--amber)', title:'Overtrading detectado en '+d.overtradingDays+' dias', body:'Has superado tu limite de operaciones en '+d.overtradingDays+' dias. El overtrading suele correlacionar con peores resultados. Respeta el limite configurado.'});
+  }
+
+  // Consecutive losses
+  if (d.currentConsLosses >= 2) {
+    insights.push({icon:'🛑', color:'var(--red)', title:'Llevas '+d.currentConsLosses+' perdidas consecutivas', body:'Considera pausar tu operativa y revisar tu plan antes de la siguiente entrada. Las rachas negativas suelen empeorar sin una pausa consciente.'});
+  }
+
+  // Best asset
+  if (d.bestAsset !== '—' && d.bestAssetStats.total >= 3) {
+    var assetWr = Math.round(d.bestAssetStats.wins/d.bestAssetStats.total*100);
+    insights.push({icon:'🎯', color:'var(--green)', title:'Tu activo estrella es '+d.bestAsset, body:d.bestAsset+' te da un '+assetWr+'% de win rate y '+d.bestAssetStats.pnl.toFixed(0)+'$ acumulados. Especiallzate en este instrumento.'});
+  }
+
+  // Emotion insight
+  if (d.bestEmotion !== '—' && d.bestEmotion !== 'Sin registro') {
+    insights.push({icon:'🧠', color:'var(--purple,#a78bfa)', title:'Operas mejor cuando estas: '+d.bestEmotion, body:'Tus mejores resultados coinciden con la emocion "'+d.bestEmotion+'". Registra tu estado antes de cada sesion para identificar el patron.'});
+  }
+
+  // Profit factor
+  if (d.profitFactor > 0 && d.profitFactor < 1) {
+    insights.push({icon:'📊', color:'var(--red)', title:'Profit factor por debajo de 1.0', body:'Tu profit factor actual es '+d.profitFactor.toFixed(2)+'. Tus perdidas superan tus ganancias. Revisa tu ratio riesgo/recompensa.'});
+  } else if (d.profitFactor >= 1.5) {
+    insights.push({icon:'💪', color:'var(--green)', title:'Profit factor excelente: '+d.profitFactor.toFixed(2), body:'Un profit factor de '+d.profitFactor.toFixed(2)+' indica un sistema matematicamente solido. Mantén la consistencia.'});
+  }
+
+  var grid = document.getElementById('insights-grid');
+  if (!insights.length) {
+    grid.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px;font-family:monospace;">Registra mas operaciones para detectar patrones especificos.</div>';
+    return;
+  }
+  grid.innerHTML = insights.map(function(ins) {
+    return '<div class="card" style="border-left:3px solid '+ins.color+';padding-left:16px;">' +
+      '<div style="display:flex;align-items:flex-start;gap:12px;">' +
+        '<span style="font-size:24px;flex-shrink:0;">'+ins.icon+'</span>' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">'+ins.title+'</div>' +
+          '<div style="font-size:12px;color:var(--text2);line-height:1.6;">'+ins.body+'</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderAlerts(d) {
+  var alerts = [];
+  if (d.currentConsLosses >= 3) alerts.push({color:'var(--red)',icon:'🚨',text:'Llevas '+d.currentConsLosses+' perdidas consecutivas. Para y revisa tu plan antes de continuar.'});
+  if (d.overtradingDays > 2) alerts.push({color:'var(--amber)',icon:'⚡',text:'Patron de overtrading detectado. Has superado tu limite de operaciones en '+d.overtradingDays+' dias.'});
+  if (d.winrate < 30 && d.total >= 10) alerts.push({color:'var(--red)',icon:'📉',text:'Win rate critico del '+d.winrate+'%. Revisa tus criterios de entrada urgentemente.'});
+
+  var section = document.getElementById('insights-alerts-section');
+  var container = document.getElementById('insights-alerts');
+  if (!alerts.length) { section.style.display='none'; return; }
+  section.style.display='block';
+  container.innerHTML = alerts.map(function(a) {
+    return '<div style="background:rgba(255,255,255,0.04);border:1px solid '+a.color+';border-radius:10px;padding:12px 16px;display:flex;gap:12px;align-items:center;">' +
+      '<span style="font-size:20px;">'+a.icon+'</span>' +
+      '<span style="font-size:13px;color:var(--text);line-height:1.5;">'+a.text+'</span>' +
+    '</div>';
+  }).join('');
+}
+
+function renderBestConditions(d) {
+  // Best session
+  var el = document.getElementById('insights-best-session');
+  var sub = document.getElementById('insights-best-session-sub');
+  if (d.bestSession !== '—' && d.bestSessionStats.total) {
+    el.textContent = d.bestSession;
+    var wr = Math.round(d.bestSessionStats.wins/d.bestSessionStats.total*100);
+    sub.textContent = wr+'% win rate · '+d.bestSessionStats.total+' ops';
+  } else { el.textContent = 'Sin datos'; sub.textContent = 'Registra la sesion en cada trade'; }
+
+  // Best asset
+  var ea = document.getElementById('insights-best-asset');
+  var suba = document.getElementById('insights-best-asset-sub');
+  if (d.bestAsset !== '—' && d.bestAssetStats.total) {
+    ea.textContent = d.bestAsset;
+    var wra = Math.round(d.bestAssetStats.wins/d.bestAssetStats.total*100);
+    suba.textContent = wra+'% win rate · '+d.bestAssetStats.pnl.toFixed(0)+'$ P&L';
+  } else { ea.textContent = 'Sin datos'; suba.textContent = 'Registra el instrumento en cada trade'; }
+
+  // Best day
+  var ed = document.getElementById('insights-best-day');
+  var subd = document.getElementById('insights-best-day-sub');
+  if (d.bestDay !== '—') {
+    ed.textContent = d.bestDay;
+    var bdStats = Object.values(d.days).find(function(dy){ return dy.name===d.bestDay; });
+    if (bdStats) {
+      var wrd = Math.round(bdStats.wins/Math.max(1,bdStats.total)*100);
+      subd.textContent = wrd+'% win rate · '+bdStats.pnl.toFixed(0)+'$ P&L';
+    }
+  } else { ed.textContent = 'Sin datos'; subd.textContent = 'Necesitas mas trades'; }
+
+  // Best setup
+  var es = document.getElementById('insights-best-setup');
+  var subs = document.getElementById('insights-best-setup-sub');
+  if (d.bestSetup !== '—' && d.bestSetupStats.total) {
+    es.textContent = d.bestSetup;
+    var wrs = Math.round(d.bestSetupStats.wins/d.bestSetupStats.total*100);
+    subs.textContent = wrs+'% win rate · '+d.bestSetupStats.total+' ops';
+  } else { es.textContent = 'Sin datos'; subs.textContent = 'Registra el setup en cada trade'; }
+}
+
+function renderPsychErrors(d) {
+  var container = document.getElementById('insights-errors');
+  var errors = Object.entries(d.errors).sort(function(a,b){ return b[1].count-a[1].count; });
+  if (!errors.length) {
+    container.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:8px 0;">Sin errores psicologicos registrados. Buen trabajo.</div>';
+    return;
+  }
+  var maxCount = errors[0][1].count;
+  container.innerHTML = errors.slice(0,6).map(function(e) {
+    var pct = Math.round(e[1].count/maxCount*100);
+    var avgPnl = e[1].pnl/e[1].count;
+    var col = avgPnl >= 0 ? 'var(--green)' : 'var(--red)';
+    return '<div style="display:flex;align-items:center;gap:10px;">' +
+      '<div style="font-size:12px;color:var(--text);width:130px;flex-shrink:0;">'+e[0]+'</div>' +
+      '<div style="flex:1;height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;">' +
+        '<div style="height:100%;width:'+pct+'%;background:rgba(255,77,109,0.6);border-radius:4px;"></div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--text2);font-family:monospace;width:60px;text-align:right;">x'+e[1].count+' · <span style="color:'+col+'">'+avgPnl.toFixed(0)+'$</span></div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderRecommendation(d) {
+  var recs = [];
+  if (d.currentConsLosses >= 2) recs.push('Llevas '+d.currentConsLosses+' perdidas seguidas. Esta semana reduce el tamano de posicion al 50% hasta recuperar confianza.');
+  if (d.bestSession!=='—' && d.bestSessionStats.total>=3) recs.push('Tus mejores resultados son en la sesion '+d.bestSession+'. Prioriza operar en esa franja horaria.');
+  if (d.overtradingDays>1) recs.push('El overtrading te esta costando dinero. Esta semana opera un maximo de '+(riskSettings.maxOps||5)+' trades por dia y cierra la plataforma al llegar al limite.');
+  if (d.bestSetup!=='—' && d.bestSetupStats.total>=3) recs.push('Tu setup mas rentable es "'+d.bestSetup+'" con un '+Math.round(d.bestSetupStats.wins/d.bestSetupStats.total*100)+'% de win rate. Especiallzate en el.');
+  if (Object.keys(d.errors).length > 0) {
+    var topError = Object.entries(d.errors).sort(function(a,b){return b[1].count-a[1].count;})[0];
+    recs.push('Tu error psicologico mas frecuente es "'+topError[0]+'" con '+topError[1].count+' apariciones. Identifica el momento en que aparece y crea una regla para frenarlo.');
+  }
+  if (!recs.length) recs.push('Tu operativa esta en buen camino. Mantén la consistencia, sigue registrando cada trade y revisa tus insights semanalmente para detectar nuevos patrones.');
+
+  var el = document.getElementById('insights-recommendation');
+  var txt = document.getElementById('insights-rec-text');
+  el.style.display = 'block';
+  txt.textContent = recs[0];
+}
+
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
@@ -7581,6 +8090,10 @@ function renderPsychCharts() {
     <!-- Section: Análisis -->
     <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin:8px 4px 10px;">ANÁLISIS</div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+      <div class="mmenu-item" onclick="mobileGoTabMenu('insights')" style="border-color:rgba(0,212,160,0.3);background:rgba(0,212,160,0.07);">
+        <div class="mmenu-icon">💡</div>
+        <div class="mmenu-label" style="color:var(--green);">Insights</div>
+      </div>
       <div class="mmenu-item" onclick="mobileGoTabMenu('riesgo')">
         <div class="mmenu-icon">🛡️</div>
         <div class="mmenu-label">Riesgo</div>
