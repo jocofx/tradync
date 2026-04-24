@@ -2928,7 +2928,12 @@ function goTab(id, el) {
   }
   if (id === 'operaciones') setTimeout(() => { try { renderAllTrades(); renderOpsCharts(); } catch(e){} }, 50);
   if (id === 'insights') setTimeout(() => { try { runInsights(); } catch(e){ console.warn('Insights error:', e); } }, 50);
-  if (id === 'broker') setTimeout(() => { try { checkBrokerConnection(); } catch(e){} }, 500);
+  if (id === 'broker') setTimeout(() => {
+    try {
+      // Auto-detect which step to show
+      brokerAutoStep();
+    } catch(e) { console.warn('broker step error:', e); }
+  }, 300);
   if (id === 'nueva') setTimeout(() => { try { updateCuentaSelector(); } catch(e){} }, 50);
   if (id === 'estadisticas') { setTimeout(() => { try { if(!isPro()) showUpgradeOverlay('estadisticas','Estadísticas avanzadas'); else { renderStatsCharts(); renderComparisons(); } } catch(e){} }, 50); }
   if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); renderPropFirmTracker(); } catch(e){} }, 50);
@@ -7663,9 +7668,18 @@ async function checkBrokerConnection() {
     if (icon) icon.textContent = '🔄';
     if (title) title.textContent = 'Verificando...';
 
-    // Check for MT-connected accounts
-    var r = await sb.from('cuentas').select('*').eq('user_id', currentUser.id).eq('mt_conectada', true);
-    var mtAccounts = r.data || [];
+    // Check all cuentas for this user — look for ones with broker or fase = MT5/MT4
+    var r = await sb.from('cuentas').select('*').eq('user_id', currentUser.id).eq('activa', true);
+    var allAccounts = r.data || [];
+
+    // Filter MT accounts — those with fase = MT5 or MT4 or broker set
+    var mtAccounts = allAccounts.filter(function(a) {
+      return a.fase === 'MT5' || a.fase === 'MT4' || a.fase === 'MT' ||
+             (a.broker && a.broker.length > 0 && a.nombre && a.nombre.indexOf('MT') >= 0);
+    });
+
+    // If no MT-specific, show all accounts
+    if (!mtAccounts.length) mtAccounts = allAccounts;
 
     if (mtAccounts.length > 0) {
       if (icon) icon.textContent = '✅';
@@ -7678,19 +7692,28 @@ async function checkBrokerConnection() {
       if (cont) {
         cont.innerHTML = mtAccounts.map(function(a) {
           return '<div class="card" style="display:flex;align-items:center;gap:12px;">' +
-            '<div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;"></div>' +
-            '<div><div style="font-size:13px;font-weight:700;">' + (a.nombre||'Cuenta MT') + '</div>' +
-            '<div style="font-size:11px;color:var(--text3);">' + (a.broker||'') + ' · ' + (a.tipo||'') + ' · $' + (a.balance||0) + '</div></div>' +
+            '<div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 6px var(--green);"></div>' +
+            '<div style="flex:1;">' +
+              '<div style="font-size:14px;font-weight:700;color:var(--text);">' + (a.nombre||'Cuenta MT') + '</div>' +
+              '<div style="font-size:12px;color:var(--text3);margin-top:2px;">' +
+                (a.broker ? a.broker + ' · ' : '') +
+                (a.tipo || '') +
+                (a.balance ? ' · $' + parseFloat(a.balance).toFixed(2) : '') +
+              '</div>' +
+            '</div>' +
+            '<div style="font-size:11px;color:var(--green);font-family:monospace;font-weight:700;">ACTIVA</div>' +
           '</div>';
         }).join('');
       }
     } else {
       if (icon) icon.textContent = '⏳';
       if (title) title.textContent = 'Esperando conexión...';
-      if (desc) desc.textContent = 'El EA aún no ha enviado datos. Asegúrate de que está activo en MT5.';
+      if (desc) desc.textContent = 'El EA aún no ha enviado datos. Asegúrate de que está activo en MT5 y que el Trading Algorítmico está activado (botón verde en MT5).';
     }
   } catch(e) {
     console.error('checkBrokerConnection error:', e);
+    var title = document.getElementById('broker-status-title');
+    if (title) title.textContent = 'Error verificando. Inténtalo de nuevo.';
   }
 }
 
