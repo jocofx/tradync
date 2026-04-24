@@ -1099,10 +1099,10 @@ if (typeof supabase === 'undefined') {
   <div class="section-title">Conectar Broker</div>
 
   <!-- Step tabs — clickable -->
-  <div style="display:flex;gap:0;margin-bottom:24px;background:var(--bg2);border-radius:12px;padding:4px;">
-    <button id="bstep-1" onclick="brokerNextStep(1)" style="flex:1;padding:10px 0;border:none;border-radius:9px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:var(--green);color:#000;transition:all 0.2s;">⬇ DESCARGA</button>
-    <button id="bstep-2" onclick="brokerNextStep(2)" style="flex:1;padding:10px 0;border:none;border-radius:9px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text3);transition:all 0.2s;">⚙ INSTALA</button>
-    <button id="bstep-3" onclick="brokerNextStep(3)" style="flex:1;padding:10px 0;border:none;border-radius:9px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text3);transition:all 0.2s;">✓ CONECTA</button>
+  <div style="display:flex;gap:6px;margin-bottom:24px;">
+    <button id="bstep-1" onclick="brokerNextStep(1)" style="flex:1;padding:11px 0;border:2px solid var(--green);border-radius:10px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:var(--green);color:#000;transition:all 0.2s;">⬇ DESCARGA</button>
+    <button id="bstep-2" onclick="brokerNextStep(2)" style="flex:1;padding:11px 0;border:2px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text2);transition:all 0.2s;">⚙ INSTALA</button>
+    <button id="bstep-3" onclick="brokerNextStep(3)" style="flex:1;padding:11px 0;border:2px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text2);transition:all 0.2s;">✓ CONECTA</button>
   </div>
 
   <!-- Step 1: Download -->
@@ -1191,7 +1191,7 @@ if (typeof supabase === 'undefined') {
     </div>
 
     <!-- Edit modal -->
-    <div id="broker-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;">
+    <div id="broker-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;padding:20px;">
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:420px;">
         <div style="font-size:16px;font-weight:800;margin-bottom:20px;">Editar cuenta</div>
         <input type="hidden" id="edit-account-id">
