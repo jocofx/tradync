@@ -818,6 +818,10 @@ if (typeof supabase === 'undefined') {
         Insights
         <span id="insights-badge" style="position:absolute;top:6px;right:8px;background:var(--green);color:#000;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;font-family:monospace;display:none;">NEW</span>
       </div>
+      <div class="nav-item" onclick="goTab('broker', this)">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a2 2 0 0 1 2-2z" opacity=".3"/><path d="M8 2a1 1 0 0 0-1 1v1h2V3a1 1 0 0 0-1-1zM5 5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H5z"/></svg>
+        Conectar Broker
+      </div>
       <div class="nav-item" onclick="goTab('operaciones', this)">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M2 4h12v1.5H2zm0 3.5h12V9H2zm0 3.5h8v1.5H2z"/></svg>
         Operaciones
@@ -1090,6 +1094,101 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
     </div>
+
+<div class="tab-panel" id="panel-broker">
+  <div class="section-title">Conectar Broker</div>
+
+  <!-- Step indicator -->
+  <div style="display:flex;gap:0;margin-bottom:28px;">
+    <div id="bstep-1" style="flex:1;text-align:center;padding:10px 0;border-bottom:2px solid var(--green);font-size:12px;font-weight:700;color:var(--green);font-family:monospace;">1 DESCARGA</div>
+    <div id="bstep-2" style="flex:1;text-align:center;padding:10px 0;border-bottom:2px solid var(--bg4);font-size:12px;color:var(--text3);font-family:monospace;">2 INSTALA</div>
+    <div id="bstep-3" style="flex:1;text-align:center;padding:10px 0;border-bottom:2px solid var(--bg4);font-size:12px;color:var(--text3);font-family:monospace;">3 CONECTA</div>
+  </div>
+
+  <!-- Step 1: Download -->
+  <div id="broker-step-1">
+    <div class="card" style="margin-bottom:16px;text-align:center;padding:28px 20px;">
+      <div style="font-size:40px;margin-bottom:12px;">⚡</div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:8px;">Sincroniza MT4/MT5 con TradyncApp</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.7;max-width:400px;margin-left:auto;margin-right:auto;">
+        Descarga el Expert Advisor para tu plataforma. Se instala en 2 minutos y tus operaciones se registran solas.
+      </div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="downloadEA('mt5')" style="background:var(--green);color:#000;border:none;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;">
+          ↓ Descargar para MT5
+        </button>
+        <button onclick="downloadEA('mt4')" style="background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
+          ↓ Descargar para MT4
+        </button>
+      </div>
+    </div>
+    <div style="text-align:center;margin-bottom:20px;">
+      <button onclick="brokerNextStep(2)" style="background:none;border:none;color:var(--green);font-size:13px;cursor:pointer;font-family:monospace;">
+        Ya lo descargué → Ver cómo instalarlo
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 2: Install -->
+  <div id="broker-step-2" style="display:none;">
+    <div class="card" style="margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">PASO 1 DE 3</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Copia el archivo a MetaTrader</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.7;">
+        1. Abre MetaTrader 5<br>
+        2. Menú <strong style="color:var(--text)">Archivo → Abrir carpeta de datos</strong><br>
+        3. Entra en la carpeta <strong style="color:var(--green)">MQL5 → Experts</strong><br>
+        4. Copia el archivo <strong style="color:var(--green)">TradyncSync_MT5.mq5</strong> ahí<br>
+        5. En MT5 haz clic derecho en el Navigator → <strong style="color:var(--text)">Actualizar</strong>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">PASO 2 DE 3</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Activa WebRequests (solo una vez)</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.7;">
+        1. En MT5: <strong style="color:var(--text)">Herramientas → Opciones → Expert Advisors</strong><br>
+        2. Activa ✅ <strong style="color:var(--green)">"Permitir WebRequest para las siguientes URL"</strong><br>
+        3. Haz clic en <strong style="color:var(--text)">+</strong> y añade: <code style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:12px;">https://tradyncapp.com</code><br>
+        4. Haz clic en <strong style="color:var(--text)">Aceptar</strong>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:20px;">
+      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">PASO 3 DE 3</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Arrastra el EA al gráfico</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.7;">
+        1. En el Navigator de MT5, busca <strong style="color:var(--green)">TradyncSync_MT5</strong> en Expert Advisors<br>
+        2. Arrástralo a cualquier gráfico<br>
+        3. En la pestaña <strong style="color:var(--text)">"Common"</strong> activa ✅ <strong style="color:var(--green)">"Allow WebRequests"</strong><br>
+        4. Haz clic en <strong style="color:var(--text)">OK</strong> — ¡listo!
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;">
+      <button onclick="brokerNextStep(1)" style="flex:1;background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:12px;border-radius:10px;font-size:14px;cursor:pointer;">← Volver</button>
+      <button onclick="brokerNextStep(3)" style="flex:2;background:var(--green);color:#000;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">Ya instalé el EA → Verificar conexión</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Verify -->
+  <div id="broker-step-3" style="display:none;">
+    <div class="card" style="margin-bottom:16px;text-align:center;padding:28px 20px;">
+      <div id="broker-status-icon" style="font-size:48px;margin-bottom:12px;">🔄</div>
+      <div id="broker-status-title" style="font-size:18px;font-weight:800;margin-bottom:8px;">Esperando conexión...</div>
+      <div id="broker-status-desc" style="font-size:13px;color:var(--text2);line-height:1.7;max-width:360px;margin:0 auto 20px;">
+        Asegúrate de que el EA está activo en MT5 y el botón "Algo Trading" está activado (verde).
+      </div>
+      <button onclick="checkBrokerConnection()" style="background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:10px 24px;border-radius:8px;font-size:13px;cursor:pointer;font-family:monospace;">
+        ↺ Verificar conexión
+      </button>
+    </div>
+    <div id="broker-accounts-list" style="display:none;">
+      <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">CUENTAS CONECTADAS</div>
+      <div id="broker-accounts" style="display:grid;gap:8px;"></div>
+    </div>
+    <div style="margin-top:16px;">
+      <button onclick="brokerNextStep(2)" style="background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;font-family:monospace;">← Volver a instrucciones</button>
+    </div>
+  </div>
+</div>
 
 <div class="tab-panel" id="panel-operaciones">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
@@ -2808,6 +2907,7 @@ function goTab(id, el) {
     habitos: '<span>Hábitos</span>',
     estadisticas: '<span>Estadísticas</span>',
     insights: '💡 <span>Insights</span>',
+    broker: '🔌 <span>Conectar Broker</span>',
     cuentas: '<span>Cuentas</span>',
     ia: 'Coach <span>IA</span>',
     diario: '<span>Diario</span>',
@@ -2828,6 +2928,7 @@ function goTab(id, el) {
   }
   if (id === 'operaciones') setTimeout(() => { try { renderAllTrades(); renderOpsCharts(); } catch(e){} }, 50);
   if (id === 'insights') setTimeout(() => { try { runInsights(); } catch(e){ console.warn('Insights error:', e); } }, 50);
+  if (id === 'broker') setTimeout(() => { try { checkBrokerConnection(); } catch(e){} }, 500);
   if (id === 'nueva') setTimeout(() => { try { updateCuentaSelector(); } catch(e){} }, 50);
   if (id === 'estadisticas') { setTimeout(() => { try { if(!isPro()) showUpgradeOverlay('estadisticas','Estadísticas avanzadas'); else { renderStatsCharts(); renderComparisons(); } } catch(e){} }, 50); }
   if (id === 'cuentas') setTimeout(() => { try { renderAccounts(); renderAccountCharts(); renderPropFirmTracker(); } catch(e){} }, 50);
@@ -7485,6 +7586,118 @@ function renderRecommendation(d) {
 }
 
 
+// ═══════════════════════════════════════════════════════════════
+// BROKER CONNECTION PANEL
+// ═══════════════════════════════════════════════════════════════
+
+function brokerNextStep(step) {
+  [1,2,3].forEach(function(s) {
+    var el = document.getElementById('broker-step-' + s);
+    if (el) el.style.display = s === step ? 'block' : 'none';
+    var st = document.getElementById('bstep-' + s);
+    if (st) {
+      st.style.borderBottomColor = s <= step ? 'var(--green)' : 'var(--bg4)';
+      st.style.color = s <= step ? 'var(--green)' : 'var(--text3)';
+    }
+  });
+}
+
+async function downloadEA(platform) {
+  if (!currentUser) { alert('Debes iniciar sesión primero.'); return; }
+  try {
+    // Get user API token
+    var token = await getOrCreateApiToken();
+    if (!token) { alert('Error generando token. Inténtalo de nuevo.'); return; }
+
+    // Download EA with token embedded via API
+    var btn = event.target;
+    btn.textContent = 'Generando...';
+    btn.disabled = true;
+
+    var resp = await fetch('/api/download-ea?platform=' + platform + '&token=' + encodeURIComponent(token));
+    if (!resp.ok) throw new Error('Error descargando EA');
+
+    var blob = await resp.blob();
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'TradyncSync_' + platform.toUpperCase() + '.' + (platform === 'mt4' ? 'mq4' : 'mq5');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    btn.textContent = '✓ Descargado';
+    btn.style.background = 'var(--green)';
+    setTimeout(function() { brokerNextStep(2); }, 1000);
+  } catch(e) {
+    console.error('downloadEA error:', e);
+    alert('Error: ' + e.message);
+    if (event && event.target) {
+      event.target.textContent = '↓ Descargar para ' + platform.toUpperCase();
+      event.target.disabled = false;
+    }
+  }
+}
+
+async function getOrCreateApiToken() {
+  if (!currentUser) return null;
+  try {
+    // Check if token exists
+    var r = await sb.from('api_keys').select('token').eq('user_id', currentUser.id).eq('activo', true).single();
+    if (r.data && r.data.token) return r.data.token;
+
+    // Create new token
+    var token = 'tk_' + Array.from(crypto.getRandomValues(new Uint8Array(24)))
+      .map(function(b) { return b.toString(16).padStart(2,'0'); }).join('');
+    await sb.from('api_keys').insert({ user_id: currentUser.id, token: token, nombre: 'Token MT', activo: true });
+    return token;
+  } catch(e) {
+    console.error('getOrCreateApiToken error:', e);
+    return null;
+  }
+}
+
+async function checkBrokerConnection() {
+  if (!currentUser) return;
+  try {
+    var icon  = document.getElementById('broker-status-icon');
+    var title = document.getElementById('broker-status-title');
+    var desc  = document.getElementById('broker-status-desc');
+    if (icon) icon.textContent = '🔄';
+    if (title) title.textContent = 'Verificando...';
+
+    // Check for MT-connected accounts
+    var r = await sb.from('cuentas').select('*').eq('user_id', currentUser.id).eq('mt_conectada', true);
+    var mtAccounts = r.data || [];
+
+    if (mtAccounts.length > 0) {
+      if (icon) icon.textContent = '✅';
+      if (title) title.textContent = '¡Conectado correctamente!';
+      if (desc) desc.textContent = mtAccounts.length + ' cuenta' + (mtAccounts.length>1?'s':'') + ' sincronizadas con TradyncApp.';
+
+      var list = document.getElementById('broker-accounts-list');
+      var cont = document.getElementById('broker-accounts');
+      if (list) list.style.display = 'block';
+      if (cont) {
+        cont.innerHTML = mtAccounts.map(function(a) {
+          return '<div class="card" style="display:flex;align-items:center;gap:12px;">' +
+            '<div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;"></div>' +
+            '<div><div style="font-size:13px;font-weight:700;">' + (a.nombre||'Cuenta MT') + '</div>' +
+            '<div style="font-size:11px;color:var(--text3);">' + (a.broker||'') + ' · ' + (a.tipo||'') + ' · $' + (a.balance||0) + '</div></div>' +
+          '</div>';
+        }).join('');
+      }
+    } else {
+      if (icon) icon.textContent = '⏳';
+      if (title) title.textContent = 'Esperando conexión...';
+      if (desc) desc.textContent = 'El EA aún no ha enviado datos. Asegúrate de que está activo en MT5.';
+    }
+  } catch(e) {
+    console.error('checkBrokerConnection error:', e);
+  }
+}
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
@@ -8098,6 +8311,10 @@ function renderPsychCharts() {
       <div class="mmenu-item" onclick="mobileGoTabMenu('insights')" style="border-color:rgba(0,212,160,0.3);background:rgba(0,212,160,0.07);">
         <div class="mmenu-icon">💡</div>
         <div class="mmenu-label" style="color:var(--green);">Insights</div>
+      </div>
+      <div class="mmenu-item" onclick="mobileGoTabMenu('broker')">
+        <div class="mmenu-icon">🔌</div>
+        <div class="mmenu-label">Broker</div>
       </div>
       <div class="mmenu-item" onclick="mobileGoTabMenu('riesgo')">
         <div class="mmenu-icon">🛡️</div>
