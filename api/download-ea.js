@@ -1,4 +1,4 @@
-// api/download-ea.js
+// api/download-ea.js — v2
 // Genera el EA con el token del usuario ya incluido
 const SURL = process.env.SUPABASE_URL;
 const SKEY = process.env.SUPABASE_SERVICE_KEY;
@@ -20,7 +20,7 @@ input bool   EnableLogs   = true;  // Activar logs en el diario
 
 //--- Variables internas
 string TOKEN    = "PEGA_TU_TOKEN_AQUI";
-string ENDPOINT = "https://tradyncapp.com/api";
+string ENDPOINT = "https://www.tradyncapp.com/api";
 
 //--- Cache
 struct PosCache { ulong ticket; double sl; double tp; double vol; };
@@ -173,22 +173,34 @@ void SendClosed(ulong dk)
 //+------------------------------------------------------------------+
 string Post(string url, string body)
 {
-   string headers = "Content-Type: application/json\\r\\nX-Auth-Token: " + TOKEN + "\\r\\n";
-   char   post[];
-   char   result[];
+   // Build headers with exact format required by MT5
+   string headers = "Content-Type: application/json\\r\\n"
+                  + "X-Auth-Token: " + TOKEN + "\\r\\n"
+                  + "Accept: application/json\\r\\n";
+
+   uchar  post[];
+   uchar  result[];
    string rh;
 
-   StringToCharArray(body, post, 0, StringLen(body));
+   // Convert string body to uchar array
+   StringToCharArray(body, post, 0, WHOLE_ARRAY, CP_UTF8);
+   // Remove null terminator from end
+   int sz = ArraySize(post);
+   if(sz > 0 && post[sz-1] == 0) ArrayResize(post, sz-1);
+
+   ResetLastError();
    int res = WebRequest("POST", url, headers, 5000, post, result, rh);
 
    if(res == -1) {
       int err = GetLastError();
-      Log("ERROR HTTP " + IntegerToString(err) + " | " + url);
+      Log("ERROR HTTP " + IntegerToString(err) + " URL: " + url);
       if(err == 4060)
-         Alert("Activa WebRequests en MT5:\\nHerramientas > Opciones > Expert Advisors\\n> Permitir WebRequest > Añadir: https://tradyncapp.com");
+         Alert("Activa WebRequests en MT5: Herramientas > Opciones > Expert Advisors > Permitir WebRequest > Añadir: https://tradyncapp.com");
       return "";
    }
-   return CharArrayToString(result);
+
+   Log("HTTP " + IntegerToString(res) + " " + url);
+   return CharArrayToString(result, 0, WHOLE_ARRAY, CP_UTF8);
 }
 
 //+------------------------------------------------------------------+
@@ -633,7 +645,7 @@ module.exports = async function(req, res) {
 
   if (!userToken) return res.status(401).json({ error: 'Token requerido' });
 
-  // Verificar token
+  // Verificar token en Supabase
   const r1 = await fetch(
     `${SURL}/rest/v1/api_keys?token=eq.${encodeURIComponent(userToken)}&activo=eq.true&select=user_id`,
     { headers: { apikey: SKEY, Authorization: `Bearer ${SKEY}` } }
@@ -641,12 +653,9 @@ module.exports = async function(req, res) {
   const keys = await r1.json();
   if (!keys || !keys.length) return res.status(401).json({ error: 'Token invalido' });
 
-  // Sustituir token y endpoint en el EA
-  const endpoint = 'https://tradyncapp.com/api';
+  // Sustituir token en el EA
   const template = platform === 'mt4' ? MT4_TEMPLATE : MT5_TEMPLATE;
-  const eaContent = template
-    .replace('PEGA_TU_TOKEN_AQUI', userToken)
-    .replace('https://tradyncapp.com/api', endpoint);
+  const eaContent = template.replace('PEGA_TU_TOKEN_AQUI', userToken);
 
   const ext      = platform === 'mt4' ? 'mq4' : 'mq5';
   const filename = `TradyncSync_${platform.toUpperCase()}.${ext}`;
