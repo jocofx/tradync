@@ -1098,11 +1098,11 @@ if (typeof supabase === 'undefined') {
 <div class="tab-panel" id="panel-broker">
   <div class="section-title">Conectar Broker</div>
 
-  <!-- Step indicator -->
-  <div style="display:flex;gap:0;margin-bottom:28px;">
-    <div id="bstep-1" style="flex:1;text-align:center;padding:10px 0;border-bottom:2px solid var(--green);font-size:12px;font-weight:700;color:var(--green);font-family:monospace;">1 DESCARGA</div>
-    <div id="bstep-2" style="flex:1;text-align:center;padding:10px 0;border-bottom:2px solid var(--bg4);font-size:12px;color:var(--text3);font-family:monospace;">2 INSTALA</div>
-    <div id="bstep-3" style="flex:1;text-align:center;padding:10px 0;border-bottom:2px solid var(--bg4);font-size:12px;color:var(--text3);font-family:monospace;">3 CONECTA</div>
+  <!-- Step tabs — clickable -->
+  <div style="display:flex;gap:0;margin-bottom:24px;background:var(--bg2);border-radius:12px;padding:4px;">
+    <button id="bstep-1" onclick="brokerNextStep(1)" style="flex:1;padding:10px 0;border:none;border-radius:9px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:var(--green);color:#000;transition:all 0.2s;">⬇ DESCARGA</button>
+    <button id="bstep-2" onclick="brokerNextStep(2)" style="flex:1;padding:10px 0;border:none;border-radius:9px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text3);transition:all 0.2s;">⚙ INSTALA</button>
+    <button id="bstep-3" onclick="brokerNextStep(3)" style="flex:1;padding:10px 0;border:none;border-radius:9px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text3);transition:all 0.2s;">✓ CONECTA</button>
   </div>
 
   <!-- Step 1: Download -->
@@ -1114,7 +1114,7 @@ if (typeof supabase === 'undefined') {
         Descarga el Expert Advisor para tu plataforma. Se instala en 2 minutos y tus operaciones se registran solas.
       </div>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <button onclick="downloadEA('mt5', this)" style="background:var(--green);color:#000;border:none;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;">
+        <button onclick="downloadEA('mt5', this)" style="background:var(--green);color:#000;border:none;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
           ↓ Descargar para MT5
         </button>
         <button onclick="downloadEA('mt4', this)" style="background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
@@ -1122,9 +1122,9 @@ if (typeof supabase === 'undefined') {
         </button>
       </div>
     </div>
-    <div style="text-align:center;margin-bottom:20px;">
+    <div style="text-align:center;">
       <button onclick="brokerNextStep(2)" style="background:none;border:none;color:var(--green);font-size:13px;cursor:pointer;font-family:monospace;">
-        Ya lo descargué → Ver cómo instalarlo
+        Ya lo descargué → Ver cómo instalarlo →
       </button>
     </div>
   </div>
@@ -1132,60 +1132,91 @@ if (typeof supabase === 'undefined') {
   <!-- Step 2: Install -->
   <div id="broker-step-2" style="display:none;">
     <div class="card" style="margin-bottom:12px;">
-      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">PASO 1 DE 3</div>
-      <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Copia el archivo a MetaTrader</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.7;">
+      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:10px;">PASO 1 — COPIA EL ARCHIVO</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Copia el archivo a MetaTrader</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
         1. Abre MetaTrader 5<br>
         2. Menú <strong style="color:var(--text)">Archivo → Abrir carpeta de datos</strong><br>
-        3. Entra en la carpeta <strong style="color:var(--green)">MQL5 → Experts</strong><br>
-        4. Copia el archivo <strong style="color:var(--green)">TradyncSync_MT5.mq5</strong> ahí<br>
-        5. En MT5 haz clic derecho en el Navigator → <strong style="color:var(--text)">Actualizar</strong>
+        3. Entra en <strong style="color:var(--green)">MQL5 → Experts</strong><br>
+        4. Copia <strong style="color:var(--green)">TradyncSync_MT5.mq5</strong> ahí<br>
+        5. En MT5 → Navigator → clic derecho → <strong style="color:var(--text)">Actualizar</strong><br>
+        6. Doble clic en el EA → MetaEditor → pulsa <strong style="color:var(--green)">F7</strong> para compilar
       </div>
     </div>
     <div class="card" style="margin-bottom:12px;">
-      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">PASO 2 DE 3</div>
-      <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Activa WebRequests (solo una vez)</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.7;">
-        1. En MT5: <strong style="color:var(--text)">Herramientas → Opciones → Expert Advisors</strong><br>
+      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:10px;">PASO 2 — ACTIVA WEBREQUESTS</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Permite la conexión (solo una vez)</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
+        1. MT5: <strong style="color:var(--text)">Herramientas → Opciones → Expert Advisors</strong><br>
         2. Activa ✅ <strong style="color:var(--green)">"Permitir WebRequest para las siguientes URL"</strong><br>
-        3. Haz clic en <strong style="color:var(--text)">+</strong> y añade: <code style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:12px;">https://www.tradyncapp.com</code><br>
-        4. Haz clic en <strong style="color:var(--text)">Aceptar</strong>
+        3. Pulsa <strong style="color:var(--text)">+</strong> y añade:<br>
+        <code style="background:var(--bg4);padding:4px 10px;border-radius:6px;font-size:13px;display:inline-block;margin:6px 0;color:var(--green);">https://www.tradyncapp.com</code><br>
+        4. Pulsa <strong style="color:var(--text)">Aceptar</strong>
       </div>
     </div>
-    <div class="card" style="margin-bottom:20px;">
-      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">PASO 3 DE 3</div>
-      <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Arrastra el EA al gráfico</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.7;">
-        1. En el Navigator de MT5, busca <strong style="color:var(--green)">TradyncSync_MT5</strong> en Expert Advisors<br>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:10px;">PASO 3 — ARRASTRA AL GRÁFICO</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Activa el EA</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
+        1. En Navigator → Expert Advisors → <strong style="color:var(--green)">TradyncSync_MT5</strong><br>
         2. Arrástralo a cualquier gráfico<br>
-        3. En la pestaña <strong style="color:var(--text)">"Common"</strong> activa ✅ <strong style="color:var(--green)">"Allow WebRequests"</strong><br>
-        4. Haz clic en <strong style="color:var(--text)">OK</strong> — ¡listo!
+        3. Pestaña <strong style="color:var(--text)">"Common"</strong> → activa ✅ <strong style="color:var(--green)">"Allow WebRequests"</strong><br>
+        4. Pulsa <strong style="color:var(--text)">OK</strong> — ¡listo!
       </div>
     </div>
-    <div style="display:flex;gap:12px;">
-      <button onclick="brokerNextStep(1)" style="flex:1;background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:12px;border-radius:10px;font-size:14px;cursor:pointer;">← Volver</button>
-      <button onclick="brokerNextStep(3)" style="flex:2;background:var(--green);color:#000;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">Ya instalé el EA → Verificar conexión</button>
-    </div>
+    <button onclick="brokerNextStep(3)" style="width:100%;background:var(--green);color:#000;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
+      Ya instalé el EA → Verificar conexión →
+    </button>
   </div>
 
-  <!-- Step 3: Verify -->
+  <!-- Step 3: Verify + Edit accounts -->
   <div id="broker-step-3" style="display:none;">
-    <div class="card" style="margin-bottom:16px;text-align:center;padding:28px 20px;">
-      <div id="broker-status-icon" style="font-size:48px;margin-bottom:12px;">🔄</div>
-      <div id="broker-status-title" style="font-size:18px;font-weight:800;margin-bottom:8px;">Esperando conexión...</div>
-      <div id="broker-status-desc" style="font-size:13px;color:var(--text2);line-height:1.7;max-width:360px;margin:0 auto 20px;">
-        Asegúrate de que el EA está activo en MT5 y el botón "Algo Trading" está activado (verde).
+    <div class="card" style="margin-bottom:16px;text-align:center;padding:24px 20px;">
+      <div id="broker-status-icon" style="font-size:44px;margin-bottom:10px;">🔄</div>
+      <div id="broker-status-title" style="font-size:17px;font-weight:800;margin-bottom:6px;">Verificando...</div>
+      <div id="broker-status-desc" style="font-size:13px;color:var(--text2);line-height:1.6;max-width:360px;margin:0 auto 16px;">
+        Asegúrate de que el EA está activo y el botón "Algo Trading" está en verde en MT5.
       </div>
       <button onclick="checkBrokerConnection()" style="background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:10px 24px;border-radius:8px;font-size:13px;cursor:pointer;font-family:monospace;">
-        ↺ Verificar conexión
+        ↺ Actualizar
       </button>
     </div>
+
+    <!-- Accounts list with edit -->
     <div id="broker-accounts-list" style="display:none;">
-      <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">CUENTAS CONECTADAS</div>
-      <div id="broker-accounts" style="display:grid;gap:8px;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;">CUENTAS CONECTADAS</div>
+      </div>
+      <div id="broker-accounts" style="display:grid;gap:10px;"></div>
     </div>
-    <div style="margin-top:16px;">
-      <button onclick="brokerNextStep(2)" style="background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;font-family:monospace;">← Volver a instrucciones</button>
+
+    <!-- Edit modal -->
+    <div id="broker-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:420px;">
+        <div style="font-size:16px;font-weight:800;margin-bottom:20px;">Editar cuenta</div>
+        <input type="hidden" id="edit-account-id">
+        <div style="margin-bottom:14px;">
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">Nombre de la cuenta</label>
+          <input id="edit-account-name" type="text" style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">Tipo de cuenta</label>
+          <select id="edit-account-tipo" style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;box-sizing:border-box;">
+            <option value="real">Capital propio — Real</option>
+            <option value="demo">Capital propio — Demo</option>
+            <option value="prop_firm">Prop Firm (FTMO, MFF, etc.)</option>
+            <option value="concurso">Concurso / Challenge</option>
+          </select>
+        </div>
+        <div style="margin-bottom:20px;">
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">Broker</label>
+          <input id="edit-account-broker" type="text" style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;box-sizing:border-box;">
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button onclick="closeBrokerEdit()" style="flex:1;background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:12px;border-radius:8px;font-size:14px;cursor:pointer;">Cancelar</button>
+          <button onclick="saveBrokerEdit()" style="flex:2;background:var(--green);color:#000;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Guardar cambios</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -7690,18 +7721,26 @@ async function checkBrokerConnection() {
       var cont = document.getElementById('broker-accounts');
       if (list) list.style.display = 'block';
       if (cont) {
+        var tipoLabels = {
+          'real': 'Capital Propio · Real',
+          'demo': 'Capital Propio · Demo',
+          'prop_firm': 'Prop Firm',
+          'concurso': 'Challenge / Concurso'
+        };
         cont.innerHTML = mtAccounts.map(function(a) {
+          var tipoLabel = tipoLabels[a.tipo] || a.tipo || 'Real';
           return '<div class="card" style="display:flex;align-items:center;gap:12px;">' +
-            '<div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 6px var(--green);"></div>' +
+            '<div style="width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 8px var(--green);"></div>' +
             '<div style="flex:1;">' +
               '<div style="font-size:14px;font-weight:700;color:var(--text);">' + (a.nombre||'Cuenta MT') + '</div>' +
-              '<div style="font-size:12px;color:var(--text3);margin-top:2px;">' +
-                (a.broker ? a.broker + ' · ' : '') +
-                (a.tipo || '') +
+              '<div style="font-size:12px;color:var(--text3);margin-top:3px;">' +
+                tipoLabel +
+                (a.broker ? ' · ' + a.broker : '') +
                 (a.balance ? ' · $' + parseFloat(a.balance).toFixed(2) : '') +
               '</div>' +
             '</div>' +
-            '<div style="font-size:11px;color:var(--green);font-family:monospace;font-weight:700;">ACTIVA</div>' +
+            '<button onclick="openBrokerEdit('' + a.id + '','' + (a.nombre||'').replace(/'/g,"\'") + '','' + (a.tipo||'real') + '','' + (a.broker||'').replace(/'/g,"\'") + '')" ' +
+              'style="background:var(--bg4);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;">✏ Editar</button>' +
           '</div>';
         }).join('');
       }
