@@ -1099,10 +1099,14 @@ if (typeof supabase === 'undefined') {
   <div class="section-title">Conectar Broker</div>
 
   <!-- Step tabs — clickable -->
+  <style>
+    .broker-tab { flex:1; padding:11px 0; border:2px solid var(--border); border-radius:10px; font-size:12px; font-weight:700; font-family:monospace; cursor:pointer; background:transparent; color:var(--text2); transition:all 0.2s; }
+    .broker-tab.active { background:var(--green) !important; color:#000 !important; border-color:var(--green) !important; }
+  </style>
   <div style="display:flex;gap:6px;margin-bottom:24px;">
-    <button id="bstep-1" onclick="brokerNextStep(1)" style="flex:1;padding:11px 0;border:2px solid var(--green);border-radius:10px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:var(--green);color:#000;transition:all 0.2s;">⬇ DESCARGA</button>
-    <button id="bstep-2" onclick="brokerNextStep(2)" style="flex:1;padding:11px 0;border:2px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text2);transition:all 0.2s;">⚙ INSTALA</button>
-    <button id="bstep-3" onclick="brokerNextStep(3)" style="flex:1;padding:11px 0;border:2px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text2);transition:all 0.2s;">✓ CONECTA</button>
+    <button id="bstep-1" class="broker-tab active" onclick="brokerNextStep(1)">⬇ DESCARGA</button>
+    <button id="bstep-2" class="broker-tab" onclick="brokerNextStep(2)">⚙ INSTALA</button>
+    <button id="bstep-3" class="broker-tab" onclick="brokerNextStep(3)">✓ CONECTA</button>
   </div>
 
   <!-- Step 1: Download -->
@@ -1214,7 +1218,7 @@ if (typeof supabase === 'undefined') {
         </div>
         <div style="display:flex;gap:10px;">
           <button onclick="closeBrokerEdit()" style="flex:1;background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:12px;border-radius:8px;font-size:14px;cursor:pointer;">Cancelar</button>
-          <button onclick="saveBrokerEdit()" style="flex:2;background:var(--green);color:#000;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Guardar cambios</button>
+          <button id="broker-save-btn" onclick="saveBrokerEdit()" style="flex:2;background:var(--green);color:#000;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Guardar cambios</button>
         </div>
       </div>
     </div>
