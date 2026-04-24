@@ -34,7 +34,7 @@ module.exports = async function(req, res) {
       await fetch(`${SURL}/rest/v1/operaciones?id=eq.${existing[0].id}`, {
         method: 'PATCH',
         headers: { apikey: SKEY, Authorization: `Bearer ${SKEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-        body: JSON.stringify({ sl: b.sl||null, tp: b.tp||null, resultado: b.profit||null })
+        body: JSON.stringify({ sl: parseFloat(b.sl)||null, tp: parseFloat(b.tp)||null, resultado: parseFloat(b.profit)||null })
       });
     } else {
       // Nueva operacion abierta
