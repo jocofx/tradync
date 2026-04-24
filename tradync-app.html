@@ -1195,29 +1195,63 @@ if (typeof supabase === 'undefined') {
     </div>
 
     <!-- Edit modal -->
-    <div id="broker-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;padding:20px;">
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:420px;">
-        <div style="font-size:16px;font-weight:800;margin-bottom:20px;">Editar cuenta</div>
+    <div id="broker-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:28px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+          <div style="font-size:17px;font-weight:800;">Editar cuenta</div>
+          <button onclick="closeBrokerEdit()" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:0 4px;">✕</button>
+        </div>
+
         <input type="hidden" id="edit-account-id">
-        <div style="margin-bottom:14px;">
-          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">Nombre de la cuenta</label>
-          <input id="edit-account-name" type="text" style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;box-sizing:border-box;">
+
+        <!-- Nombre -->
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;">Nombre de la cuenta</label>
+          <input id="edit-account-name" type="text" placeholder="Ej: FTMO Challenge 10K"
+            style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;box-sizing:border-box;outline:none;">
         </div>
-        <div style="margin-bottom:14px;">
-          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">Tipo de cuenta</label>
-          <select id="edit-account-tipo" style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;box-sizing:border-box;">
-            <option value="real">Capital propio — Real</option>
-            <option value="demo">Capital propio — Demo</option>
-            <option value="prop_firm">Prop Firm (FTMO, MFF, etc.)</option>
-            <option value="concurso">Concurso / Challenge</option>
-          </select>
+
+        <!-- Tipo -->
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;">Tipo de cuenta</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="edit-tipo-grid">
+            <button onclick="selectTipo('real')" id="tipo-real"
+              style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;">
+              💰 Capital Propio<br><span style="font-size:11px;font-weight:400;">Real</span>
+            </button>
+            <button onclick="selectTipo('demo')" id="tipo-demo"
+              style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;">
+              🧪 Capital Propio<br><span style="font-size:11px;font-weight:400;">Demo</span>
+            </button>
+            <button onclick="selectTipo('prop_firm')" id="tipo-prop_firm"
+              style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;">
+              🏆 Prop Firm<br><span style="font-size:11px;font-weight:400;">FTMO, MFF, etc.</span>
+            </button>
+            <button onclick="selectTipo('concurso')" id="tipo-concurso"
+              style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;">
+              🎯 Challenge<br><span style="font-size:11px;font-weight:400;">Fase de prueba</span>
+            </button>
+          </div>
+          <input type="hidden" id="edit-account-tipo" value="real">
         </div>
-        <div style="margin-bottom:20px;">
-          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;">Broker</label>
-          <input id="edit-account-broker" type="text" style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;box-sizing:border-box;">
+
+        <!-- Broker -->
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;">Broker / Empresa</label>
+          <input id="edit-account-broker" type="text" placeholder="Ej: FTMO, IC Markets, XM..."
+            style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;box-sizing:border-box;outline:none;">
         </div>
+
+        <!-- Balance -->
+        <div style="margin-bottom:22px;">
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;">Balance de la cuenta ($)</label>
+          <input id="edit-account-balance" type="number" placeholder="Ej: 10000"
+            style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;box-sizing:border-box;outline:none;">
+        </div>
+
+        <!-- Buttons -->
         <div style="display:flex;gap:10px;">
-          <button onclick="closeBrokerEdit()" style="flex:1;background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:12px;border-radius:8px;font-size:14px;cursor:pointer;">Cancelar</button>
+          <button onclick="closeBrokerEdit()" style="flex:1;background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:12px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">Cancelar</button>
           <button id="broker-save-btn" onclick="saveBrokerEdit()" style="flex:2;background:var(--green);color:#000;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Guardar cambios</button>
         </div>
       </div>
@@ -7761,6 +7795,98 @@ async function checkBrokerConnection() {
     if (title) title.textContent = 'Error verificando. Inténtalo de nuevo.';
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// BROKER EDIT FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+
+function selectTipo(tipo) {
+  document.getElementById('edit-account-tipo').value = tipo;
+  ['real','demo','prop_firm','concurso'].forEach(function(t) {
+    var btn = document.getElementById('tipo-' + t);
+    if (!btn) return;
+    if (t === tipo) {
+      btn.style.borderColor = 'var(--green)';
+      btn.style.color = 'var(--green)';
+      btn.style.background = 'rgba(0,212,160,0.08)';
+    } else {
+      btn.style.borderColor = 'var(--border)';
+      btn.style.color = 'var(--text2)';
+      btn.style.background = 'transparent';
+    }
+  });
+}
+
+function openBrokerEditByIndex(idx) {
+  var accounts = window._brokerAccounts || [];
+  var a = accounts[idx];
+  if (!a) { console.error('Account not found at index', idx); return; }
+  openBrokerEditModal(a.id, a.nombre, a.tipo, a.broker, a.balance);
+}
+
+function openBrokerEditModal(id, nombre, tipo, broker, balance) {
+  var el = function(i) { return document.getElementById(i); };
+  el('edit-account-id').value     = id || '';
+  el('edit-account-name').value   = nombre || '';
+  el('edit-account-broker').value = broker || '';
+  el('edit-account-balance').value = balance || '';
+  // Select tipo button
+  selectTipo(tipo || 'real');
+  // Show modal
+  var modal = el('broker-edit-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+    setTimeout(function() { var n = el('edit-account-name'); if(n) n.focus(); }, 100);
+  }
+}
+
+function closeBrokerEdit() {
+  var modal = document.getElementById('broker-edit-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function saveBrokerEdit() {
+  var id      = document.getElementById('edit-account-id').value;
+  var nombre  = document.getElementById('edit-account-name').value.trim();
+  var tipo    = document.getElementById('edit-account-tipo').value;
+  var broker  = document.getElementById('edit-account-broker').value.trim();
+  var balance = parseFloat(document.getElementById('edit-account-balance').value) || 0;
+
+  if (!id)     { alert('Error: cuenta no identificada'); return; }
+  if (!nombre) { alert('El nombre es obligatorio'); return; }
+
+  var saveBtn = document.getElementById('broker-save-btn');
+  if (saveBtn) { saveBtn.textContent = 'Guardando...'; saveBtn.disabled = true; }
+
+  try {
+    var result = await sb.from('cuentas')
+      .update({ nombre: nombre, tipo: tipo, broker: broker, balance: balance })
+      .eq('id', id);
+
+    if (result.error) throw result.error;
+
+    closeBrokerEdit();
+    setTimeout(function() {
+      try { checkBrokerConnection(); } catch(e) {}
+      try { loadAccountsFromNotion(); } catch(e) {}
+    }, 300);
+  } catch(e) {
+    console.error('saveBrokerEdit error:', e);
+    alert('Error guardando: ' + (e.message || JSON.stringify(e)));
+  } finally {
+    if (saveBtn) { saveBtn.textContent = 'Guardar cambios'; saveBtn.disabled = false; }
+  }
+}
+
+// Close modal clicking outside
+document.addEventListener('click', function(e) {
+  var modal = document.getElementById('broker-edit-modal');
+  if (modal && modal.style.display === 'flex' && e.target === modal) {
+    closeBrokerEdit();
+  }
+});
+
 
 window.addEventListener('load', async () => {
   // Set date field
