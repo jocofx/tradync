@@ -7727,7 +7727,9 @@ async function checkBrokerConnection() {
           'prop_firm': 'Prop Firm',
           'concurso': 'Challenge / Concurso'
         };
-        cont.innerHTML = mtAccounts.map(function(a) {
+        // Store accounts globally for edit access
+        window._brokerAccounts = mtAccounts;
+        cont.innerHTML = mtAccounts.map(function(a, idx) {
           var tipoLabel = tipoLabels[a.tipo] || a.tipo || 'Real';
           return '<div class="card" style="display:flex;align-items:center;gap:12px;">' +
             '<div style="width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 8px var(--green);"></div>' +
@@ -7739,7 +7741,7 @@ async function checkBrokerConnection() {
                 (a.balance ? ' · $' + parseFloat(a.balance).toFixed(2) : '') +
               '</div>' +
             '</div>' +
-            '<button onclick="openBrokerEdit('' + a.id + '','' + (a.nombre||'').replace(/'/g,"\'") + '','' + (a.tipo||'real') + '','' + (a.broker||'').replace(/'/g,"\'") + '')" ' +
+            '<button onclick="openBrokerEditByIndex(' + idx + ')" ' +
               'style="background:var(--bg4);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;">✏ Editar</button>' +
           '</div>';
         }).join('');
