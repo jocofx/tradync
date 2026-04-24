@@ -1114,10 +1114,10 @@ if (typeof supabase === 'undefined') {
         Descarga el Expert Advisor para tu plataforma. Se instala en 2 minutos y tus operaciones se registran solas.
       </div>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <button onclick="downloadEA('mt5')" style="background:var(--green);color:#000;border:none;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;">
+        <button onclick="downloadEA('mt5', this)" style="background:var(--green);color:#000;border:none;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;">
           ↓ Descargar para MT5
         </button>
-        <button onclick="downloadEA('mt4')" style="background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
+        <button onclick="downloadEA('mt4', this)" style="background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
           ↓ Descargar para MT4
         </button>
       </div>
@@ -7602,20 +7602,20 @@ function brokerNextStep(step) {
   });
 }
 
-async function downloadEA(platform) {
+async function downloadEA(platform, btnEl) {
   if (!currentUser) { alert('Debes iniciar sesión primero.'); return; }
+  var btn = btnEl || null;
   try {
-    // Get user API token
-    var token = await getOrCreateApiToken();
-    if (!token) { alert('Error generando token. Inténtalo de nuevo.'); return; }
+    if (btn) { btn.textContent = 'Generando...'; btn.disabled = true; }
 
-    // Download EA with token embedded via API
-    var btn = event.target;
-    btn.textContent = 'Generando...';
-    btn.disabled = true;
+    var token = await getOrCreateApiToken();
+    if (!token) throw new Error('Error generando token. Inténtalo de nuevo.');
 
     var resp = await fetch('/api/download-ea?platform=' + platform + '&token=' + encodeURIComponent(token));
-    if (!resp.ok) throw new Error('Error descargando EA');
+    if (!resp.ok) {
+      var errTxt = await resp.text();
+      throw new Error('Error descargando EA: ' + errTxt);
+    }
 
     var blob = await resp.blob();
     var url = URL.createObjectURL(blob);
@@ -7627,16 +7627,12 @@ async function downloadEA(platform) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    btn.textContent = '✓ Descargado';
-    btn.style.background = 'var(--green)';
+    if (btn) { btn.textContent = '✓ Descargado'; btn.style.background = 'var(--green)'; }
     setTimeout(function() { brokerNextStep(2); }, 1000);
   } catch(e) {
     console.error('downloadEA error:', e);
     alert('Error: ' + e.message);
-    if (event && event.target) {
-      event.target.textContent = '↓ Descargar para ' + platform.toUpperCase();
-      event.target.disabled = false;
-    }
+    if (btn) { btn.textContent = '↓ Descargar para ' + platform.toUpperCase(); btn.disabled = false; }
   }
 }
 
