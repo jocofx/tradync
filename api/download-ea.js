@@ -1,4 +1,4 @@
-// api/download-ea.js — v3 with risk manager
+// api/download-ea.js — v3
 const SURL = process.env.SUPABASE_URL;
 const SKEY = process.env.SUPABASE_SERVICE_KEY;
 
@@ -17,33 +17,31 @@ const MT5_TEMPLATE = `//+-------------------------------------------------------
 //| PARAMETROS CONFIGURABLES                                         |
 //+------------------------------------------------------------------+
 input group "=== SINCRONIZACION ==="
-input int    SyncInterval     = 3;      // Intervalo sync (segundos)
-input bool   EnableLogs       = true;   // Activar logs
+input int    SyncInterval          = 3;     // Intervalo sync (segundos)
+input bool   EnableLogs            = true;  // Activar logs
 
 input group "=== GESTOR DE RIESGO ==="
-input bool   EnableRiskManager   = true;   // Activar gestor de riesgo
-input int    MaxOperacionesDia   = 0;      // Max operaciones diarias (0=sin limite)
-input double LimiteGanancia      = 0;      // Limite ganancia diaria en $ (0=sin limite)
-input double LimitePerdida       = 0;      // Limite perdida diaria en $ (0=sin limite)
-input int    HoraInicioPermitida = 0;      // Hora inicio permitida (0=sin limite, ej: 14)
-input int    HoraFinPermitida    = 0;      // Hora fin permitida (0=sin limite, ej: 17)
-input int    MinutoInicioPermitido = 0;    // Minuto inicio (ej: 0)
-input int    MinutoFinPermitido  = 0;      // Minuto fin (ej: 0)
+input bool   EnableRiskManager     = true;  // Activar gestor de riesgo
+input int    MaxOperacionesDia     = 0;     // Max operaciones diarias (0=sin limite)
+input double LimiteGanancia        = 0;     // Limite ganancia diaria $ (0=sin limite)
+input double LimitePerdida         = 0;     // Limite perdida diaria $ (0=sin limite)
+input int    HoraInicioPermitida   = 0;     // Hora inicio permitida (0=sin limite, ej:14)
+input int    HoraFinPermitida      = 0;     // Hora fin permitida (0=sin limite, ej:17)
+input int    MinutoInicioPermitido = 0;     // Minuto inicio (ej: 0)
+input int    MinutoFinPermitido    = 0;     // Minuto fin (ej: 0)
 
 //+------------------------------------------------------------------+
-//| VARIABLES INTERNAS                                               |
+//| VARIABLES INTERNAS (pre-configuradas al descargar)              |
 //+------------------------------------------------------------------+
 string TOKEN    = "PEGA_TU_TOKEN_AQUI";
 string ENDPOINT = "https://www.tradyncapp.com/api";
 
-struct PosCache { ulong ticket; double sl; double tp; double vol; datetime openTime; };
+struct PosCache { ulong ticket; double sl; double tp; double vol; };
 PosCache posCache[];
 ulong    sentTickets[];
 
-// Tracking diario
-datetime lastResetDay   = 0;
-int      opsDiaCount    = 0;
-double   pnlDiaInicio   = 0;
+datetime lastResetDay = 0;
+double   pnlDiaInicio = 0;
 
 //+------------------------------------------------------------------+
 int OnInit()
@@ -52,10 +50,8 @@ int OnInit()
       Alert("TradyncSync: Token no valido. Descarga el EA desde TradyncApp > Conectar Broker.");
       return INIT_FAILED;
    }
-
    Log("TradyncSync v3 iniciado. Cuenta: " + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)));
    if(EnableRiskManager) Log("Gestor de riesgo ACTIVO");
-
    ResetDailyCounters();
    RegisterAccount();
    SyncPositions(true);
@@ -63,11 +59,7 @@ int OnInit()
    return INIT_SUCCEEDED;
 }
 
-void OnDeinit(const int reason)
-{
-   EventKillTimer();
-   Log("TradyncSync detenido. Razon: " + IntegerToString(reason));
-}
+void OnDeinit(const int reason) { EventKillTimer(); }
 
 void OnTimer()
 {
@@ -91,64 +83,61 @@ void OnTrade()
 //+------------------------------------------------------------------+
 void ResetDailyCounters()
 {
-   datetime now   = TimeCurrent();
-   MqlDateTime dt; TimeToStruct(now, dt);
+   datetime now = TimeCurrent();
+   MqlDateTime dt;
+   TimeToStruct(now, dt);
    datetime today = now - dt.hour*3600 - dt.min*60 - dt.sec;
-
    if(today != lastResetDay) {
-      lastResetDay  = today;
-      opsDiaCount   = 0;
-      pnlDiaInicio  = AccountInfoDouble(ACCOUNT_BALANCE);
-      Log("Contadores diarios reiniciados. Balance inicio: " + DoubleToString(pnlDiaInicio, 2));
+      lastResetDay = today;
+      pnlDiaInicio = AccountInfoDouble(ACCOUNT_BALANCE);
+      Log("Reset diario. Balance inicio: " + DoubleToString(pnlDiaInicio, 2));
    }
 }
 
 void CheckDailyReset()
 {
-   datetime now   = TimeCurrent();
-   MqlDateTime dt; TimeToStruct(now, dt);
+   datetime now = TimeCurrent();
+   MqlDateTime dt;
+   TimeToStruct(now, dt);
    datetime today = now - dt.hour*3600 - dt.min*60 - dt.sec;
    if(today != lastResetDay) ResetDailyCounters();
 }
 
 //+------------------------------------------------------------------+
-//| GESTOR DE RIESGO — VERIFICACION PRINCIPAL                       |
+//| GESTOR DE RIESGO                                                 |
 //+------------------------------------------------------------------+
 void CheckRiskLimits()
 {
    int total = PositionsTotal();
    if(total == 0) return;
 
-   // Calcular P&L del dia
    double balanceActual = AccountInfoDouble(ACCOUNT_BALANCE);
    double equityActual  = AccountInfoDouble(ACCOUNT_EQUITY);
-   double pnlDia        = balanceActual - pnlDiaInicio;
-   double pnlEquity     = equityActual - pnlDiaInicio;
+   double pnlBalance    = balanceActual - pnlDiaInicio;
+   double pnlEquity     = equityActual  - pnlDiaInicio;
+   double pnlReal       = MathMin(pnlBalance, pnlEquity);
 
-   // Usar el peor valor (balance o equity)
-   double pnlReal = MathMin(pnlDia, pnlEquity);
-
-   // === 1. LIMITE DE PERDIDA DIARIA ===
+   // 1. LIMITE DE PERDIDA DIARIA
    if(LimitePerdida > 0 && pnlReal <= -MathAbs(LimitePerdida)) {
-      Log("RIESGO: Limite de perdida alcanzado (" + DoubleToString(pnlReal, 2) + "$). Cerrando todo.");
-      CloseAllPositions("Limite perdida diaria alcanzado");
+      Log("RIESGO: Limite perdida alcanzado (" + DoubleToString(pnlReal, 2) + "$). Cerrando todo.");
+      CloseAllPositions("Limite perdida diaria");
       SendRiskEvent("max_loss", pnlReal);
       return;
    }
 
-   // === 2. LIMITE DE GANANCIA DIARIA ===
+   // 2. LIMITE DE GANANCIA DIARIA
    if(LimiteGanancia > 0 && pnlReal >= MathAbs(LimiteGanancia)) {
-      Log("RIESGO: Limite de ganancia alcanzado (" + DoubleToString(pnlReal, 2) + "$). Cerrando todo.");
-      CloseAllPositions("Limite ganancia diaria alcanzado");
+      Log("RIESGO: Limite ganancia alcanzado (" + DoubleToString(pnlReal, 2) + "$). Cerrando todo.");
+      CloseAllPositions("Limite ganancia diaria");
       SendRiskEvent("max_profit", pnlReal);
       return;
    }
 
-   // === 3. LIMITE DE OPERACIONES DIARIAS ===
+   // 3. MAX OPERACIONES DIARIAS
    if(MaxOperacionesDia > 0 && total > MaxOperacionesDia) {
-      // Contar operaciones abiertas hoy
-      int opsHoy = 0;
+      // Recopilar operaciones abiertas hoy
       ulong ticketsHoy[];
+      int   opsHoy = 0;
       ArrayResize(ticketsHoy, total);
 
       for(int i = 0; i < total; i++) {
@@ -164,92 +153,67 @@ void CheckRiskLimits()
       }
       ArrayResize(ticketsHoy, opsHoy);
 
-      if(opsHoy > MaxOperacionesDia) {
-         // Cerrar solo las mas recientes (las que excedan el limite)
-         // Ordenar por hora de apertura - cerrar las ultimas abiertas
-         int exceso = opsHoy - MaxOperacionesDia;
-         Log("RIESGO: " + IntegerToString(opsHoy) + " ops hoy, limite=" +
-             IntegerToString(MaxOperacionesDia) + ". Cerrando " + IntegerToString(exceso) + " mas recientes.");
-
-         // Encontrar las mas recientes
-         for(int e = 0; e < exceso; e++) {
-            ulong ticketMasReciente = 0;
-            datetime tiempoMasReciente = 0;
-
-            for(int i = 0; i < opsHoy; i++) {
-               if(!PositionSelectByTicket(ticketsHoy[i])) continue;
-               datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
-               if(openT > tiempoMasReciente) {
-                  tiempoMasReciente = openT;
-                  ticketMasReciente = ticketsHoy[i];
-               }
+      // Cerrar solo las mas recientes (las que exceden el limite)
+      int exceso = opsHoy - MaxOperacionesDia;
+      for(int e = 0; e < exceso; e++) {
+         ulong ticketMasReciente = 0;
+         datetime tiempoMasReciente = 0;
+         for(int i = 0; i < opsHoy; i++) {
+            if(ticketsHoy[i] == 0) continue;
+            if(!PositionSelectByTicket(ticketsHoy[i])) continue;
+            datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
+            if(openT > tiempoMasReciente) {
+               tiempoMasReciente  = openT;
+               ticketMasReciente  = ticketsHoy[i];
             }
-
-            if(ticketMasReciente > 0) {
-               ClosePosition(ticketMasReciente, "Excede max operaciones diarias");
-               SendRiskEvent("max_ops", opsHoy);
-               // Quitar de la lista
-               for(int i = 0; i < opsHoy; i++) {
-                  if(ticketsHoy[i] == ticketMasReciente) {
-                     ticketsHoy[i] = 0;
-                     break;
-                  }
-               }
-            }
+         }
+         if(ticketMasReciente > 0) {
+            Log("RIESGO: Exceso de operaciones. Cerrando ticket mas reciente: " + IntegerToString(ticketMasReciente));
+            ClosePosition(ticketMasReciente, "Excede max operaciones diarias");
+            SendRiskEvent("max_ops", opsHoy);
+            for(int i = 0; i < opsHoy; i++)
+               if(ticketsHoy[i] == ticketMasReciente) { ticketsHoy[i] = 0; break; }
          }
       }
    }
 
-   // === 4. HORARIO PERMITIDO ===
+   // 4. HORARIO PERMITIDO
    if(HoraInicioPermitida > 0 || HoraFinPermitida > 0) {
       MqlDateTime dtNow; TimeToStruct(TimeCurrent(), dtNow);
       int minActual = dtNow.hour * 60 + dtNow.min;
       int minInicio = HoraInicioPermitida * 60 + MinutoInicioPermitido;
-      int minFin    = HoraFinPermitida   * 60 + MinutoFinPermitido;
+      int minFin    = HoraFinPermitida    * 60 + MinutoFinPermitido;
 
-      bool fueraDeHorario = false;
-      if(minInicio < minFin) {
-         // Horario normal: ej 14:00 - 17:00
-         fueraDeHorario = (minActual < minInicio || minActual >= minFin);
-      } else {
-         // Horario nocturno: ej 22:00 - 06:00
-         fueraDeHorario = (minActual < minInicio && minActual >= minFin);
-      }
+      for(int i = PositionsTotal() - 1; i >= 0; i--) {
+         ulong tk = PositionGetTicket(i);
+         if(!PositionSelectByTicket(tk)) continue;
+         datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
+         MqlDateTime dtOpen; TimeToStruct(openT, dtOpen);
+         int minApertura = dtOpen.hour * 60 + dtOpen.min;
 
-      if(fueraDeHorario) {
-         for(int i = PositionsTotal() - 1; i >= 0; i--) {
-            ulong tk = PositionGetTicket(i);
-            if(!PositionSelectByTicket(tk)) continue;
-            // Solo cerrar las abiertas fuera de horario
-            datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
-            MqlDateTime dtOpen; TimeToStruct(openT, dtOpen);
-            int minApertura = dtOpen.hour * 60 + dtOpen.min;
-            bool aperturFueraHorario = false;
-            if(minInicio < minFin)
-               aperturFueraHorario = (minApertura < minInicio || minApertura >= minFin);
-            else
-               aperturFueraHorario = (minApertura < minInicio && minApertura >= minFin);
+         bool fueraHorario;
+         if(minInicio < minFin)
+            fueraHorario = (minApertura < minInicio || minApertura >= minFin);
+         else
+            fueraHorario = (minApertura < minInicio && minApertura >= minFin);
 
-            if(aperturFueraHorario) {
-               Log("RIESGO: Operacion fuera de horario. Ticket: " + IntegerToString(tk));
-               ClosePosition(tk, "Fuera de horario permitido");
-               SendRiskEvent("out_of_hours", 0);
-            }
+         if(fueraHorario) {
+            Log("RIESGO: Operacion fuera de horario. Cerrando ticket: " + IntegerToString(tk));
+            ClosePosition(tk, "Fuera de horario permitido");
+            SendRiskEvent("out_of_hours", 0);
          }
       }
    }
 }
 
 //+------------------------------------------------------------------+
-//| CERRAR UNA POSICION ESPECIFICA                                  |
+//| CERRAR POSICION ESPECIFICA                                       |
 //+------------------------------------------------------------------+
 bool ClosePosition(ulong ticket, string motivo)
 {
    if(!PositionSelectByTicket(ticket)) return false;
-
    MqlTradeRequest rq; MqlTradeResult rs;
    ZeroMemory(rq); ZeroMemory(rs);
-
    rq.action    = TRADE_ACTION_DEAL;
    rq.position  = ticket;
    rq.symbol    = PositionGetString(POSITION_SYMBOL);
@@ -260,16 +224,12 @@ bool ClosePosition(ulong ticket, string motivo)
                   SymbolInfoDouble(rq.symbol, SYMBOL_ASK);
    rq.deviation = 30;
    rq.comment   = "TradyncApp: " + motivo;
-
    bool ok = OrderSend(rq, rs);
-   if(ok) Log("Posicion cerrada: " + IntegerToString(ticket) + " | " + motivo);
-   else   Log("Error cerrando " + IntegerToString(ticket) + " | Error: " + IntegerToString(rs.retcode));
+   if(ok) Log("Cerrado: " + IntegerToString(ticket) + " | " + motivo);
+   else   Log("Error cerrando " + IntegerToString(ticket) + " retcode: " + IntegerToString(rs.retcode));
    return ok;
 }
 
-//+------------------------------------------------------------------+
-//| CERRAR TODAS LAS POSICIONES                                     |
-//+------------------------------------------------------------------+
 void CloseAllPositions(string motivo)
 {
    for(int i = PositionsTotal() - 1; i >= 0; i--) {
@@ -279,20 +239,20 @@ void CloseAllPositions(string motivo)
 }
 
 //+------------------------------------------------------------------+
-//| ENVIAR EVENTO DE RIESGO AL SERVIDOR                             |
+//| ENVIAR EVENTO DE RIESGO                                          |
 //+------------------------------------------------------------------+
 void SendRiskEvent(string tipo, double valor)
 {
    string json = "{";
-   json += ""tipo":"" + tipo + "",";
-   json += ""valor":" + DoubleToString(valor, 2) + ",";
-   json += ""account":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN));
+   json += "\\"tipo\\":\\"" + tipo + "\\",";
+   json += "\\"valor\\":" + DoubleToString(valor, 2) + ",";
+   json += "\\"account\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN));
    json += "}";
    Post(ENDPOINT + "/mt-risk", json);
 }
 
 //+------------------------------------------------------------------+
-//| REGISTRO DE CUENTA                                              |
+//| REGISTRO DE CUENTA                                               |
 //+------------------------------------------------------------------+
 void RegisterAccount()
 {
@@ -301,37 +261,34 @@ void RegisterAccount()
       tipo = "demo";
 
    string json = "{";
-   json += ""account_number":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)) + ",";
-   json += ""broker":"" + EscJ(AccountInfoString(ACCOUNT_COMPANY)) + "",";
-   json += ""server":"" + EscJ(AccountInfoString(ACCOUNT_SERVER)) + "",";
-   json += ""currency":"" + EscJ(AccountInfoString(ACCOUNT_CURRENCY)) + "",";
-   json += ""leverage":" + IntegerToString(AccountInfoInteger(ACCOUNT_LEVERAGE)) + ",";
-   json += ""balance":" + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE), 2) + ",";
-   json += ""platform":"MT5",";
-   json += ""account_type":"" + tipo + """;
+   json += "\\"account_number\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)) + ",";
+   json += "\\"broker\\":\\"" + EscJ(AccountInfoString(ACCOUNT_COMPANY)) + "\\",";
+   json += "\\"server\\":\\"" + EscJ(AccountInfoString(ACCOUNT_SERVER)) + "\\",";
+   json += "\\"currency\\":\\"" + EscJ(AccountInfoString(ACCOUNT_CURRENCY)) + "\\",";
+   json += "\\"leverage\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LEVERAGE)) + ",";
+   json += "\\"balance\\":" + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE), 2) + ",";
+   json += "\\"platform\\":\\"MT5\\",";
+   json += "\\"account_type\\":\\"" + tipo + "\\"";
    json += "}";
-
    string resp = Post(ENDPOINT + "/mt-register", json);
    Log("Cuenta registrada: " + resp);
 }
 
 //+------------------------------------------------------------------+
-//| SINCRONIZAR POSICIONES ABIERTAS                                 |
+//| SINCRONIZAR POSICIONES ABIERTAS                                  |
 //+------------------------------------------------------------------+
 void SyncPositions(bool force)
 {
    int total = PositionsTotal();
    PosCache current[];
    ArrayResize(current, total);
-
    for(int i = 0; i < total; i++) {
       ulong tk = PositionGetTicket(i);
       if(!tk || !PositionSelectByTicket(tk)) continue;
-      current[i].ticket   = tk;
-      current[i].sl       = PositionGetDouble(POSITION_SL);
-      current[i].tp       = PositionGetDouble(POSITION_TP);
-      current[i].vol      = PositionGetDouble(POSITION_VOLUME);
-      current[i].openTime = (datetime)PositionGetInteger(POSITION_TIME);
+      current[i].ticket = tk;
+      current[i].sl     = PositionGetDouble(POSITION_SL);
+      current[i].tp     = PositionGetDouble(POSITION_TP);
+      current[i].vol    = PositionGetDouble(POSITION_VOLUME);
       if(force || Changed(tk, current[i])) SendPos(tk);
    }
    ArrayCopy(posCache, current);
@@ -341,30 +298,28 @@ void SendPos(ulong tk)
 {
    if(!PositionSelectByTicket(tk)) return;
    string tipo = PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY ? "BUY" : "SELL";
-
    string json = "{";
-   json += ""ticket":" + IntegerToString(tk) + ",";
-   json += ""symbol":"" + EscJ(PositionGetString(POSITION_SYMBOL)) + "",";
-   json += ""type":"" + tipo + "",";
-   json += ""volume":" + DoubleToString(PositionGetDouble(POSITION_VOLUME), 2) + ",";
-   json += ""open_price":" + DoubleToString(PositionGetDouble(POSITION_PRICE_OPEN), 5) + ",";
-   json += ""sl":" + DoubleToString(PositionGetDouble(POSITION_SL), 5) + ",";
-   json += ""tp":" + DoubleToString(PositionGetDouble(POSITION_TP), 5) + ",";
-   json += ""open_time":"" + FmtDT((datetime)PositionGetInteger(POSITION_TIME)) + "",";
-   json += ""profit":" + DoubleToString(PositionGetDouble(POSITION_PROFIT), 2) + ",";
-   json += ""swap":" + DoubleToString(PositionGetDouble(POSITION_SWAP), 2) + ",";
-   json += ""comment":"" + EscJ(PositionGetString(POSITION_COMMENT)) + "",";
-   json += ""magic":" + IntegerToString(PositionGetInteger(POSITION_MAGIC)) + ",";
-   json += ""account":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN));
+   json += "\\"ticket\\":" + IntegerToString(tk) + ",";
+   json += "\\"symbol\\":\\"" + EscJ(PositionGetString(POSITION_SYMBOL)) + "\\",";
+   json += "\\"type\\":\\"" + tipo + "\\",";
+   json += "\\"volume\\":" + DoubleToString(PositionGetDouble(POSITION_VOLUME), 2) + ",";
+   json += "\\"open_price\\":" + DoubleToString(PositionGetDouble(POSITION_PRICE_OPEN), 5) + ",";
+   json += "\\"sl\\":" + DoubleToString(PositionGetDouble(POSITION_SL), 5) + ",";
+   json += "\\"tp\\":" + DoubleToString(PositionGetDouble(POSITION_TP), 5) + ",";
+   json += "\\"open_time\\":\\"" + FmtDT((datetime)PositionGetInteger(POSITION_TIME)) + "\\",";
+   json += "\\"profit\\":" + DoubleToString(PositionGetDouble(POSITION_PROFIT), 2) + ",";
+   json += "\\"swap\\":" + DoubleToString(PositionGetDouble(POSITION_SWAP), 2) + ",";
+   json += "\\"comment\\":\\"" + EscJ(PositionGetString(POSITION_COMMENT)) + "\\",";
+   json += "\\"magic\\":" + IntegerToString(PositionGetInteger(POSITION_MAGIC)) + ",";
+   json += "\\"account\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN));
    json += "}";
-
    string resp = Post(ENDPOINT + "/mt-sync", json);
    if(StringFind(resp, "close_all") >= 0) CloseAllPositions("Solicitud servidor");
    Log("Sync ticket " + IntegerToString(tk));
 }
 
 //+------------------------------------------------------------------+
-//| OPERACIONES CERRADAS                                            |
+//| OPERACIONES CERRADAS                                             |
 //+------------------------------------------------------------------+
 void CheckClosedTrades()
 {
@@ -382,9 +337,8 @@ void CheckClosedTrades()
 
 void SendClosed(ulong dk)
 {
-   ulong posId   = HistoryDealGetInteger(dk, DEAL_POSITION_ID);
+   ulong posId = HistoryDealGetInteger(dk, DEAL_POSITION_ID);
    double openPx = 0; datetime openT = 0; string tipo = "BUY";
-
    HistorySelectByPosition(posId);
    for(int j = 0; j < HistoryDealsTotal(); j++) {
       ulong d = HistoryDealGetTicket(j);
@@ -395,24 +349,22 @@ void SendClosed(ulong dk)
          break;
       }
    }
-
    string json = "{";
-   json += ""ticket":" + IntegerToString(posId) + ",";
-   json += ""symbol":"" + EscJ(HistoryDealGetString(dk, DEAL_SYMBOL)) + "",";
-   json += ""type":"" + tipo + "",";
-   json += ""volume":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_VOLUME), 2) + ",";
-   json += ""open_price":" + DoubleToString(openPx, 5) + ",";
-   json += ""close_price":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_PRICE), 5) + ",";
-   json += ""open_time":"" + FmtDT(openT) + "",";
-   json += ""close_time":"" + FmtDT((datetime)HistoryDealGetInteger(dk, DEAL_TIME)) + "",";
-   json += ""profit":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_PROFIT), 2) + ",";
-   json += ""swap":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_SWAP), 2) + ",";
-   json += ""commission":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_COMMISSION), 2) + ",";
-   json += ""comment":"" + EscJ(HistoryDealGetString(dk, DEAL_COMMENT)) + "",";
-   json += ""magic":" + IntegerToString(HistoryDealGetInteger(dk, DEAL_MAGIC)) + ",";
-   json += ""account":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN));
+   json += "\\"ticket\\":" + IntegerToString(posId) + ",";
+   json += "\\"symbol\\":\\"" + EscJ(HistoryDealGetString(dk, DEAL_SYMBOL)) + "\\",";
+   json += "\\"type\\":\\"" + tipo + "\\",";
+   json += "\\"volume\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_VOLUME), 2) + ",";
+   json += "\\"open_price\\":" + DoubleToString(openPx, 5) + ",";
+   json += "\\"close_price\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_PRICE), 5) + ",";
+   json += "\\"open_time\\":\\"" + FmtDT(openT) + "\\",";
+   json += "\\"close_time\\":\\"" + FmtDT((datetime)HistoryDealGetInteger(dk, DEAL_TIME)) + "\\",";
+   json += "\\"profit\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_PROFIT), 2) + ",";
+   json += "\\"swap\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_SWAP), 2) + ",";
+   json += "\\"commission\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_COMMISSION), 2) + ",";
+   json += "\\"comment\\":\\"" + EscJ(HistoryDealGetString(dk, DEAL_COMMENT)) + "\\",";
+   json += "\\"magic\\":" + IntegerToString(HistoryDealGetInteger(dk, DEAL_MAGIC)) + ",";
+   json += "\\"account\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN));
    json += "}";
-
    Post(ENDPOINT + "/mt-trade", json);
    Log("Op cerrada. Ticket: " + IntegerToString(posId) +
        " | Profit: " + DoubleToString(HistoryDealGetDouble(dk, DEAL_PROFIT), 2));
@@ -423,9 +375,12 @@ void SendClosed(ulong dk)
 //+------------------------------------------------------------------+
 string Post(string url, string body)
 {
-   string headers = "Content-Type: application/json\\r\\nX-Auth-Token: " + TOKEN + "\\r\\n"
+   string headers = "Content-Type: application/json\\r\\n"
+                  + "X-Auth-Token: " + TOKEN + "\\r\\n"
                   + "Accept: application/json\\r\\n";
-   uchar post[]; uchar result[]; string rh;
+   uchar  post[];
+   uchar  result[];
+   string rh;
    StringToCharArray(body, post, 0, WHOLE_ARRAY, CP_UTF8);
    int sz = ArraySize(post);
    if(sz > 0 && post[sz-1] == 0) ArrayResize(post, sz-1);
@@ -435,7 +390,7 @@ string Post(string url, string body)
       int err = GetLastError();
       Log("ERROR HTTP " + IntegerToString(err) + " | " + url);
       if(err == 4060)
-         Alert("Activa WebRequests: Herramientas > Opciones > Expert Advisors > Añadir: https://www.tradyncapp.com");
+         Alert("Activa WebRequests: Herramientas > Opciones > Expert Advisors > Anadir: https://www.tradyncapp.com");
       return "";
    }
    Log("HTTP " + IntegerToString(res) + " " + url);
@@ -455,22 +410,32 @@ bool Changed(ulong tk, PosCache &p)
    }
    return true;
 }
+
 bool Sent(ulong tk) {
-   for(int i=0;i<ArraySize(sentTickets);i++) if(sentTickets[i]==tk) return true;
+   for(int i = 0; i < ArraySize(sentTickets); i++)
+      if(sentTickets[i] == tk) return true;
    return false;
 }
+
 void MarkSent(ulong tk) {
-   int s=ArraySize(sentTickets); ArrayResize(sentTickets,s+1); sentTickets[s]=tk;
+   int s = ArraySize(sentTickets);
+   ArrayResize(sentTickets, s+1);
+   sentTickets[s] = tk;
 }
+
 string FmtDT(datetime dt) {
-   MqlDateTime m; TimeToStruct(dt,m);
-   return StringFormat("%04d-%02d-%02dT%02d:%02d:%02dZ",m.year,m.mon,m.day,m.hour,m.min,m.sec);
+   MqlDateTime m; TimeToStruct(dt, m);
+   return StringFormat("%04d-%02d-%02dT%02d:%02d:%02dZ", m.year, m.mon, m.day, m.hour, m.min, m.sec);
 }
+
 string EscJ(string s) {
-   StringReplace(s,"\\\\","\\\\\\\\"); StringReplace(s,"\\"","\\\\"");
-   StringReplace(s,"\\n","\\\\n"); return s;
+   StringReplace(s, "\\\\", "\\\\\\\\");
+   StringReplace(s, "\\"", "\\\\\\"");
+   StringReplace(s, "\\n", "\\\\n");
+   return s;
 }
-void Log(string msg) { if(EnableLogs) Print("TradyncSync: "+msg); }
+
+void Log(string msg) { if(EnableLogs) Print("TradyncSync: " + msg); }
 //+------------------------------------------------------------------+
 `;
 
@@ -841,25 +806,19 @@ void Log(string msg)
 
 module.exports = async function(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-
   const userToken = req.query.token || req.headers['x-auth-token'];
   const platform  = (req.query.platform || 'mt5').toLowerCase();
-
   if (!userToken) return res.status(401).json({ error: 'Token requerido' });
-
   const r1 = await fetch(
     `${SURL}/rest/v1/api_keys?token=eq.${encodeURIComponent(userToken)}&activo=eq.true&select=user_id`,
     { headers: { apikey: SKEY, Authorization: `Bearer ${SKEY}` } }
   );
   const keys = await r1.json();
   if (!keys || !keys.length) return res.status(401).json({ error: 'Token invalido' });
-
   const template = platform === 'mt4' ? MT4_TEMPLATE : MT5_TEMPLATE;
   const eaContent = template.replace('PEGA_TU_TOKEN_AQUI', userToken);
-
-  const ext      = platform === 'mt4' ? 'mq4' : 'mq5';
+  const ext = platform === 'mt4' ? 'mq4' : 'mq5';
   const filename = `TradyncSync_${platform.toUpperCase()}.${ext}`;
-
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.setHeader('Cache-Control', 'no-store');
