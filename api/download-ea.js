@@ -1,4 +1,4 @@
-// api/download-ea.js — v3.2
+// api/download-ea.js — v3.3
 const SURL = process.env.SUPABASE_URL;
 const SKEY = process.env.SUPABASE_SERVICE_KEY;
 
@@ -133,79 +133,82 @@ void CheckRiskLimits()
       return;
    }
 
-   // 3. MAX OPERACIONES DIARIAS (contador total del dia, abiertas + cerradas)
+   // 3. MAX OPERACIONES DIARIAS
+   // Logica: contar TODAS las ops abiertas hoy (historial + actuales)
+   // Asignar numero de orden 1,2,3... por tiempo de apertura
+   // Cerrar las que tengan numero > MaxOperacionesDia
    if(MaxOperacionesDia > 0) {
-      // Contar operaciones abiertas HOY (historial + abiertas ahora)
-      int totalDia = 0;
 
-      // Contar las ya cerradas hoy en el historial
-      HistorySelect(TimeCurrent() - 86400, TimeCurrent());
+      // Paso 1: contar ops abiertas hoy via historial (DEAL_ENTRY_IN)
       MqlDateTime dtNow; TimeToStruct(TimeCurrent(), dtNow);
+      HistorySelect(TimeCurrent() - 86400, TimeCurrent());
+
+      int opsDiaHistorial = 0;
       for(int i = 0; i < HistoryDealsTotal(); i++) {
          ulong dk = HistoryDealGetTicket(i);
          if(!dk) continue;
-         // Solo deals de entrada (apertura de posicion)
          if((ENUM_DEAL_ENTRY)HistoryDealGetInteger(dk, DEAL_ENTRY) != DEAL_ENTRY_IN) continue;
-         datetime dealT = (datetime)HistoryDealGetInteger(dk, DEAL_TIME);
-         MqlDateTime dtDeal; TimeToStruct(dealT, dtDeal);
-         if(dtDeal.year == dtNow.year && dtDeal.mon == dtNow.mon && dtDeal.day == dtNow.day)
-            totalDia++;
+         datetime dt2 = (datetime)HistoryDealGetInteger(dk, DEAL_TIME);
+         MqlDateTime md; TimeToStruct(dt2, md);
+         if(md.year==dtNow.year && md.mon==dtNow.mon && md.day==dtNow.day)
+            opsDiaHistorial++;
       }
 
-      // Sumar las abiertas ahora (que aun no estan en historial como cerradas)
-      for(int i = 0; i < total; i++) {
-         ulong tk = PositionGetTicket(i);
-         if(!PositionSelectByTicket(tk)) continue;
-         datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
-         MqlDateTime dtOpen; TimeToStruct(openT, dtOpen);
-         if(dtOpen.year == dtNow.year && dtOpen.mon == dtNow.mon && dtOpen.day == dtNow.day) {
-            // Verificar que no esta ya contada en historial
-            bool yaContada = false;
-            HistorySelectByPosition(PositionGetInteger(POSITION_IDENTIFIER));
-            for(int j = 0; j < HistoryDealsTotal(); j++) {
-               ulong dk = HistoryDealGetTicket(j);
-               if((ENUM_DEAL_ENTRY)HistoryDealGetInteger(dk, DEAL_ENTRY) == DEAL_ENTRY_IN) {
-                  yaContada = true; break;
-               }
+      // Paso 2: si ya superamos el limite con las cerradas, cerrar todo lo abierto
+      if(opsDiaHistorial >= MaxOperacionesDia && total > 0) {
+         Log("RIESGO: Ya se abrieron " + IntegerToString(opsDiaHistorial) +
+             " ops hoy (limite=" + IntegerToString(MaxOperacionesDia) + "). Cerrando posiciones actuales.");
+         for(int i = PositionsTotal()-1; i >= 0; i--) {
+            ulong tk = PositionGetTicket(i);
+            if(!PositionSelectByTicket(tk)) continue;
+            // Solo cerrar las abiertas HOY
+            datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
+            MqlDateTime dtO; TimeToStruct(openT, dtO);
+            if(dtO.year==dtNow.year && dtO.mon==dtNow.mon && dtO.day==dtNow.day) {
+               ClosePosition(tk, "Limite diario superado");
+               SendRiskEvent("max_ops", opsDiaHistorial);
+               Sleep(100);
             }
-            if(!yaContada) totalDia++;
          }
       }
-
-      // Si el contador supera el limite, cerrar SOLO las mas recientes que excedan
-      if(totalDia > MaxOperacionesDia) {
-         // Cuantas operaciones hay que cerrar = exceso sobre el limite
-         int exceso = totalDia - MaxOperacionesDia;
-
-         Log("RIESGO: " + IntegerToString(totalDia) + " ops hoy, limite=" +
-             IntegerToString(MaxOperacionesDia) + ". Cerrando " + IntegerToString(exceso) + " mas recientes.");
-
-         // Recopilar todas las posiciones abiertas con su tiempo
-         // y cerrar solo las 'exceso' mas recientes
-         for(int e = 0; e < exceso; e++) {
-            ulong ticketMasReciente = 0;
-            datetime tiempoMasReciente = 0;
-
-            // Buscar la posicion abierta mas reciente
-            for(int i = PositionsTotal() - 1; i >= 0; i--) {
-               ulong tk = PositionGetTicket(i);
-               if(!PositionSelectByTicket(tk)) continue;
-               datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
-               if(openT > tiempoMasReciente) {
-                  tiempoMasReciente = openT;
-                  ticketMasReciente = tk;
+      // Paso 3: si con las abiertas ahora superamos el limite
+      // ordenar por tiempo y cerrar solo las que sobran
+      else if(opsDiaHistorial + total > MaxOperacionesDia) {
+         // Recopilar posiciones abiertas HOY ordenadas por tiempo ASC
+         ulong   tickets[]; ArrayResize(tickets, total);
+         datetime times[]; ArrayResize(times, total);
+         int n = 0;
+         for(int i = 0; i < total; i++) {
+            ulong tk = PositionGetTicket(i);
+            if(!PositionSelectByTicket(tk)) continue;
+            datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
+            MqlDateTime dtO; TimeToStruct(openT, dtO);
+            if(dtO.year==dtNow.year && dtO.mon==dtNow.mon && dtO.day==dtNow.day) {
+               tickets[n] = tk;
+               times[n]   = openT;
+               n++;
+            }
+         }
+         // Ordenar por tiempo ASC (burbuja simple)
+         for(int a = 0; a < n-1; a++) {
+            for(int b = a+1; b < n; b++) {
+               if(times[b] < times[a]) {
+                  datetime tmp = times[a]; times[a] = times[b]; times[b] = tmp;
+                  ulong    tmk = tickets[a]; tickets[a] = tickets[b]; tickets[b] = tmk;
                }
             }
-
-            if(ticketMasReciente > 0) {
-               Log("RIESGO: Cerrando op " + IntegerToString(e+1) + "/" +
-                   IntegerToString(exceso) + " ticket: " + IntegerToString(ticketMasReciente));
-               ClosePosition(ticketMasReciente, "Limite diario de operaciones superado");
-               SendRiskEvent("max_ops", totalDia);
-               Sleep(200); // Esperar para que MT5 actualice PositionsTotal
-            } else {
-               break; // No hay mas posiciones abiertas
-            }
+         }
+         // Las primeras (MaxOperacionesDia - opsDiaHistorial) se quedan
+         // Las demas se cierran
+         int permitidas = MaxOperacionesDia - opsDiaHistorial;
+         if(permitidas < 0) permitidas = 0;
+         for(int i = permitidas; i < n; i++) {
+            Log("RIESGO: Op #" + IntegerToString(opsDiaHistorial+i+1) +
+                " supera limite " + IntegerToString(MaxOperacionesDia) +
+                ". Cerrando ticket: " + IntegerToString(tickets[i]));
+            ClosePosition(tickets[i], "Limite diario de operaciones");
+            SendRiskEvent("max_ops", opsDiaHistorial+n);
+            Sleep(100);
          }
       }
    }
