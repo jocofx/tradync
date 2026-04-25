@@ -1095,6 +1095,92 @@ if (typeof supabase === 'undefined') {
       </div>
     </div>
 
+<div class="tab-panel" id="panel-gestor-ea">
+  <div class="section-title">Gestor EA</div>
+
+  <div id="gestor-ea-empty" style="text-align:center;padding:60px 20px;display:none;">
+    <div style="font-size:48px;margin-bottom:16px;">🔌</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Sin EA conectado</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">Conecta MetaTrader 4/5 para ver el analisis conductual en tiempo real.</div>
+    <button onclick="goTab('broker',null)" style="background:var(--green);color:#000;border:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">Conectar Broker →</button>
+  </div>
+
+  <div id="gestor-ea-content" style="display:none;">
+
+    <!-- Score principal -->
+    <div class="card" style="margin-bottom:16px;text-align:center;padding:24px;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap;">
+        <div>
+          <div style="position:relative;width:120px;height:120px;margin:0 auto 8px;">
+            <canvas id="ea-score-donut" width="120" height="120"></canvas>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <div id="gestor-score-num" style="font-size:36px;font-weight:800;font-family:monospace;">0</div>
+              <div style="font-size:10px;color:var(--text3);font-family:monospace;">SCORE</div>
+            </div>
+          </div>
+          <div id="gestor-perfil" style="font-size:14px;font-weight:700;color:var(--green);">Disciplinado</div>
+        </div>
+        <div style="text-align:left;">
+          <div style="margin-bottom:16px;">
+            <div style="font-size:11px;color:var(--text3);font-family:monospace;margin-bottom:4px;">INDICE DE DISCIPLINA</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="flex:1;height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;width:160px;">
+                <div id="gestor-disc-bar" style="height:100%;width:100%;background:var(--green);border-radius:4px;transition:width 0.8s;"></div>
+              </div>
+              <div id="gestor-disc-num" style="font-size:20px;font-weight:800;font-family:monospace;color:var(--green);">100/100</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="card" style="padding:10px 14px;">
+              <div style="font-size:10px;color:var(--text3);font-family:monospace;">VIOLACIONES HOY</div>
+              <div id="gestor-violaciones" style="font-size:22px;font-weight:800;color:var(--red);">0</div>
+            </div>
+            <div class="card" style="padding:10px 14px;">
+              <div style="font-size:10px;color:var(--text3);font-family:monospace;">P&L HOY</div>
+              <div id="gestor-pnl" style="font-size:22px;font-weight:800;">$0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cuentas EA con config de riesgo -->
+    <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">CUENTAS CONECTADAS — LIMITES DE RIESGO</div>
+    <div id="gestor-cuentas" style="display:grid;gap:12px;margin-bottom:18px;"></div>
+
+    <!-- Escala de perfiles -->
+    <div class="card">
+      <div class="card-title">Escala de perfiles</div>
+      <div style="margin-top:12px;display:grid;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--text2);">Score 0–5 → <strong style="color:var(--text);">Disciplinado</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--text2);">Score 6–10 → <strong style="color:var(--text);">Levemente impulsivo</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--text2);">Score 11–20 → <strong style="color:var(--text);">Indisciplinado</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--text2);">Score 21–35 → <strong style="color:var(--text);">Alto riesgo</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#ff00aa;flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--text2);">Score 36+ → <strong style="color:var(--text);">Trading compulsivo</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:12px;">
+      <button onclick="loadGestorEA()" style="background:none;border:none;color:var(--green);font-size:12px;cursor:pointer;font-family:monospace;">↺ Actualizar</button>
+    </div>
+  </div>
+</div>
+
 <div class="tab-panel" id="panel-broker">
   <div class="section-title">Conectar Broker</div>
 
@@ -2977,6 +3063,7 @@ function goTab(id, el) {
     estadisticas: '<span>Estadísticas</span>',
     insights: '💡 <span>Insights</span>',
     broker: '🔌 <span>Conectar Broker</span>',
+    'gestor-ea': '⚡ <span>Gestor EA</span>',
     cuentas: '<span>Cuentas</span>',
     ia: 'Coach <span>IA</span>',
     diario: '<span>Diario</span>',
@@ -2997,6 +3084,7 @@ function goTab(id, el) {
   }
   if (id === 'operaciones') setTimeout(() => { try { renderAllTrades(); renderOpsCharts(); } catch(e){} }, 50);
   if (id === 'insights') setTimeout(() => { try { runInsights(); } catch(e){ console.warn('Insights error:', e); } }, 50);
+  if (id === 'gestor-ea') setTimeout(() => { try { loadGestorEA(); } catch(e){} }, 200);
   if (id === 'broker') setTimeout(() => {
     try {
       // Auto-detect which step to show
@@ -7888,6 +7976,197 @@ document.addEventListener('click', function(e) {
 });
 
 
+// ═══════════════════════════════════════════════════════════════
+// GESTOR EA — FUNCIONES
+// ═══════════════════════════════════════════════════════════════
+
+async function loadGestorEA() {
+  if (!currentUser) return;
+  try {
+    var r = await sb.from('cuentas')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .eq('mt_conectada', true)
+      .eq('activa', true);
+
+    var cuentas = r.data || [];
+
+    if (!cuentas.length) {
+      var empty = document.getElementById('gestor-ea-empty');
+      var cont  = document.getElementById('gestor-ea-content');
+      if (empty) empty.style.display = 'block';
+      if (cont)  cont.style.display  = 'none';
+      return;
+    }
+
+    var empty2 = document.getElementById('gestor-ea-empty');
+    var cont2  = document.getElementById('gestor-ea-content');
+    if (empty2) empty2.style.display = 'none';
+    if (cont2)  cont2.style.display  = 'block';
+
+    // Usar la cuenta con datos mas recientes
+    var cuenta = cuentas.sort(function(a,b) {
+      return new Date(b.ea_last_update||0) - new Date(a.ea_last_update||0);
+    })[0];
+
+    renderGestorScore(cuenta);
+    renderGestorCuentas(cuentas);
+    updateEAScoreBar(cuenta);
+
+  } catch(e) {
+    console.error('loadGestorEA error:', e);
+  }
+}
+
+function renderGestorScore(cuenta) {
+  var score      = parseFloat(cuenta.ea_score || 0);
+  var perfil     = cuenta.ea_perfil || 'Disciplinado';
+  var disciplina = parseInt(cuenta.ea_disciplina || 100);
+  var violaciones= parseInt(cuenta.ea_violaciones || 0);
+  var pnl        = parseFloat(cuenta.ea_pnl_dia || 0);
+
+  // Color segun perfil
+  var color = '#00d4a0';
+  if (score > 35)      color = '#ff00aa';
+  else if (score > 20) color = 'var(--red)';
+  else if (score > 10) color = 'var(--amber)';
+  else if (score > 5)  color = 'var(--blue)';
+
+  // Donut
+  try {
+    var ctx = document.getElementById('ea-score-donut').getContext('2d');
+    var th2 = getChartTheme();
+    if (window._eaScoreChart) window._eaScoreChart.destroy();
+    var maxScore = 50;
+    window._eaScoreChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: { datasets: [{ data: [Math.min(score,maxScore), Math.max(0,maxScore-score)], backgroundColor: [color, th2.border], borderWidth: 0 }] },
+      options: { cutout: '78%', plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { duration: 800 } }
+    });
+  } catch(e) {}
+
+  var sn = document.getElementById('gestor-score-num');
+  if (sn) { sn.textContent = Math.round(score); sn.style.color = color; }
+
+  var pf = document.getElementById('gestor-perfil');
+  if (pf) { pf.textContent = perfil; pf.style.color = color; }
+
+  var db = document.getElementById('gestor-disc-bar');
+  if (db) { db.style.width = disciplina + '%'; db.style.background = color; }
+
+  var dn = document.getElementById('gestor-disc-num');
+  if (dn) { dn.textContent = disciplina + '/100'; dn.style.color = color; }
+
+  var vv = document.getElementById('gestor-violaciones');
+  if (vv) vv.textContent = violaciones;
+
+  var pv = document.getElementById('gestor-pnl');
+  if (pv) {
+    pv.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2);
+    pv.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+}
+
+function renderGestorCuentas(cuentas) {
+  var cont = document.getElementById('gestor-cuentas');
+  if (!cont) return;
+
+  cont.innerHTML = cuentas.map(function(c) {
+    var config = {};
+    try { config = JSON.parse(c.ea_risk_config || '{}'); } catch(e) {}
+
+    var limites = [];
+    if (config.max_ops > 0)        limites.push('Max ops: <strong>' + config.max_ops + '</strong>/dia');
+    if (config.limite_perdida > 0)  limites.push('Max perdida: <strong>$' + config.limite_perdida + '</strong>');
+    if (config.limite_ganancia > 0) limites.push('Max ganancia: <strong>$' + config.limite_ganancia + '</strong>');
+    if (config.hora_inicio > 0 || config.hora_fin > 0)
+      limites.push('Horario: <strong>' + config.hora_inicio + ':00 – ' + config.hora_fin + ':00</strong>');
+    if (!limites.length) limites.push('<span style="color:var(--text3);">Sin limites configurados</span>');
+
+    var score = parseFloat(c.ea_score || 0);
+    var scoreColor = score > 20 ? 'var(--red)' : score > 10 ? 'var(--amber)' : score > 5 ? 'var(--blue)' : 'var(--green)';
+
+    return '<div class="card">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">' +
+        '<div>' +
+          '<div style="font-size:14px;font-weight:700;">' + (c.nombre || 'Cuenta MT') + '</div>' +
+          '<div style="font-size:11px;color:var(--text3);">' + (c.broker||'') + ' · ' + (c.plataforma||'MT') + '</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<div style="font-size:11px;color:var(--text3);font-family:monospace;">SCORE</div>' +
+          '<div style="font-size:20px;font-weight:800;color:' + scoreColor + ';">' + Math.round(score) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--text3);letter-spacing:1px;font-family:monospace;margin-bottom:8px;">LIMITES ACTIVOS</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;">' +
+        limites.map(function(l) {
+          return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--text2);">' + l + '</div>';
+        }).join('') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function updateEAScoreBar(cuenta) {
+  var bar = document.getElementById('ea-score-bar');
+  if (!bar) return;
+
+  var score      = parseFloat(cuenta.ea_score || 0);
+  var perfil     = cuenta.ea_perfil || 'Disciplinado';
+  var disciplina = parseInt(cuenta.ea_disciplina || 100);
+  var violaciones= parseInt(cuenta.ea_violaciones || 0);
+  var pnl        = parseFloat(cuenta.ea_pnl_dia || 0);
+
+  var color = '#00d4a0';
+  if (score > 35)      color = '#ff00aa';
+  else if (score > 20) color = 'var(--red)';
+  else if (score > 10) color = 'var(--amber)';
+  else if (score > 5)  color = 'var(--blue)';
+
+  bar.style.display = 'flex';
+
+  var sv = document.getElementById('ea-score-val');
+  if (sv) { sv.textContent = Math.round(score); sv.style.color = color; }
+
+  var pv = document.getElementById('ea-perfil-val');
+  if (pv) { pv.textContent = perfil; pv.style.color = color; }
+
+  var dv = document.getElementById('ea-disciplina-val');
+  if (dv) { dv.textContent = disciplina; dv.style.color = color; }
+
+  var vv = document.getElementById('ea-violaciones-val');
+  if (vv) vv.textContent = violaciones;
+
+  var db = document.getElementById('ea-disciplina-bar');
+  if (db) { db.style.width = disciplina + '%'; db.style.background = color; }
+
+  var dot = document.getElementById('ea-score-dot');
+  if (dot) dot.style.background = color;
+
+  var pnlEl = document.getElementById('ea-pnl-val');
+  if (pnlEl) {
+    pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2);
+    pnlEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+}
+
+// Cargar score EA al iniciar la app
+async function initEAScoreBar() {
+  if (!currentUser) return;
+  try {
+    var r = await sb.from('cuentas')
+      .select('ea_score,ea_perfil,ea_disciplina,ea_violaciones,ea_pnl_dia,ea_last_update,mt_conectada')
+      .eq('user_id', currentUser.id)
+      .eq('mt_conectada', true)
+      .eq('activa', true)
+      .order('ea_last_update', { ascending: false })
+      .limit(1)
+      .single();
+    if (r.data && r.data.ea_last_update) updateEAScoreBar(r.data);
+  } catch(e) {}
+}
+
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
@@ -8505,6 +8784,10 @@ function renderPsychCharts() {
       <div class="mmenu-item" onclick="mobileGoTabMenu('broker')">
         <div class="mmenu-icon">🔌</div>
         <div class="mmenu-label">Broker</div>
+      </div>
+      <div class="mmenu-item" onclick="mobileGoTabMenu('gestor-ea')">
+        <div class="mmenu-icon">⚡</div>
+        <div class="mmenu-label">Gestor EA</div>
       </div>
       <div class="mmenu-item" onclick="mobileGoTabMenu('riesgo')">
         <div class="mmenu-icon">🛡️</div>
