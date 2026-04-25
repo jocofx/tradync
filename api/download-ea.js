@@ -1,4 +1,4 @@
-// api/download-ea.js v6
+// api/download-ea.js v6.1
 const SURL=process.env.SUPABASE_URL;
 const SKEY=process.env.SUPABASE_SERVICE_KEY;
 const MT5_TEMPLATE=`//+------------------------------------------------------------------+
@@ -237,56 +237,19 @@ void ActualizarConductual()
 
 void SyncScore()
 {
-   string json = "{"
-      + ""account":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)) + ","
-      + ""score":" + DoubleToString(scoreActual,1) + ","
-      + ""perfil":"" + GetPerfil() + "","
-      + ""disciplina":" + IntegerToString(GetIndiceDisciplina()) + ","
-      + ""violaciones_hoy":" + IntegerToString(violacionesHoy) + ","
-      + ""balance":" + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE),2) + ","
-      + ""equity":" + DoubleToString(AccountInfoDouble(ACCOUNT_EQUITY),2) + ","
-      + ""pnl_dia":" + DoubleToString(AccountInfoDouble(ACCOUNT_EQUITY)-balanceInicio,2)
-      + "}";
+   string json = "{";
+   json += "\\"account\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)) + ",";
+   json += "\\"score\\":" + DoubleToString(scoreActual,1) + ",";
+   json += "\\"perfil\\":\\"" + GetPerfil() + "\\",";
+   json += "\\"disciplina\\":" + IntegerToString(GetIndiceDisciplina()) + ",";
+   json += "\\"violaciones_hoy\\":" + IntegerToString(violacionesHoy) + ",";
+   json += "\\"balance\\":" + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE),2) + ",";
+   json += "\\"equity\\":" + DoubleToString(AccountInfoDouble(ACCOUNT_EQUITY),2) + ",";
+   json += "\\"pnl_dia\\":" + DoubleToString(AccountInfoDouble(ACCOUNT_EQUITY)-balanceInicio,2);
+   json += "}";
    Post(ENDPOINT + "/mt-score", json);
 }
 
-//+------------------------------------------------------------------+
-//| VERIFICAR MODO RESTRICTIVO                                         |
-//| Retorna true si debe bloquear la operacion                        |
-//+------------------------------------------------------------------+
-bool ModoRestrictivoBloqueado(ulong ticket)
-{
-   if(!ActivarModoRestrictivo) return false;
-   if(scoreActual < LimiteBloqueoScore) return false;
-
-   // Verificar reintentos repetidos
-   datetime ahora = TimeCurrent();
-   datetime ultimoBloqueo = 0;
-   if(GlobalVariableCheck(GV_LAST_BLOCK))
-      ultimoBloqueo = (datetime)GlobalVariableGet(GV_LAST_BLOCK);
-
-   // Si es un reintento rapido tras bloqueo
-   if(ultimoBloqueo > 0 && (ahora - ultimoBloqueo) < 60) {
-      reintentosBloqueo++;
-      if(reintentosBloqueo >= 2)
-         AnadirScore(2, "REINTENTOS_BLOQUEO");
-   } else {
-      reintentosBloqueo = 0;
-   }
-
-   GlobalVariableSet(GV_LAST_BLOCK, (double)ahora);
-
-   Log("MODO RESTRICTIVO: Score " + DoubleToString(scoreActual, 0) +
-       " >= limite " + IntegerToString(LimiteBloqueoScore) +
-       ". Bloqueando ticket " + IntegerToString(ticket));
-   AnadirScore(0, "BLOQUEO_ACTIVO"); // Solo log, sin puntos extra
-
-   return true;
-}
-
-//+------------------------------------------------------------------+
-//| DETECTAR IMPULSIVIDAD                                             |
-//+------------------------------------------------------------------+
 void CheckImpulsividad(datetime openTime)
 {
    if(ultimaCierre == 0) return;
