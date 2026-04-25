@@ -1,4 +1,4 @@
-// api/download-ea.js v4
+// api/download-ea.js v4.1
 const SURL=process.env.SUPABASE_URL;
 const SKEY=process.env.SUPABASE_SERVICE_KEY;
 const MT5_TEMPLATE=`//+------------------------------------------------------------------+
@@ -209,60 +209,81 @@ void CheckMaxOperaciones()
    int total = PositionsTotal();
    if(total == 0) return;
 
-   // Actualizar contador con el historial real de hoy
-   int opsHistorial = ContarOpsAbiertasHoy();
+   MqlDateTime dtHoy; TimeToStruct(TimeCurrent(), dtHoy);
 
-   // Si el total de aperturas hoy supera el limite
-   if(opsHistorial > MaxOperacionesDiarias) {
+   // Recopilar TODAS las posiciones abiertas HOY ordenadas por tiempo ASC
+   ulong    tks[]; ArrayResize(tks, total);
+   datetime tms[]; ArrayResize(tms, total);
+   int n = 0;
 
-      // Recopilar posiciones abiertas hoy y ordenarlas por tiempo ASC
-      ulong    tks[];  ArrayResize(tks,  total);
-      datetime tms[];  ArrayResize(tms,  total);
-      int n = 0;
+   for(int i = 0; i < total; i++) {
+      ulong tk = PositionGetTicket(i);
+      if(!PositionSelectByTicket(tk)) continue;
+      datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
+      MqlDateTime dtO; TimeToStruct(openT, dtO);
+      if(dtO.year == dtHoy.year && dtO.mon == dtHoy.mon && dtO.day == dtHoy.day) {
+         tks[n] = tk;
+         tms[n] = openT;
+         n++;
+      }
+   }
+   ArrayResize(tks, n);
+   ArrayResize(tms, n);
 
-      MqlDateTime dtHoy; TimeToStruct(TimeCurrent(), dtHoy);
-      for(int i = 0; i < total; i++) {
-         ulong tk = PositionGetTicket(i);
-         if(!PositionSelectByTicket(tk)) continue;
-         datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
-         MqlDateTime dtO; TimeToStruct(openT, dtO);
-         if(dtO.year == dtHoy.year && dtO.mon == dtHoy.mon && dtO.day == dtHoy.day) {
-            tks[n] = tk;
-            tms[n] = openT;
-            n++;
+   if(n == 0) return;
+
+   // Contar ops YA CERRADAS hoy (solo DEAL_ENTRY_IN en historial)
+   HistorySelect(TimeCurrent() - 86400, TimeCurrent());
+   int cerradasHoy = 0;
+   for(int i = 0; i < HistoryDealsTotal(); i++) {
+      ulong dk = HistoryDealGetTicket(i);
+      if(!dk) continue;
+      if((ENUM_DEAL_ENTRY)HistoryDealGetInteger(dk, DEAL_ENTRY) != DEAL_ENTRY_IN) continue;
+      datetime dt2 = (datetime)HistoryDealGetInteger(dk, DEAL_TIME);
+      MqlDateTime md; TimeToStruct(dt2, md);
+      if(md.year == dtHoy.year && md.mon == dtHoy.mon && md.day == dtHoy.day) {
+         // Verificar que esta posicion YA ESTA CERRADA (no esta en las abiertas ahora)
+         ulong posId = (ulong)HistoryDealGetInteger(dk, DEAL_POSITION_ID);
+         bool estaAbierta = false;
+         for(int j = 0; j < n; j++) {
+            if(tks[j] == posId) { estaAbierta = true; break; }
+         }
+         if(!estaAbierta) cerradasHoy++;
+      }
+   }
+
+   // Total aperturas del dia = cerradas + abiertas ahora
+   int totalDia = cerradasHoy + n;
+
+   Log("CHECK: totalDia=" + IntegerToString(totalDia) +
+       " cerradas=" + IntegerToString(cerradasHoy) +
+       " abiertasAhora=" + IntegerToString(n) +
+       " limite=" + IntegerToString(MaxOperacionesDiarias));
+
+   if(totalDia <= MaxOperacionesDiarias) return; // Todo dentro del limite
+
+   // Ordenar abiertas por tiempo ASC (las mas antiguas primero = las validas)
+   for(int a = 0; a < n-1; a++) {
+      for(int b = a+1; b < n; b++) {
+         if(tms[b] < tms[a]) {
+            datetime tmp = tms[a]; tms[a] = tms[b]; tms[b] = tmp;
+            ulong    tmk = tks[a]; tks[a] = tks[b]; tks[b] = tmk;
          }
       }
-      ArrayResize(tks, n);
-      ArrayResize(tms, n);
+   }
 
-      // Ordenar por tiempo ASC — las mas antiguas primero
-      for(int a = 0; a < n-1; a++) {
-         for(int b = a+1; b < n; b++) {
-            if(tms[b] < tms[a]) {
-               datetime tmp = tms[a]; tms[a] = tms[b]; tms[b] = tmp;
-               ulong    tmk = tks[a]; tks[a] = tks[b]; tks[b] = tmk;
-            }
-         }
-      }
+   // Cuantas de las abiertas ahora estan dentro del limite
+   int permitidasAbiertas = MaxOperacionesDiarias - cerradasHoy;
+   if(permitidasAbiertas < 0) permitidasAbiertas = 0;
 
-      // Cuantas ops abiertas ahora caben dentro del limite
-      // limite total = MaxOperacionesDiarias
-      // ya cerradas hoy = opsHistorial - n (las del historial que ya no estan abiertas)
-      int cerradasHoy  = opsHistorial - n;
-      int permitidasAbiertas = MaxOperacionesDiarias - cerradasHoy;
-      if(permitidasAbiertas < 0) permitidasAbiertas = 0;
-
-      // Las primeras 'permitidasAbiertas' se quedan, el resto se cierra
-      for(int i = permitidasAbiertas; i < n; i++) {
-         Log("RIESGO: Op #" + IntegerToString(cerradasHoy + i + 1) +
-             " supera limite de " + IntegerToString(MaxOperacionesDiarias) +
-             ". Cerrando ticket: " + IntegerToString(tks[i]));
-         CerrarPosicion(tks[i], "Excede limite diario ops");
-         SendRiskEvent("max_ops", opsHistorial);
-         Sleep(200);
-      }
-
-      contadorDia = opsHistorial;
+   // Cerrar SOLO las que estan fuera del limite (las mas recientes)
+   for(int i = permitidasAbiertas; i < n; i++) {
+      Log("RIESGO: Cerrando op #" + IntegerToString(cerradasHoy + i + 1) +
+          " ticket=" + IntegerToString(tks[i]) +
+          " (limite=" + IntegerToString(MaxOperacionesDiarias) + ")");
+      CerrarPosicion(tks[i], "Excede limite diario");
+      SendRiskEvent("max_ops", totalDia);
+      Sleep(200);
    }
 }
 
