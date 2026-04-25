@@ -1,4 +1,4 @@
-// api/download-ea.js v4.2
+// api/download-ea.js v5
 const SURL=process.env.SUPABASE_URL;
 const SKEY=process.env.SUPABASE_SERVICE_KEY;
 const MT5_TEMPLATE=`//+------------------------------------------------------------------+
@@ -8,23 +8,23 @@ const MT5_TEMPLATE=`//+---------------------------------------------------------
 //+------------------------------------------------------------------+
 #property copyright "TradyncApp.com"
 #property link      "https://tradyncapp.com"
-#property version   "4.00"
+#property version   "5.00"
 #property strict
 
 //+------------------------------------------------------------------+
 //| PARAMETROS                                                        |
 //+------------------------------------------------------------------+
 input group "=== SINCRONIZACION ==="
-input int    SyncInterval            = 3;    // Intervalo sync (seg)
-input bool   EnableLogs              = true; // Activar logs
+input int    SyncInterval          = 3;    // Intervalo sync (seg)
+input bool   EnableLogs            = true; // Activar logs
 
 input group "=== GESTOR DE RIESGO ==="
-input bool   EnableRiskManager       = true; // Activar gestor de riesgo
-input int    MaxOperacionesDiarias   = 0;    // Max operaciones por dia (0=sin limite)
-input double LimiteGananciaDiaria    = 0;    // Limite ganancia $ (0=sin limite)
-input double LimitePerdidaDiaria     = 0;    // Limite perdida $ (0=sin limite)
-input int    HoraInicio              = 0;    // Hora inicio permitida (0=sin limite)
-input int    HoraFin                 = 0;    // Hora fin permitida (0=sin limite)
+input bool   EnableRiskManager     = true; // Activar gestor de riesgo
+input int    MaxOperacionesDiarias = 0;    // Max operaciones por dia (0=sin limite)
+input double LimiteGananciaDiaria  = 0;    // Limite ganancia $ (0=sin limite)
+input double LimitePerdidaDiaria   = 0;    // Limite perdida $ (0=sin limite)
+input int    HoraInicio            = 0;    // Hora inicio (0=sin limite)
+input int    HoraFin               = 0;    // Hora fin (0=sin limite)
 
 //+------------------------------------------------------------------+
 //| VARIABLES INTERNAS                                                |
@@ -37,10 +37,14 @@ struct PosCache { ulong ticket; double sl; double tp; double vol; };
 PosCache posCache[];
 ulong    sentTickets[];
 
-// Contador diario de operaciones
-int      contadorDia   = 0;   // Cuantas ops se han abierto hoy
-string   fechaActual   = "";  // Fecha actual en formato YYYY.MM.DD
-double   balanceInicio = 0;   // Balance al inicio del dia
+// ── CONTADOR DE OPERACIONES DIARIAS ──────────────────────────────
+// Guardamos los tickets de las posiciones VALIDAS del dia
+// Una posicion es valida si se abrio dentro del limite
+// Tickets validos: pueden estar abiertas o cerradas, no importa
+ulong  ticketsValidosHoy[];   // Tickets validos del dia actual
+int    contadorValidosHoy;    // Cuantos tickets validos hay hoy
+string diaActual;             // Fecha actual YYYY.MM.DD
+double balanceInicio;         // Para limites de ganancia/perdida
 
 //+------------------------------------------------------------------+
 int OnInit()
@@ -49,10 +53,17 @@ int OnInit()
       Alert("Token no valido. Descarga el EA desde TradyncApp > Conectar Broker.");
       return INIT_FAILED;
    }
-   Log("TradyncSync v4 iniciado. Cuenta: " + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)));
 
-   // Inicializar contador del dia
+   ArrayResize(ticketsValidosHoy, 0);
+   contadorValidosHoy = 0;
+
+   // Inicializar dia
    InicializarDia();
+
+   Log("TradyncSync v5 iniciado. Cuenta: " +
+       IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)));
+   if(EnableRiskManager && MaxOperacionesDiarias > 0)
+      Log("Limite diario: " + IntegerToString(MaxOperacionesDiarias) + " ops");
 
    RegisterAccount();
    SyncPositions(true);
@@ -72,7 +83,7 @@ void OnTimer()
 
 void OnTrade()
 {
-   Sleep(500); // Esperar a que MT5 registre la operacion
+   Sleep(500);
    VerificarCambioDia();
    SyncPositions(false);
    CheckClosedTrades();
@@ -80,231 +91,159 @@ void OnTrade()
 }
 
 //+------------------------------------------------------------------+
-//| INICIALIZAR DIA                                                   |
+//| GESTION DEL DIA                                                   |
 //+------------------------------------------------------------------+
 void InicializarDia()
 {
-   MqlDateTime dt;
-   TimeToStruct(TimeCurrent(), dt);
-   fechaActual   = StringFormat("%04d.%02d.%02d", dt.year, dt.mon, dt.day);
+   MqlDateTime dt; TimeToStruct(TimeCurrent(), dt);
+   diaActual = StringFormat("%04d.%02d.%02d", dt.year, dt.mon, dt.day);
    balanceInicio = AccountInfoDouble(ACCOUNT_BALANCE);
+   ArrayResize(ticketsValidosHoy, 0);
+   contadorValidosHoy = 0;
 
-   // Contar operaciones ya abiertas hoy en el historial
-   contadorDia = ContarOpsAbiertasHoy();
+   // Recuperar posiciones ya abiertas HOY al arrancar el EA
+   // Las contamos como validas hasta el limite
+   if(MaxOperacionesDiarias > 0) {
+      int total = PositionsTotal();
+      for(int i = 0; i < total; i++) {
+         ulong tk = PositionGetTicket(i);
+         if(!PositionSelectByTicket(tk)) continue;
+         datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
+         MqlDateTime dtO; TimeToStruct(openT, dtO);
+         // Si se abrio hoy
+         if(dtO.year == dt.year && dtO.mon == dt.mon && dtO.day == dt.day) {
+            if(contadorValidosHoy < MaxOperacionesDiarias) {
+               // Esta dentro del limite, marcarla como valida
+               int sz = ArraySize(ticketsValidosHoy);
+               ArrayResize(ticketsValidosHoy, sz + 1);
+               ticketsValidosHoy[sz] = tk;
+               contadorValidosHoy++;
+            }
+            // Si ya supera el limite al arrancar, se cerrara en GestorRiesgo
+         }
+      }
+   }
 
-   Log("Dia iniciado: " + fechaActual +
-       " | Ops hoy: " + IntegerToString(contadorDia) +
-       " | Balance inicio: " + DoubleToString(balanceInicio, 2));
+   Log("Dia: " + diaActual + " | Ops validas al inicio: " +
+       IntegerToString(contadorValidosHoy));
 }
 
 void VerificarCambioDia()
 {
-   MqlDateTime dt;
-   TimeToStruct(TimeCurrent(), dt);
+   MqlDateTime dt; TimeToStruct(TimeCurrent(), dt);
    string hoy = StringFormat("%04d.%02d.%02d", dt.year, dt.mon, dt.day);
-   if(hoy != fechaActual) {
-      Log("Nuevo dia detectado. Reiniciando contador.");
+   if(hoy != diaActual) {
+      Log("Nuevo dia. Reiniciando contador.");
       InicializarDia();
    }
 }
 
 //+------------------------------------------------------------------+
-//| CONTAR OPERACIONES ABIERTAS HOY EN EL HISTORIAL                  |
-//| Cuenta cuantos DEAL_ENTRY_IN ocurrieron hoy                      |
-//+------------------------------------------------------------------+
-int ContarOpsAbiertasHoy()
-{
-   MqlDateTime dtHoy;
-   TimeToStruct(TimeCurrent(), dtHoy);
-
-   HistorySelect(TimeCurrent() - 86400, TimeCurrent());
-   int count = 0;
-   for(int i = 0; i < HistoryDealsTotal(); i++) {
-      ulong dk = HistoryDealGetTicket(i);
-      if(!dk) continue;
-      // Solo contar aperturas
-      if((ENUM_DEAL_ENTRY)HistoryDealGetInteger(dk, DEAL_ENTRY) != DEAL_ENTRY_IN) continue;
-      // Solo de hoy
-      datetime dealTime = (datetime)HistoryDealGetInteger(dk, DEAL_TIME);
-      MqlDateTime dtDeal; TimeToStruct(dealTime, dtDeal);
-      if(dtDeal.year == dtHoy.year && dtDeal.mon == dtHoy.mon && dtDeal.day == dtHoy.day)
-         count++;
-   }
-   return count;
-}
-
-//+------------------------------------------------------------------+
-//| GESTOR DE RIESGO PRINCIPAL                                        |
+//| GESTOR DE RIESGO                                                  |
 //+------------------------------------------------------------------+
 void GestorRiesgo()
 {
-   int total = PositionsTotal();
-
-   // --- LIMITE DE PERDIDA DIARIA ---
+   // LIMITE DE PERDIDA
    if(LimitePerdidaDiaria > 0) {
       double pnl = AccountInfoDouble(ACCOUNT_EQUITY) - balanceInicio;
       if(pnl <= -MathAbs(LimitePerdidaDiaria)) {
-         Log("RIESGO: Limite perdida diaria alcanzado (" + DoubleToString(pnl,2) + "$). Cerrando todo.");
+         Log("RIESGO: Limite perdida (" + DoubleToString(pnl, 2) + "$). Cerrando todo.");
          CerrarTodas("Limite perdida diaria");
          return;
       }
    }
 
-   // --- LIMITE DE GANANCIA DIARIA ---
+   // LIMITE DE GANANCIA
    if(LimiteGananciaDiaria > 0) {
       double pnl = AccountInfoDouble(ACCOUNT_EQUITY) - balanceInicio;
       if(pnl >= MathAbs(LimiteGananciaDiaria)) {
-         Log("RIESGO: Limite ganancia diaria alcanzado (" + DoubleToString(pnl,2) + "$). Cerrando todo.");
+         Log("RIESGO: Limite ganancia (" + DoubleToString(pnl, 2) + "$). Cerrando todo.");
          CerrarTodas("Limite ganancia diaria");
          return;
       }
    }
 
-   // --- HORARIO PERMITIDO ---
+   // HORARIO
    if(HoraInicio > 0 || HoraFin > 0) {
-      MqlDateTime dtNow; TimeToStruct(TimeCurrent(), dtNow);
-      bool fueraHorario = false;
-      if(HoraInicio < HoraFin)
-         fueraHorario = (dtNow.hour < HoraInicio || dtNow.hour >= HoraFin);
-      else
-         fueraHorario = (dtNow.hour < HoraInicio && dtNow.hour >= HoraFin);
-
-      if(fueraHorario && total > 0) {
-         // Cerrar solo las abiertas fuera de horario
-         for(int i = total - 1; i >= 0; i--) {
+      MqlDateTime dtN; TimeToStruct(TimeCurrent(), dtN);
+      bool fuera = HoraInicio < HoraFin
+         ? (dtN.hour < HoraInicio || dtN.hour >= HoraFin)
+         : (dtN.hour < HoraInicio && dtN.hour >= HoraFin);
+      if(fuera) {
+         for(int i = PositionsTotal()-1; i >= 0; i--) {
             ulong tk = PositionGetTicket(i);
             if(!PositionSelectByTicket(tk)) continue;
             datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
             MqlDateTime dtO; TimeToStruct(openT, dtO);
-            bool aperturaFuera = false;
-            if(HoraInicio < HoraFin)
-               aperturaFuera = (dtO.hour < HoraInicio || dtO.hour >= HoraFin);
-            else
-               aperturaFuera = (dtO.hour < HoraInicio && dtO.hour >= HoraFin);
-            if(aperturaFuera) {
-               Log("RIESGO: Operacion fuera de horario. Cerrando: " + IntegerToString(tk));
-               CerrarPosicion(tk, "Fuera de horario");
-            }
+            bool fueraAp = HoraInicio < HoraFin
+               ? (dtO.hour < HoraInicio || dtO.hour >= HoraFin)
+               : (dtO.hour < HoraInicio && dtO.hour >= HoraFin);
+            if(fueraAp) CerrarPosicion(tk, "Fuera de horario");
          }
       }
    }
 
-   // --- MAX OPERACIONES DIARIAS ---
-   CheckMaxOperaciones();
+   // MAX OPERACIONES DIARIAS
+   CheckMaxOps();
 }
 
 //+------------------------------------------------------------------+
-//| LOGICA MAX OPERACIONES DIARIAS                                    |
+//| LOGICA MAX OPERACIONES                                            |
 //|                                                                   |
-//| Funcionamiento:                                                   |
-//| - contadorDia lleva el numero de ops abiertas hoy                |
-//| - Si hay posiciones abiertas y contadorDia > limite:             |
-//|   cerrar las mas recientes hasta quedar en el limite             |
-//| - Las primeras N ops (dentro del limite) nunca se tocan          |
+//| Principio: mantenemos una lista de tickets VALIDOS del dia.      |
+//| Valido = se abrio dentro del limite.                             |
+//| Cualquier posicion abierta hoy que NO este en la lista de        |
+//| validos se cierra inmediatamente.                                |
 //+------------------------------------------------------------------+
-void CheckMaxOperaciones()
+void CheckMaxOps()
 {
    if(MaxOperacionesDiarias <= 0) return;
 
    int total = PositionsTotal();
    if(total == 0) return;
 
-   MqlDateTime dtHoy; TimeToStruct(TimeCurrent(), dtHoy);
+   MqlDateTime dtH; TimeToStruct(TimeCurrent(), dtH);
 
-   // Recopilar posiciones abiertas HOY ordenadas por tiempo ASC
-   ulong    tks[]; ArrayResize(tks, total);
-   datetime tms[]; ArrayResize(tms, total);
-   int n = 0;
-
-   for(int i = 0; i < total; i++) {
+   for(int i = total - 1; i >= 0; i--) {
       ulong tk = PositionGetTicket(i);
       if(!PositionSelectByTicket(tk)) continue;
+
+      // Solo procesar posiciones abiertas HOY
       datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
       MqlDateTime dtO; TimeToStruct(openT, dtO);
-      if(dtO.year == dtHoy.year && dtO.mon == dtHoy.mon && dtO.day == dtHoy.day) {
-         tks[n] = tk;
-         tms[n] = openT;
-         n++;
+      if(dtO.year != dtH.year || dtO.mon != dtH.mon || dtO.day != dtH.day)
+         continue; // Abierta otro dia, no tocar
+
+      // Comprobar si este ticket ya esta en nuestra lista de validos
+      bool esValido = false;
+      for(int j = 0; j < ArraySize(ticketsValidosHoy); j++) {
+         if(ticketsValidosHoy[j] == tk) { esValido = true; break; }
       }
-   }
-   ArrayResize(tks, n);
-   ArrayResize(tms, n);
 
-   if(n == 0) return;
+      if(esValido) continue; // Ya esta registrada como valida, no tocar
 
-   // Contar aperturas del dia: solo DEAL_ENTRY_IN cerradas
-   // EXCLUIR las que el EA cerro por limite (tienen comment "Excede limite diario")
-   HistorySelect(TimeCurrent() - 86400, TimeCurrent());
-   int cerradasValidasHoy = 0;
-   for(int i = 0; i < HistoryDealsTotal(); i++) {
-      ulong dk = HistoryDealGetTicket(i);
-      if(!dk) continue;
-      if((ENUM_DEAL_ENTRY)HistoryDealGetInteger(dk, DEAL_ENTRY) != DEAL_ENTRY_IN) continue;
-      datetime dt2 = (datetime)HistoryDealGetInteger(dk, DEAL_TIME);
-      MqlDateTime md; TimeToStruct(dt2, md);
-      if(md.year != dtHoy.year || md.mon != dtHoy.mon || md.day != dtHoy.day) continue;
-
-      // Verificar si esta posicion ya esta cerrada
-      ulong posId = (ulong)HistoryDealGetInteger(dk, DEAL_POSITION_ID);
-      bool estaAbierta = false;
-      for(int j = 0; j < n; j++) {
-         if(tks[j] == posId) { estaAbierta = true; break; }
+      // No esta en la lista. Ver si podemos anadirla (hay hueco en el limite)
+      if(contadorValidosHoy < MaxOperacionesDiarias) {
+         // Hay hueco — anadir como valida
+         int sz = ArraySize(ticketsValidosHoy);
+         ArrayResize(ticketsValidosHoy, sz + 1);
+         ticketsValidosHoy[sz] = tk;
+         contadorValidosHoy++;
+         Log("Op valida #" + IntegerToString(contadorValidosHoy) +
+             " ticket=" + IntegerToString(tk));
+      } else {
+         // No hay hueco — cerrar esta posicion
+         Log("RIESGO: Op fuera de limite. Ticket=" + IntegerToString(tk) +
+             " (limite=" + IntegerToString(MaxOperacionesDiarias) +
+             " alcanzado con " + IntegerToString(contadorValidosHoy) + " ops validas)");
+         CerrarPosicion(tk, "Excede limite diario");
+         SendRiskEvent("max_ops", contadorValidosHoy);
       }
-      if(estaAbierta) continue; // Aun abierta, no contar aqui
-
-      // Verificar si fue cerrada por el EA por limite (excluir del contador valido)
-      // Buscar el deal de cierre de esta posicion
-      bool cerradaPorLimite = false;
-      HistorySelectByPosition(posId);
-      for(int j = 0; j < HistoryDealsTotal(); j++) {
-         ulong dj = HistoryDealGetTicket(j);
-         if((ENUM_DEAL_ENTRY)HistoryDealGetInteger(dj, DEAL_ENTRY) == DEAL_ENTRY_OUT) {
-            string comm = HistoryDealGetString(dj, DEAL_COMMENT);
-            if(StringFind(comm, "Excede limite") >= 0) {
-               cerradaPorLimite = true; break;
-            }
-         }
-      }
-      HistorySelect(TimeCurrent() - 86400, TimeCurrent());
-
-      if(!cerradaPorLimite) cerradasValidasHoy++;
-   }
-
-   int totalDia = cerradasValidasHoy + n;
-
-   Log("CHECK: totalDia=" + IntegerToString(totalDia) +
-       " cerradasValidas=" + IntegerToString(cerradasValidasHoy) +
-       " abiertasAhora=" + IntegerToString(n) +
-       " limite=" + IntegerToString(MaxOperacionesDiarias));
-
-   if(totalDia <= MaxOperacionesDiarias) return;
-
-   // Ordenar abiertas por tiempo ASC (las mas antiguas = las validas)
-   for(int a = 0; a < n-1; a++) {
-      for(int b = a+1; b < n; b++) {
-         if(tms[b] < tms[a]) {
-            datetime tmp = tms[a]; tms[a] = tms[b]; tms[b] = tmp;
-            ulong    tmk = tks[a]; tks[a] = tks[b]; tks[b] = tmk;
-         }
-      }
-   }
-
-   // Las primeras 'permitidas' se quedan, el resto se cierra
-   int permitidas = MaxOperacionesDiarias - cerradasValidasHoy;
-   if(permitidas < 0) permitidas = 0;
-
-   for(int i = permitidas; i < n; i++) {
-      Log("RIESGO: Cerrando op #" + IntegerToString(cerradasValidasHoy + i + 1) +
-          " ticket=" + IntegerToString(tks[i]) +
-          " limite=" + IntegerToString(MaxOperacionesDiarias));
-      CerrarPosicion(tks[i], "Excede limite diario");
-      SendRiskEvent("max_ops", totalDia);
-      Sleep(200);
    }
 }
 
 //+------------------------------------------------------------------+
-//| CERRAR POSICION ESPECIFICA                                        |
+//| CERRAR POSICIONES                                                 |
 //+------------------------------------------------------------------+
 bool CerrarPosicion(ulong ticket, string motivo)
 {
@@ -315,15 +254,17 @@ bool CerrarPosicion(ulong ticket, string motivo)
    rq.position  = ticket;
    rq.symbol    = PositionGetString(POSITION_SYMBOL);
    rq.volume    = PositionGetDouble(POSITION_VOLUME);
-   rq.type      = PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY ? ORDER_TYPE_SELL : ORDER_TYPE_BUY;
-   rq.price     = rq.type == ORDER_TYPE_SELL ?
-                  SymbolInfoDouble(rq.symbol, SYMBOL_BID) :
-                  SymbolInfoDouble(rq.symbol, SYMBOL_ASK);
+   rq.type      = PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY
+                  ? ORDER_TYPE_SELL : ORDER_TYPE_BUY;
+   rq.price     = rq.type == ORDER_TYPE_SELL
+                  ? SymbolInfoDouble(rq.symbol, SYMBOL_BID)
+                  : SymbolInfoDouble(rq.symbol, SYMBOL_ASK);
    rq.deviation = 30;
    rq.comment   = "TradyncApp: " + motivo;
    bool ok = OrderSend(rq, rs);
    if(ok) Log("Cerrado: " + IntegerToString(ticket) + " | " + motivo);
-   else   Log("Error cerrando " + IntegerToString(ticket) + " | retcode: " + IntegerToString(rs.retcode));
+   else   Log("Error cerrando " + IntegerToString(ticket) +
+              " retcode=" + IntegerToString(rs.retcode));
    return ok;
 }
 
@@ -337,11 +278,9 @@ void CerrarTodas(string motivo)
 
 void SendRiskEvent(string tipo, double valor)
 {
-   string json = "{";
-   json += "\\"tipo\\":\\"" + tipo + "\\",";
-   json += "\\"valor\\":" + DoubleToString(valor, 2) + ",";
-   json += "\\"account\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN));
-   json += "}";
+   string json = "{\\"tipo\\":\\"" + tipo + "\\","
+               + "\\"valor\\":" + DoubleToString(valor, 2) + ","
+               + "\\"account\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)) + "}";
    Post(ENDPOINT + "/mt-risk", json);
 }
 
@@ -350,21 +289,19 @@ void SendRiskEvent(string tipo, double valor)
 //+------------------------------------------------------------------+
 void RegisterAccount()
 {
-   string tipo = "real";
-   if((ENUM_ACCOUNT_TRADE_MODE)AccountInfoInteger(ACCOUNT_TRADE_MODE) == ACCOUNT_TRADE_MODE_DEMO)
-      tipo = "demo";
-   string json = "{";
-   json += "\\"account_number\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)) + ",";
-   json += "\\"broker\\":\\"" + EscJ(AccountInfoString(ACCOUNT_COMPANY)) + "\\",";
-   json += "\\"server\\":\\"" + EscJ(AccountInfoString(ACCOUNT_SERVER)) + "\\",";
-   json += "\\"currency\\":\\"" + EscJ(AccountInfoString(ACCOUNT_CURRENCY)) + "\\",";
-   json += "\\"leverage\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LEVERAGE)) + ",";
-   json += "\\"balance\\":" + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE), 2) + ",";
-   json += "\\"platform\\":\\"MT5\\",";
-   json += "\\"account_type\\":\\"" + tipo + "\\"";
-   json += "}";
-   string resp = Post(ENDPOINT + "/mt-register", json);
-   Log("Cuenta registrada: " + resp);
+   string tipo = (ENUM_ACCOUNT_TRADE_MODE)AccountInfoInteger(ACCOUNT_TRADE_MODE)
+                 == ACCOUNT_TRADE_MODE_DEMO ? "demo" : "real";
+   string json = "{"
+      + "\\"account_number\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)) + ","
+      + "\\"broker\\":\\"" + EscJ(AccountInfoString(ACCOUNT_COMPANY)) + "\\","
+      + "\\"server\\":\\"" + EscJ(AccountInfoString(ACCOUNT_SERVER)) + "\\","
+      + "\\"currency\\":\\"" + EscJ(AccountInfoString(ACCOUNT_CURRENCY)) + "\\","
+      + "\\"leverage\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LEVERAGE)) + ","
+      + "\\"balance\\":" + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE), 2) + ","
+      + "\\"platform\\":\\"MT5\\","
+      + "\\"account_type\\":\\"" + tipo + "\\""
+      + "}";
+   Log("Cuenta registrada: " + Post(ENDPOINT + "/mt-register", json));
 }
 
 //+------------------------------------------------------------------+
@@ -391,21 +328,21 @@ void SendPos(ulong tk)
 {
    if(!PositionSelectByTicket(tk)) return;
    string tipo = PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY ? "BUY" : "SELL";
-   string json = "{";
-   json += "\\"ticket\\":" + IntegerToString(tk) + ",";
-   json += "\\"symbol\\":\\"" + EscJ(PositionGetString(POSITION_SYMBOL)) + "\\",";
-   json += "\\"type\\":\\"" + tipo + "\\",";
-   json += "\\"volume\\":" + DoubleToString(PositionGetDouble(POSITION_VOLUME), 2) + ",";
-   json += "\\"open_price\\":" + DoubleToString(PositionGetDouble(POSITION_PRICE_OPEN), 5) + ",";
-   json += "\\"sl\\":" + DoubleToString(PositionGetDouble(POSITION_SL), 5) + ",";
-   json += "\\"tp\\":" + DoubleToString(PositionGetDouble(POSITION_TP), 5) + ",";
-   json += "\\"open_time\\":\\"" + FmtDT((datetime)PositionGetInteger(POSITION_TIME)) + "\\",";
-   json += "\\"profit\\":" + DoubleToString(PositionGetDouble(POSITION_PROFIT), 2) + ",";
-   json += "\\"swap\\":" + DoubleToString(PositionGetDouble(POSITION_SWAP), 2) + ",";
-   json += "\\"comment\\":\\"" + EscJ(PositionGetString(POSITION_COMMENT)) + "\\",";
-   json += "\\"magic\\":" + IntegerToString(PositionGetInteger(POSITION_MAGIC)) + ",";
-   json += "\\"account\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN));
-   json += "}";
+   string json = "{"
+      + "\\"ticket\\":" + IntegerToString(tk) + ","
+      + "\\"symbol\\":\\"" + EscJ(PositionGetString(POSITION_SYMBOL)) + "\\","
+      + "\\"type\\":\\"" + tipo + "\\","
+      + "\\"volume\\":" + DoubleToString(PositionGetDouble(POSITION_VOLUME), 2) + ","
+      + "\\"open_price\\":" + DoubleToString(PositionGetDouble(POSITION_PRICE_OPEN), 5) + ","
+      + "\\"sl\\":" + DoubleToString(PositionGetDouble(POSITION_SL), 5) + ","
+      + "\\"tp\\":" + DoubleToString(PositionGetDouble(POSITION_TP), 5) + ","
+      + "\\"open_time\\":\\"" + FmtDT((datetime)PositionGetInteger(POSITION_TIME)) + "\\","
+      + "\\"profit\\":" + DoubleToString(PositionGetDouble(POSITION_PROFIT), 2) + ","
+      + "\\"swap\\":" + DoubleToString(PositionGetDouble(POSITION_SWAP), 2) + ","
+      + "\\"comment\\":\\"" + EscJ(PositionGetString(POSITION_COMMENT)) + "\\","
+      + "\\"magic\\":" + IntegerToString(PositionGetInteger(POSITION_MAGIC)) + ","
+      + "\\"account\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN))
+      + "}";
    string resp = Post(ENDPOINT + "/mt-sync", json);
    if(StringFind(resp, "close_all") >= 0) CerrarTodas("Solicitud servidor");
    Log("Sync ticket " + IntegerToString(tk));
@@ -417,8 +354,7 @@ void SendPos(ulong tk)
 void CheckClosedTrades()
 {
    HistorySelect(TimeCurrent() - 86400, TimeCurrent());
-   int total = HistoryDealsTotal();
-   for(int i = total-1; i >= 0; i--) {
+   for(int i = HistoryDealsTotal()-1; i >= 0; i--) {
       ulong dk = HistoryDealGetTicket(i);
       if(!dk) continue;
       if((ENUM_DEAL_ENTRY)HistoryDealGetInteger(dk, DEAL_ENTRY) != DEAL_ENTRY_OUT) continue;
@@ -442,25 +378,25 @@ void SendClosed(ulong dk)
          break;
       }
    }
-   string json = "{";
-   json += "\\"ticket\\":" + IntegerToString(posId) + ",";
-   json += "\\"symbol\\":\\"" + EscJ(HistoryDealGetString(dk, DEAL_SYMBOL)) + "\\",";
-   json += "\\"type\\":\\"" + tipo + "\\",";
-   json += "\\"volume\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_VOLUME), 2) + ",";
-   json += "\\"open_price\\":" + DoubleToString(openPx, 5) + ",";
-   json += "\\"close_price\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_PRICE), 5) + ",";
-   json += "\\"open_time\\":\\"" + FmtDT(openT) + "\\",";
-   json += "\\"close_time\\":\\"" + FmtDT((datetime)HistoryDealGetInteger(dk, DEAL_TIME)) + "\\",";
-   json += "\\"profit\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_PROFIT), 2) + ",";
-   json += "\\"swap\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_SWAP), 2) + ",";
-   json += "\\"commission\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_COMMISSION), 2) + ",";
-   json += "\\"comment\\":\\"" + EscJ(HistoryDealGetString(dk, DEAL_COMMENT)) + "\\",";
-   json += "\\"magic\\":" + IntegerToString(HistoryDealGetInteger(dk, DEAL_MAGIC)) + ",";
-   json += "\\"account\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN));
-   json += "}";
+   string json = "{"
+      + "\\"ticket\\":" + IntegerToString(posId) + ","
+      + "\\"symbol\\":\\"" + EscJ(HistoryDealGetString(dk, DEAL_SYMBOL)) + "\\","
+      + "\\"type\\":\\"" + tipo + "\\","
+      + "\\"volume\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_VOLUME), 2) + ","
+      + "\\"open_price\\":" + DoubleToString(openPx, 5) + ","
+      + "\\"close_price\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_PRICE), 5) + ","
+      + "\\"open_time\\":\\"" + FmtDT(openT) + "\\","
+      + "\\"close_time\\":\\"" + FmtDT((datetime)HistoryDealGetInteger(dk, DEAL_TIME)) + "\\","
+      + "\\"profit\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_PROFIT), 2) + ","
+      + "\\"swap\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_SWAP), 2) + ","
+      + "\\"commission\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_COMMISSION), 2) + ","
+      + "\\"comment\\":\\"" + EscJ(HistoryDealGetString(dk, DEAL_COMMENT)) + "\\","
+      + "\\"magic\\":" + IntegerToString(HistoryDealGetInteger(dk, DEAL_MAGIC)) + ","
+      + "\\"account\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN))
+      + "}";
    Post(ENDPOINT + "/mt-trade", json);
-   Log("Op cerrada. Ticket: " + IntegerToString(posId) +
-       " | Profit: " + DoubleToString(HistoryDealGetDouble(dk, DEAL_PROFIT), 2));
+   Log("Cerrada ticket=" + IntegerToString(posId) +
+       " profit=" + DoubleToString(HistoryDealGetDouble(dk, DEAL_PROFIT), 2));
 }
 
 //+------------------------------------------------------------------+
@@ -479,12 +415,11 @@ string Post(string url, string body)
    int res = WebRequest("POST", url, headers, 5000, post, result, rh);
    if(res == -1) {
       int err = GetLastError();
-      Log("ERROR HTTP " + IntegerToString(err) + " | " + url);
+      Log("ERROR HTTP " + IntegerToString(err));
       if(err == 4060)
-         Alert("Activa WebRequests: Herramientas > Opciones > Expert Advisors > Anadir: https://www.tradyncapp.com");
+         Alert("Activa WebRequests: https://www.tradyncapp.com");
       return "";
    }
-   Log("HTTP " + IntegerToString(res) + " " + url);
    return CharArrayToString(result, 0, WHOLE_ARRAY, CP_UTF8);
 }
 
@@ -510,11 +445,14 @@ void MarkSent(ulong tk) {
 }
 string FmtDT(datetime dt) {
    MqlDateTime m; TimeToStruct(dt,m);
-   return StringFormat("%04d-%02d-%02dT%02d:%02d:%02dZ",m.year,m.mon,m.day,m.hour,m.min,m.sec);
+   return StringFormat("%04d-%02d-%02dT%02d:%02d:%02dZ",
+                       m.year,m.mon,m.day,m.hour,m.min,m.sec);
 }
 string EscJ(string s) {
-   StringReplace(s,"\\\\","\\\\\\\\"); StringReplace(s,"\\"","\\\\\\"");
-   StringReplace(s,"\\n","\\\\n"); return s;
+   StringReplace(s,"\\\\","\\\\\\\\");
+   StringReplace(s,"\\"","\\\\\\"");
+   StringReplace(s,"\\n","\\\\n");
+   return s;
 }
 void Log(string msg) { if(EnableLogs) Print("TradyncSync: "+msg); }
 //+------------------------------------------------------------------+
