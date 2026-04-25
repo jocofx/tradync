@@ -1,4 +1,4 @@
-// api/download-ea.js — v3.1
+// api/download-ea.js — v3.2
 const SURL = process.env.SUPABASE_URL;
 const SKEY = process.env.SUPABASE_SERVICE_KEY;
 
@@ -172,13 +172,21 @@ void CheckRiskLimits()
          }
       }
 
-      // Si el contador supera el limite, cerrar las posiciones abiertas mas recientes
+      // Si el contador supera el limite, cerrar SOLO las mas recientes que excedan
       if(totalDia > MaxOperacionesDia) {
-         int exceso = total; // Cerrar todas las abiertas actualmente (ya superamos el limite)
-         // Ordenar por tiempo y cerrar las mas recientes primero
+         // Cuantas operaciones hay que cerrar = exceso sobre el limite
+         int exceso = totalDia - MaxOperacionesDia;
+
+         Log("RIESGO: " + IntegerToString(totalDia) + " ops hoy, limite=" +
+             IntegerToString(MaxOperacionesDia) + ". Cerrando " + IntegerToString(exceso) + " mas recientes.");
+
+         // Recopilar todas las posiciones abiertas con su tiempo
+         // y cerrar solo las 'exceso' mas recientes
          for(int e = 0; e < exceso; e++) {
             ulong ticketMasReciente = 0;
             datetime tiempoMasReciente = 0;
+
+            // Buscar la posicion abierta mas reciente
             for(int i = PositionsTotal() - 1; i >= 0; i--) {
                ulong tk = PositionGetTicket(i);
                if(!PositionSelectByTicket(tk)) continue;
@@ -188,14 +196,16 @@ void CheckRiskLimits()
                   ticketMasReciente = tk;
                }
             }
+
             if(ticketMasReciente > 0) {
-               Log("RIESGO: Operacion " + IntegerToString(totalDia) + " del dia supera limite de " +
-                   IntegerToString(MaxOperacionesDia) + ". Cerrando: " + IntegerToString(ticketMasReciente));
+               Log("RIESGO: Cerrando op " + IntegerToString(e+1) + "/" +
+                   IntegerToString(exceso) + " ticket: " + IntegerToString(ticketMasReciente));
                ClosePosition(ticketMasReciente, "Limite diario de operaciones superado");
                SendRiskEvent("max_ops", totalDia);
-               totalDia--;
-               if(totalDia <= MaxOperacionesDia) break;
-            } else break;
+               Sleep(200); // Esperar para que MT5 actualice PositionsTotal
+            } else {
+               break; // No hay mas posiciones abiertas
+            }
          }
       }
    }
