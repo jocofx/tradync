@@ -1,4 +1,4 @@
-// api/download-ea.js v6.1
+// api/download-ea.js v6.2
 const SURL=process.env.SUPABASE_URL;
 const SKEY=process.env.SUPABASE_SERVICE_KEY;
 const MT5_TEMPLATE=`//+------------------------------------------------------------------+
@@ -452,8 +452,25 @@ void CheckMaxOps()
       if(esValida) continue;
 
       if(contadorValidosHoy < MaxOperacionesDiarias) {
-         // Verificar modo restrictivo antes de validar
-         if(ActivarAnalisisConductual && ModoRestrictivoBloqueado(tk)) {
+         // Verificar modo restrictivo (inline para evitar forward reference)
+         bool bloqueado = false;
+         if(ActivarAnalisisConductual && ActivarModoRestrictivo && scoreActual >= LimiteBloqueoScore) {
+            bloqueado = true;
+            datetime ahora = TimeCurrent();
+            datetime ultimoBloqueo = 0;
+            if(GlobalVariableCheck(GV_LAST_BLOCK))
+               ultimoBloqueo = (datetime)GlobalVariableGet(GV_LAST_BLOCK);
+            if(ultimoBloqueo > 0 && (ahora - ultimoBloqueo) < 60) {
+               reintentosBloqueo++;
+               if(reintentosBloqueo >= 2) AnadirScore(2, "REINTENTOS_BLOQUEO");
+            } else { reintentosBloqueo = 0; }
+            GlobalVariableSet(GV_LAST_BLOCK, (double)ahora);
+            Log("MODO RESTRICTIVO: Score " + DoubleToString(scoreActual,0) +
+                " >= " + IntegerToString(LimiteBloqueoScore) +
+                ". Bloqueando ticket " + IntegerToString(tk));
+            Feedback("BLOQUEO_ACTIVO", 0);
+         }
+         if(bloqueado) {
             CerrarPosicion(tk, "Modo restrictivo activo");
             continue;
          }
