@@ -226,6 +226,28 @@ void ActualizarConductual()
                        " | Disciplina: " + IntegerToString(GetIndiceDisciplina()) + "/100" +
                        " | Violaciones hoy: " + IntegerToString(violacionesHoy);
    Comment(comentario);
+
+   // Sincronizar score con servidor cada 60 segundos
+   static datetime ultimoSyncScore = 0;
+   if(TimeCurrent() - ultimoSyncScore > 60) {
+      SyncScore();
+      ultimoSyncScore = TimeCurrent();
+   }
+}
+
+void SyncScore()
+{
+   string json = "{"
+      + ""account":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)) + ","
+      + ""score":" + DoubleToString(scoreActual,1) + ","
+      + ""perfil":"" + GetPerfil() + "","
+      + ""disciplina":" + IntegerToString(GetIndiceDisciplina()) + ","
+      + ""violaciones_hoy":" + IntegerToString(violacionesHoy) + ","
+      + ""balance":" + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE),2) + ","
+      + ""equity":" + DoubleToString(AccountInfoDouble(ACCOUNT_EQUITY),2) + ","
+      + ""pnl_dia":" + DoubleToString(AccountInfoDouble(ACCOUNT_EQUITY)-balanceInicio,2)
+      + "}";
+   Post(ENDPOINT + "/mt-score", json);
 }
 
 //+------------------------------------------------------------------+
@@ -576,6 +598,20 @@ void RegisterAccount()
 {
    string tipo = (ENUM_ACCOUNT_TRADE_MODE)AccountInfoInteger(ACCOUNT_TRADE_MODE)
                  == ACCOUNT_TRADE_MODE_DEMO ? "demo" : "real";
+
+   // Configuracion de riesgo del EA
+   string riskConfig = "{"
+      + "\\"max_ops\\":" + IntegerToString(MaxOperacionesDiarias) + ","
+      + "\\"limite_perdida\\":" + DoubleToString(LimitePerdidaDiaria,2) + ","
+      + "\\"limite_ganancia\\":" + DoubleToString(LimiteGananciaDiaria,2) + ","
+      + "\\"hora_inicio\\":" + IntegerToString(HoraInicio) + ","
+      + "\\"hora_fin\\":" + IntegerToString(HoraFin) + ","
+      + "\\"risk_manager\\":" + (EnableRiskManager ? "true" : "false") + ","
+      + "\\"conductual\\":" + (ActivarAnalisisConductual ? "true" : "false") + ","
+      + "\\"modo_restrictivo\\":" + (ActivarModoRestrictivo ? "true" : "false") + ","
+      + "\\"limite_bloqueo\\":" + IntegerToString(LimiteBloqueoScore)
+      + "}";
+
    string json = "{"
       + "\\"account_number\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)) + ","
       + "\\"broker\\":\\"" + EscJ(AccountInfoString(ACCOUNT_COMPANY)) + "\\","
@@ -583,15 +619,16 @@ void RegisterAccount()
       + "\\"currency\\":\\"" + EscJ(AccountInfoString(ACCOUNT_CURRENCY)) + "\\","
       + "\\"leverage\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LEVERAGE)) + ","
       + "\\"balance\\":" + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE),2) + ","
-      + "\\"platform\\":\\"MT5\\","
-      + "\\"account_type\\":\\"" + tipo + "\\""
+      + "\\"platform\\":\\"MT5\\"," 
+      + "\\"account_type\\":\\"" + tipo + "\\","
+      + "\\"risk_config\\":" + riskConfig + ","
+      + "\\"score\\":" + DoubleToString(scoreActual,1) + ","
+      + "\\"perfil\\":\\"" + GetPerfil() + "\\","
+      + "\\"disciplina\\":" + IntegerToString(GetIndiceDisciplina())
       + "}";
    Log("Cuenta: " + Post(ENDPOINT + "/mt-register", json));
 }
 
-//+------------------------------------------------------------------+
-//| SYNC POSICIONES                                                   |
-//+------------------------------------------------------------------+
 void SyncPositions(bool force)
 {
    int total = PositionsTotal();
