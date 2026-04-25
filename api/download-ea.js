@@ -1,8 +1,7 @@
-// api/download-ea.js — v3.3
-const SURL = process.env.SUPABASE_URL;
-const SKEY = process.env.SUPABASE_SERVICE_KEY;
-
-const MT5_TEMPLATE = `//+------------------------------------------------------------------+
+// api/download-ea.js v3.4
+const SURL=process.env.SUPABASE_URL;
+const SKEY=process.env.SUPABASE_SERVICE_KEY;
+const MT5_TEMPLATE=`//+------------------------------------------------------------------+
 //|                                           TradyncSync_MT5.mq5    |
 //|                    Journal + Gestor de Riesgo Automatico         |
 //|                                      https://tradyncapp.com       |
@@ -134,16 +133,14 @@ void CheckRiskLimits()
    }
 
    // 3. MAX OPERACIONES DIARIAS
-   // Logica: contar TODAS las ops abiertas hoy (historial + actuales)
-   // Asignar numero de orden 1,2,3... por tiempo de apertura
-   // Cerrar las que tengan numero > MaxOperacionesDia
+   // Contar TODAS las aperturas del dia (historial + actuales)
+   // Ordenar las abiertas por tiempo ASC y cerrar solo las que sobrepasan el limite
    if(MaxOperacionesDia > 0) {
-
-      // Paso 1: contar ops abiertas hoy via historial (DEAL_ENTRY_IN)
       MqlDateTime dtNow; TimeToStruct(TimeCurrent(), dtNow);
-      HistorySelect(TimeCurrent() - 86400, TimeCurrent());
 
-      int opsDiaHistorial = 0;
+      // Contar aperturas del dia en el historial (operaciones ya cerradas hoy)
+      HistorySelect(TimeCurrent() - 86400, TimeCurrent());
+      int opsCerradasHoy = 0;
       for(int i = 0; i < HistoryDealsTotal(); i++) {
          ulong dk = HistoryDealGetTicket(i);
          if(!dk) continue;
@@ -151,63 +148,50 @@ void CheckRiskLimits()
          datetime dt2 = (datetime)HistoryDealGetInteger(dk, DEAL_TIME);
          MqlDateTime md; TimeToStruct(dt2, md);
          if(md.year==dtNow.year && md.mon==dtNow.mon && md.day==dtNow.day)
-            opsDiaHistorial++;
+            opsCerradasHoy++;
       }
 
-      // Paso 2: si ya superamos el limite con las cerradas, cerrar todo lo abierto
-      if(opsDiaHistorial >= MaxOperacionesDia && total > 0) {
-         Log("RIESGO: Ya se abrieron " + IntegerToString(opsDiaHistorial) +
-             " ops hoy (limite=" + IntegerToString(MaxOperacionesDia) + "). Cerrando posiciones actuales.");
-         for(int i = PositionsTotal()-1; i >= 0; i--) {
-            ulong tk = PositionGetTicket(i);
-            if(!PositionSelectByTicket(tk)) continue;
-            // Solo cerrar las abiertas HOY
-            datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
-            MqlDateTime dtO; TimeToStruct(openT, dtO);
-            if(dtO.year==dtNow.year && dtO.mon==dtNow.mon && dtO.day==dtNow.day) {
-               ClosePosition(tk, "Limite diario superado");
-               SendRiskEvent("max_ops", opsDiaHistorial);
-               Sleep(100);
-            }
+      // Recopilar posiciones abiertas HOY
+      ulong   tkHoy[]; ArrayResize(tkHoy, total);
+      datetime tHoy[];  ArrayResize(tHoy,  total);
+      int n = 0;
+      for(int i = 0; i < total; i++) {
+         ulong tk = PositionGetTicket(i);
+         if(!PositionSelectByTicket(tk)) continue;
+         datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
+         MqlDateTime dtO; TimeToStruct(openT, dtO);
+         if(dtO.year==dtNow.year && dtO.mon==dtNow.mon && dtO.day==dtNow.day) {
+            tkHoy[n] = tk;
+            tHoy[n]  = openT;
+            n++;
          }
       }
-      // Paso 3: si con las abiertas ahora superamos el limite
-      // ordenar por tiempo y cerrar solo las que sobran
-      else if(opsDiaHistorial + total > MaxOperacionesDia) {
-         // Recopilar posiciones abiertas HOY ordenadas por tiempo ASC
-         ulong   tickets[]; ArrayResize(tickets, total);
-         datetime times[]; ArrayResize(times, total);
-         int n = 0;
-         for(int i = 0; i < total; i++) {
-            ulong tk = PositionGetTicket(i);
-            if(!PositionSelectByTicket(tk)) continue;
-            datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
-            MqlDateTime dtO; TimeToStruct(openT, dtO);
-            if(dtO.year==dtNow.year && dtO.mon==dtNow.mon && dtO.day==dtNow.day) {
-               tickets[n] = tk;
-               times[n]   = openT;
-               n++;
-            }
-         }
-         // Ordenar por tiempo ASC (burbuja simple)
+
+      // Total de aperturas del dia = cerradas + abiertas ahora
+      int totalDia = opsCerradasHoy + n;
+
+      if(totalDia > MaxOperacionesDia) {
+         // Ordenar las abiertas por tiempo ASC (la primera = mas antigua)
          for(int a = 0; a < n-1; a++) {
             for(int b = a+1; b < n; b++) {
-               if(times[b] < times[a]) {
-                  datetime tmp = times[a]; times[a] = times[b]; times[b] = tmp;
-                  ulong    tmk = tickets[a]; tickets[a] = tickets[b]; tickets[b] = tmk;
+               if(tHoy[b] < tHoy[a]) {
+                  datetime tmp = tHoy[a]; tHoy[a] = tHoy[b]; tHoy[b] = tmp;
+                  ulong    tmk = tkHoy[a]; tkHoy[a] = tkHoy[b]; tkHoy[b] = tmk;
                }
             }
          }
-         // Las primeras (MaxOperacionesDia - opsDiaHistorial) se quedan
-         // Las demas se cierran
-         int permitidas = MaxOperacionesDia - opsDiaHistorial;
-         if(permitidas < 0) permitidas = 0;
-         for(int i = permitidas; i < n; i++) {
-            Log("RIESGO: Op #" + IntegerToString(opsDiaHistorial+i+1) +
-                " supera limite " + IntegerToString(MaxOperacionesDia) +
-                ". Cerrando ticket: " + IntegerToString(tickets[i]));
-            ClosePosition(tickets[i], "Limite diario de operaciones");
-            SendRiskEvent("max_ops", opsDiaHistorial+n);
+
+         // Cuantas de las abiertas ahora estan dentro del limite
+         int dentroDelLimite = MaxOperacionesDia - opsCerradasHoy;
+         if(dentroDelLimite < 0) dentroDelLimite = 0;
+
+         // Cerrar solo las que estan fuera del limite (las mas recientes)
+         for(int i = dentroDelLimite; i < n; i++) {
+            Log("RIESGO: Op #" + IntegerToString(opsCerradasHoy + i + 1) +
+                " supera limite=" + IntegerToString(MaxOperacionesDia) +
+                ". Cerrando ticket: " + IntegerToString(tkHoy[i]));
+            ClosePosition(tkHoy[i], "Limite diario de operaciones");
+            SendRiskEvent("max_ops", totalDia);
             Sleep(100);
          }
       }
@@ -474,8 +458,7 @@ string EscJ(string s) {
 void Log(string msg) { if(EnableLogs) Print("TradyncSync: " + msg); }
 //+------------------------------------------------------------------+
 `;
-
-const MT4_TEMPLATE = `//+------------------------------------------------------------------+
+const MT4_TEMPLATE=`//+------------------------------------------------------------------+
 //|                                              TradyncSync_MT4.mq4 |
 //|                                    Copyright 2026, TradyncApp.com |
 //|                                         https://tradyncapp.com   |
@@ -839,24 +822,20 @@ void Log(string msg)
 }
 //+------------------------------------------------------------------+
 `;
-
-module.exports = async function(req, res) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-  const userToken = req.query.token || req.headers['x-auth-token'];
-  const platform  = (req.query.platform || 'mt5').toLowerCase();
-  if (!userToken) return res.status(401).json({ error: 'Token requerido' });
-  const r1 = await fetch(
-    `${SURL}/rest/v1/api_keys?token=eq.${encodeURIComponent(userToken)}&activo=eq.true&select=user_id`,
-    { headers: { apikey: SKEY, Authorization: `Bearer ${SKEY}` } }
-  );
-  const keys = await r1.json();
-  if (!keys || !keys.length) return res.status(401).json({ error: 'Token invalido' });
-  const template = platform === 'mt4' ? MT4_TEMPLATE : MT5_TEMPLATE;
-  const eaContent = template.replace('PEGA_TU_TOKEN_AQUI', userToken);
-  const ext = platform === 'mt4' ? 'mq4' : 'mq5';
-  const filename = `TradyncSync_${platform.toUpperCase()}.${ext}`;
-  res.setHeader('Content-Type', 'application/octet-stream');
-  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-  res.setHeader('Cache-Control', 'no-store');
+module.exports=async function(req,res){
+  if(req.method!=='GET') return res.status(405).json({error:'Method not allowed'});
+  const userToken=req.query.token||req.headers['x-auth-token'];
+  const platform=(req.query.platform||'mt5').toLowerCase();
+  if(!userToken) return res.status(401).json({error:'Token requerido'});
+  const r1=await fetch(`${SURL}/rest/v1/api_keys?token=eq.${encodeURIComponent(userToken)}&activo=eq.true&select=user_id`,
+    {headers:{apikey:SKEY,Authorization:`Bearer ${SKEY}`}});
+  const keys=await r1.json();
+  if(!keys||!keys.length) return res.status(401).json({error:'Token invalido'});
+  const template=platform==='mt4'?MT4_TEMPLATE:MT5_TEMPLATE;
+  const eaContent=template.replace('PEGA_TU_TOKEN_AQUI',userToken);
+  const ext=platform==='mt4'?'mq4':'mq5';
+  res.setHeader('Content-Type','application/octet-stream');
+  res.setHeader('Content-Disposition',`attachment; filename="TradyncSync_${platform.toUpperCase()}.${ext}"`);
+  res.setHeader('Cache-Control','no-store');
   return res.send(eaContent);
 };
