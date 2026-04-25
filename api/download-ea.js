@@ -1,50 +1,84 @@
-// api/download-ea.js v5
+// api/download-ea.js v6
 const SURL=process.env.SUPABASE_URL;
 const SKEY=process.env.SUPABASE_SERVICE_KEY;
 const MT5_TEMPLATE=`//+------------------------------------------------------------------+
 //|                                           TradyncSync_MT5.mq5    |
-//|                    Journal + Gestor de Riesgo                    |
+//|          Journal + Gestor de Riesgo + Analisis Conductual        |
 //|                                      https://tradyncapp.com       |
 //+------------------------------------------------------------------+
 #property copyright "TradyncApp.com"
 #property link      "https://tradyncapp.com"
-#property version   "5.00"
+#property version   "6.00"
 #property strict
 
 //+------------------------------------------------------------------+
-//| PARAMETROS                                                        |
+//| PARAMETROS — SINCRONIZACION                                       |
 //+------------------------------------------------------------------+
 input group "=== SINCRONIZACION ==="
 input int    SyncInterval          = 3;    // Intervalo sync (seg)
 input bool   EnableLogs            = true; // Activar logs
 
+//+------------------------------------------------------------------+
+//| PARAMETROS — GESTOR DE RIESGO                                     |
+//+------------------------------------------------------------------+
 input group "=== GESTOR DE RIESGO ==="
 input bool   EnableRiskManager     = true; // Activar gestor de riesgo
 input int    MaxOperacionesDiarias = 0;    // Max operaciones por dia (0=sin limite)
 input double LimiteGananciaDiaria  = 0;    // Limite ganancia $ (0=sin limite)
 input double LimitePerdidaDiaria   = 0;    // Limite perdida $ (0=sin limite)
-input int    HoraInicio            = 0;    // Hora inicio (0=sin limite)
-input int    HoraFin               = 0;    // Hora fin (0=sin limite)
+input int    HoraInicio            = 0;    // Hora inicio permitida (0=sin limite)
+input int    HoraFin               = 0;    // Hora fin permitida (0=sin limite)
 
 //+------------------------------------------------------------------+
-//| VARIABLES INTERNAS                                                |
+//| PARAMETROS — ANALISIS CONDUCTUAL                                  |
+//+------------------------------------------------------------------+
+input group "=== ANALISIS CONDUCTUAL ==="
+input bool   ActivarAnalisisConductual = true;  // Activar analisis conductual
+input string SensibilidadSistema       = "medium"; // Sensibilidad: low / medium / high
+input bool   ActivarFeedback           = true;  // Mostrar mensajes en diario
+input bool   ActivarModoRestrictivo    = false; // Bloquear ops cuando score alto
+input int    LimiteBloqueoScore        = 30;    // Score para activar bloqueo
+input int    DecadenciaPuntosDia       = 2;     // Puntos que se restan por dia correcto
+input int    MinutosEntreOpsImpulsivo  = 5;     // Minutos minimos entre ops (impulsividad)
+
+//+------------------------------------------------------------------+
+//| VARIABLES INTERNAS — SYNC                                         |
 //+------------------------------------------------------------------+
 string TOKEN    = "PEGA_TU_TOKEN_AQUI";
 string ENDPOINT = "https://www.tradyncapp.com/api";
 
-// Cache sync
 struct PosCache { ulong ticket; double sl; double tp; double vol; };
 PosCache posCache[];
 ulong    sentTickets[];
 
-// ── CONTADOR DE OPERACIONES DIARIAS ──────────────────────────────
-// Guardamos los tickets de las posiciones VALIDAS del dia
-// Una posicion es valida si se abrio dentro del limite
-// Tickets validos: pueden estar abiertas o cerradas, no importa
-ulong  ticketsValidosHoy[];   // Tickets validos del dia actual
-int    contadorValidosHoy;    // Cuantos tickets validos hay hoy
-string diaActual;             // Fecha actual YYYY.MM.DD
-double balanceInicio;         // Para limites de ganancia/perdida
+//+------------------------------------------------------------------+
+//| VARIABLES INTERNAS — RIESGO                                       |
+//+------------------------------------------------------------------+
+ulong  ticketsValidosHoy[];
+int    contadorValidosHoy;
+string diaActual;
+double balanceInicio;
+bool   limitePerdidaAlcanzado;
+bool   limiteGananciaAlcanzado;
+
+//+------------------------------------------------------------------+
+//| VARIABLES INTERNAS — CONDUCTUAL                                   |
+//+------------------------------------------------------------------+
+// Nombre de variables globales del terminal (persisten entre reinicios)
+string GV_SCORE       = "TRADYNC_SCORE";
+string GV_LAST_CLOSE  = "TRADYNC_LAST_CLOSE";
+string GV_VIOLA_DIA   = "TRADYNC_VIOLA_HOY";
+string GV_LAST_DECAY  = "TRADYNC_LAST_DECAY";
+string GV_REINTENTOS  = "TRADYNC_REINTENTOS";
+string GV_LAST_BLOCK  = "TRADYNC_LAST_BLOCK";
+
+double scoreActual;       // Score conductual actual
+int    violacionesHoy;    // Violaciones del dia actual
+datetime ultimaCierre;    // Ultima operacion cerrada (para impulsividad)
+int    reintentosBloqueo; // Reintentos tras bloqueo
+
+// Multiplicadores por sensibilidad
+double multScore;
 
 //+------------------------------------------------------------------+
 int OnInit()
@@ -54,14 +88,23 @@ int OnInit()
       return INIT_FAILED;
    }
 
-   ArrayResize(ticketsValidosHoy, 0);
-   contadorValidosHoy = 0;
+   // Configurar multiplicador de sensibilidad
+   if(SensibilidadSistema == "low")       multScore = 0.5;
+   else if(SensibilidadSistema == "high") multScore = 2.0;
+   else                                   multScore = 1.0; // medium
 
-   // Inicializar dia
+   // Inicializar sistema conductual
+   InicializarConductual();
+
+   // Inicializar dia de riesgo
    InicializarDia();
 
-   Log("TradyncSync v5 iniciado. Cuenta: " +
+   Log("TradyncSync v6 iniciado. Cuenta: " +
        IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)));
+   Log("Score actual: " + DoubleToString(scoreActual, 1) +
+       " | Perfil: " + GetPerfil() +
+       " | Disciplina: " + IntegerToString(GetIndiceDisciplina()) + "/100");
+
    if(EnableRiskManager && MaxOperacionesDiarias > 0)
       Log("Limite diario: " + IntegerToString(MaxOperacionesDiarias) + " ops");
 
@@ -71,14 +114,20 @@ int OnInit()
    return INIT_SUCCEEDED;
 }
 
-void OnDeinit(const int reason) { EventKillTimer(); }
+void OnDeinit(const int reason)
+{
+   EventKillTimer();
+   // Guardar score al salir
+   GlobalVariableSet(GV_SCORE, scoreActual);
+}
 
 void OnTimer()
 {
    VerificarCambioDia();
    SyncPositions(false);
    CheckClosedTrades();
-   if(EnableRiskManager) GestorRiesgo();
+   if(EnableRiskManager)       GestorRiesgo();
+   if(ActivarAnalisisConductual) ActualizarConductual();
 }
 
 void OnTrade()
@@ -87,7 +136,202 @@ void OnTrade()
    VerificarCambioDia();
    SyncPositions(false);
    CheckClosedTrades();
-   if(EnableRiskManager) GestorRiesgo();
+   if(EnableRiskManager)       GestorRiesgo();
+   if(ActivarAnalisisConductual) ActualizarConductual();
+}
+
+//+------------------------------------------------------------------+
+//| SISTEMA CONDUCTUAL — INICIALIZACION                               |
+//+------------------------------------------------------------------+
+void InicializarConductual()
+{
+   // Recuperar score guardado (persiste entre reinicios)
+   if(GlobalVariableCheck(GV_SCORE))
+      scoreActual = GlobalVariableGet(GV_SCORE);
+   else
+      scoreActual = 0;
+
+   // Recuperar ultima cierre
+   if(GlobalVariableCheck(GV_LAST_CLOSE))
+      ultimaCierre = (datetime)GlobalVariableGet(GV_LAST_CLOSE);
+   else
+      ultimaCierre = 0;
+
+   violacionesHoy   = 0;
+   reintentosBloqueo = 0;
+
+   // Aplicar decaimiento diario si corresponde
+   AplicarDecaimiento();
+}
+
+//+------------------------------------------------------------------+
+//| DECAIMIENTO DIARIO DEL SCORE                                      |
+//+------------------------------------------------------------------+
+void AplicarDecaimiento()
+{
+   if(DecadenciaPuntosDia <= 0) return;
+
+   datetime ahora = TimeCurrent();
+   datetime ultimoDecay = 0;
+   if(GlobalVariableCheck(GV_LAST_DECAY))
+      ultimoDecay = (datetime)GlobalVariableGet(GV_LAST_DECAY);
+
+   // Calcular dias transcurridos desde ultimo decaimiento
+   if(ultimoDecay > 0) {
+      MqlDateTime dtUltimo; TimeToStruct(ultimoDecay, dtUltimo);
+      MqlDateTime dtAhora;  TimeToStruct(ahora, dtAhora);
+      int diasPasados = dtAhora.day_of_year - dtUltimo.day_of_year;
+      if(dtAhora.year > dtUltimo.year) diasPasados += 365;
+
+      if(diasPasados > 0) {
+         double decay = diasPasados * DecadenciaPuntosDia;
+         scoreActual = MathMax(0, scoreActual - decay);
+         GlobalVariableSet(GV_SCORE, scoreActual);
+         GlobalVariableSet(GV_LAST_DECAY, (double)ahora);
+         if(diasPasados >= 1)
+            Feedback("DIA_CORRECTO", diasPasados);
+      }
+   } else {
+      GlobalVariableSet(GV_LAST_DECAY, (double)ahora);
+   }
+}
+
+//+------------------------------------------------------------------+
+//| ANADIR PUNTOS AL SCORE                                            |
+//+------------------------------------------------------------------+
+void AnadirScore(double puntos, string evento)
+{
+   double puntosAjustados = puntos * multScore;
+   scoreActual += puntosAjustados;
+   if(scoreActual < 0) scoreActual = 0;
+   violacionesHoy++;
+   GlobalVariableSet(GV_SCORE, scoreActual);
+
+   Log("CONDUCTUAL [" + evento + "] +" + DoubleToString(puntosAjustados, 1) +
+       " pts | Score: " + DoubleToString(scoreActual, 1) +
+       " | Perfil: " + GetPerfil() +
+       " | Disciplina: " + IntegerToString(GetIndiceDisciplina()) + "/100");
+
+   Feedback(evento, 0);
+}
+
+//+------------------------------------------------------------------+
+//| ACTUALIZACION CONDUCTUAL EN TIEMPO REAL                           |
+//+------------------------------------------------------------------+
+void ActualizarConductual()
+{
+   // Mostrar estado en comentario del grafico
+   string comentario = "TradyncApp | Score: " + DoubleToString(scoreActual, 0) +
+                       " | " + GetPerfil() +
+                       " | Disciplina: " + IntegerToString(GetIndiceDisciplina()) + "/100" +
+                       " | Violaciones hoy: " + IntegerToString(violacionesHoy);
+   Comment(comentario);
+}
+
+//+------------------------------------------------------------------+
+//| VERIFICAR MODO RESTRICTIVO                                         |
+//| Retorna true si debe bloquear la operacion                        |
+//+------------------------------------------------------------------+
+bool ModoRestrictivoBloqueado(ulong ticket)
+{
+   if(!ActivarModoRestrictivo) return false;
+   if(scoreActual < LimiteBloqueoScore) return false;
+
+   // Verificar reintentos repetidos
+   datetime ahora = TimeCurrent();
+   datetime ultimoBloqueo = 0;
+   if(GlobalVariableCheck(GV_LAST_BLOCK))
+      ultimoBloqueo = (datetime)GlobalVariableGet(GV_LAST_BLOCK);
+
+   // Si es un reintento rapido tras bloqueo
+   if(ultimoBloqueo > 0 && (ahora - ultimoBloqueo) < 60) {
+      reintentosBloqueo++;
+      if(reintentosBloqueo >= 2)
+         AnadirScore(2, "REINTENTOS_BLOQUEO");
+   } else {
+      reintentosBloqueo = 0;
+   }
+
+   GlobalVariableSet(GV_LAST_BLOCK, (double)ahora);
+
+   Log("MODO RESTRICTIVO: Score " + DoubleToString(scoreActual, 0) +
+       " >= limite " + IntegerToString(LimiteBloqueoScore) +
+       ". Bloqueando ticket " + IntegerToString(ticket));
+   AnadirScore(0, "BLOQUEO_ACTIVO"); // Solo log, sin puntos extra
+
+   return true;
+}
+
+//+------------------------------------------------------------------+
+//| DETECTAR IMPULSIVIDAD                                             |
+//+------------------------------------------------------------------+
+void CheckImpulsividad(datetime openTime)
+{
+   if(ultimaCierre == 0) return;
+   if(MinutosEntreOpsImpulsivo <= 0) return;
+
+   int segundosDesdeUltimaCierre = (int)(openTime - ultimaCierre);
+   int limiteSegundos = MinutosEntreOpsImpulsivo * 60;
+
+   if(segundosDesdeUltimaCierre > 0 && segundosDesdeUltimaCierre < limiteSegundos) {
+      AnadirScore(1, "IMPULSIVIDAD");
+   }
+}
+
+//+------------------------------------------------------------------+
+//| PERFIL Y METRICAS                                                 |
+//+------------------------------------------------------------------+
+string GetPerfil()
+{
+   if(scoreActual <= 5)  return "Disciplinado";
+   if(scoreActual <= 10) return "Levemente impulsivo";
+   if(scoreActual <= 20) return "Indisciplinado";
+   if(scoreActual <= 35) return "Alto riesgo";
+   return "Trading compulsivo";
+}
+
+int GetIndiceDisciplina()
+{
+   int indice = 100 - (int)scoreActual;
+   if(indice < 0)   indice = 0;
+   if(indice > 100) indice = 100;
+   return indice;
+}
+
+//+------------------------------------------------------------------+
+//| FEEDBACK AUTOMATICO                                               |
+//+------------------------------------------------------------------+
+void Feedback(string evento, int extra)
+{
+   if(!ActivarFeedback) return;
+
+   string msg = "";
+   if(evento == "EXCESO_OPS")
+      msg = "⚠️ Has superado el limite diario de operaciones. Score: " +
+            DoubleToString(scoreActual, 0);
+   else if(evento == "OPERATIVA_TRAS_PERDIDA")
+      msg = "🚨 Posible trading por venganza detectado. Toma un descanso.";
+   else if(evento == "OVERTRADING")
+      msg = "📊 Sobreoperacion detectada. Reduce la frecuencia de tus entradas.";
+   else if(evento == "IMPULSIVIDAD")
+      msg = "📉 Operacion impulsiva detectada. Esperaste menos de " +
+            IntegerToString(MinutosEntreOpsImpulsivo) + " minutos entre ops.";
+   else if(evento == "FUERA_HORARIO")
+      msg = "🕐 Operacion fuera del horario permitido.";
+   else if(evento == "REINTENTOS_BLOQUEO")
+      msg = "🔁 Multiples reintentos tras bloqueo. Señal de impulsividad alta.";
+   else if(evento == "BLOQUEO_ACTIVO")
+      msg = "🔒 Modo restrictivo activo. Score " + DoubleToString(scoreActual, 0) +
+            " >= " + IntegerToString(LimiteBloqueoScore) +
+            ". Nuevas operaciones bloqueadas.";
+   else if(evento == "DIA_CORRECTO") {
+      if(extra >= 1)
+         msg = "✅ " + IntegerToString(extra) + " dia(s) siguiendo las reglas. " +
+               "Score reducido. Disciplina: " +
+               IntegerToString(GetIndiceDisciplina()) + "/100";
+   }
+
+   if(msg != "") Print("TradyncSync FEEDBACK: " + msg);
 }
 
 //+------------------------------------------------------------------+
@@ -96,13 +340,15 @@ void OnTrade()
 void InicializarDia()
 {
    MqlDateTime dt; TimeToStruct(TimeCurrent(), dt);
-   diaActual = StringFormat("%04d.%02d.%02d", dt.year, dt.mon, dt.day);
-   balanceInicio = AccountInfoDouble(ACCOUNT_BALANCE);
+   diaActual             = StringFormat("%04d.%02d.%02d", dt.year, dt.mon, dt.day);
+   balanceInicio         = AccountInfoDouble(ACCOUNT_BALANCE);
+   limitePerdidaAlcanzado  = false;
+   limiteGananciaAlcanzado = false;
    ArrayResize(ticketsValidosHoy, 0);
-   contadorValidosHoy = 0;
+   contadorValidosHoy    = 0;
+   violacionesHoy        = 0;
 
-   // Recuperar posiciones ya abiertas HOY al arrancar el EA
-   // Las contamos como validas hasta el limite
+   // Recuperar posiciones ya abiertas hoy al arrancar
    if(MaxOperacionesDiarias > 0) {
       int total = PositionsTotal();
       for(int i = 0; i < total; i++) {
@@ -110,22 +356,21 @@ void InicializarDia()
          if(!PositionSelectByTicket(tk)) continue;
          datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
          MqlDateTime dtO; TimeToStruct(openT, dtO);
-         // Si se abrio hoy
          if(dtO.year == dt.year && dtO.mon == dt.mon && dtO.day == dt.day) {
             if(contadorValidosHoy < MaxOperacionesDiarias) {
-               // Esta dentro del limite, marcarla como valida
                int sz = ArraySize(ticketsValidosHoy);
-               ArrayResize(ticketsValidosHoy, sz + 1);
+               ArrayResize(ticketsValidosHoy, sz+1);
                ticketsValidosHoy[sz] = tk;
                contadorValidosHoy++;
             }
-            // Si ya supera el limite al arrancar, se cerrara en GestorRiesgo
          }
       }
    }
 
-   Log("Dia: " + diaActual + " | Ops validas al inicio: " +
-       IntegerToString(contadorValidosHoy));
+   Log("Dia: " + diaActual +
+       " | Ops validas: " + IntegerToString(contadorValidosHoy) +
+       " | Score: " + DoubleToString(scoreActual, 1) +
+       " | Disciplina: " + IntegerToString(GetIndiceDisciplina()) + "/100");
 }
 
 void VerificarCambioDia()
@@ -133,7 +378,8 @@ void VerificarCambioDia()
    MqlDateTime dt; TimeToStruct(TimeCurrent(), dt);
    string hoy = StringFormat("%04d.%02d.%02d", dt.year, dt.mon, dt.day);
    if(hoy != diaActual) {
-      Log("Nuevo dia. Reiniciando contador.");
+      Log("Nuevo dia. Reiniciando contadores.");
+      AplicarDecaimiento();
       InicializarDia();
    }
 }
@@ -144,20 +390,22 @@ void VerificarCambioDia()
 void GestorRiesgo()
 {
    // LIMITE DE PERDIDA
-   if(LimitePerdidaDiaria > 0) {
+   if(LimitePerdidaDiaria > 0 && !limitePerdidaAlcanzado) {
       double pnl = AccountInfoDouble(ACCOUNT_EQUITY) - balanceInicio;
       if(pnl <= -MathAbs(LimitePerdidaDiaria)) {
-         Log("RIESGO: Limite perdida (" + DoubleToString(pnl, 2) + "$). Cerrando todo.");
+         limitePerdidaAlcanzado = true;
+         Log("RIESGO: Limite perdida alcanzado. Cerrando todo.");
          CerrarTodas("Limite perdida diaria");
          return;
       }
    }
 
    // LIMITE DE GANANCIA
-   if(LimiteGananciaDiaria > 0) {
+   if(LimiteGananciaDiaria > 0 && !limiteGananciaAlcanzado) {
       double pnl = AccountInfoDouble(ACCOUNT_EQUITY) - balanceInicio;
       if(pnl >= MathAbs(LimiteGananciaDiaria)) {
-         Log("RIESGO: Limite ganancia (" + DoubleToString(pnl, 2) + "$). Cerrando todo.");
+         limiteGananciaAlcanzado = true;
+         Log("RIESGO: Limite ganancia alcanzado. Cerrando todo.");
          CerrarTodas("Limite ganancia diaria");
          return;
       }
@@ -178,68 +426,102 @@ void GestorRiesgo()
             bool fueraAp = HoraInicio < HoraFin
                ? (dtO.hour < HoraInicio || dtO.hour >= HoraFin)
                : (dtO.hour < HoraInicio && dtO.hour >= HoraFin);
-            if(fueraAp) CerrarPosicion(tk, "Fuera de horario");
+            if(fueraAp) {
+               if(ActivarAnalisisConductual)
+                  AnadirScore(1, "FUERA_HORARIO");
+               CerrarPosicion(tk, "Fuera de horario");
+            }
          }
       }
    }
 
-   // MAX OPERACIONES DIARIAS
+   // MAX OPERACIONES
    CheckMaxOps();
 }
 
 //+------------------------------------------------------------------+
-//| LOGICA MAX OPERACIONES                                            |
-//|                                                                   |
-//| Principio: mantenemos una lista de tickets VALIDOS del dia.      |
-//| Valido = se abrio dentro del limite.                             |
-//| Cualquier posicion abierta hoy que NO este en la lista de        |
-//| validos se cierra inmediatamente.                                |
+//| MAX OPERACIONES DIARIAS                                           |
 //+------------------------------------------------------------------+
 void CheckMaxOps()
 {
    if(MaxOperacionesDiarias <= 0) return;
-
    int total = PositionsTotal();
    if(total == 0) return;
 
    MqlDateTime dtH; TimeToStruct(TimeCurrent(), dtH);
 
-   for(int i = total - 1; i >= 0; i--) {
+   for(int i = total-1; i >= 0; i--) {
       ulong tk = PositionGetTicket(i);
       if(!PositionSelectByTicket(tk)) continue;
 
-      // Solo procesar posiciones abiertas HOY
       datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
       MqlDateTime dtO; TimeToStruct(openT, dtO);
       if(dtO.year != dtH.year || dtO.mon != dtH.mon || dtO.day != dtH.day)
-         continue; // Abierta otro dia, no tocar
+         continue;
 
-      // Comprobar si este ticket ya esta en nuestra lista de validos
-      bool esValido = false;
+      // Ver si ya es valida
+      bool esValida = false;
       for(int j = 0; j < ArraySize(ticketsValidosHoy); j++) {
-         if(ticketsValidosHoy[j] == tk) { esValido = true; break; }
+         if(ticketsValidosHoy[j] == tk) { esValida = true; break; }
       }
+      if(esValida) continue;
 
-      if(esValido) continue; // Ya esta registrada como valida, no tocar
-
-      // No esta en la lista. Ver si podemos anadirla (hay hueco en el limite)
       if(contadorValidosHoy < MaxOperacionesDiarias) {
-         // Hay hueco — anadir como valida
+         // Verificar modo restrictivo antes de validar
+         if(ActivarAnalisisConductual && ModoRestrictivoBloqueado(tk)) {
+            CerrarPosicion(tk, "Modo restrictivo activo");
+            continue;
+         }
+         // Verificar impulsividad
+         if(ActivarAnalisisConductual)
+            CheckImpulsividad(openT);
+         // Marcar como valida
          int sz = ArraySize(ticketsValidosHoy);
-         ArrayResize(ticketsValidosHoy, sz + 1);
+         ArrayResize(ticketsValidosHoy, sz+1);
          ticketsValidosHoy[sz] = tk;
          contadorValidosHoy++;
          Log("Op valida #" + IntegerToString(contadorValidosHoy) +
              " ticket=" + IntegerToString(tk));
       } else {
-         // No hay hueco — cerrar esta posicion
-         Log("RIESGO: Op fuera de limite. Ticket=" + IntegerToString(tk) +
-             " (limite=" + IntegerToString(MaxOperacionesDiarias) +
-             " alcanzado con " + IntegerToString(contadorValidosHoy) + " ops validas)");
+         // Fuera del limite
+         if(ActivarAnalisisConductual) {
+            AnadirScore(2, "EXCESO_OPS");
+            if(limitePerdidaAlcanzado)
+               AnadirScore(3, "OPERATIVA_TRAS_PERDIDA");
+         }
          CerrarPosicion(tk, "Excede limite diario");
-         SendRiskEvent("max_ops", contadorValidosHoy);
       }
    }
+
+   // Detectar overtrading (muchas ops en poco tiempo)
+   if(ActivarAnalisisConductual && contadorValidosHoy >= 3) {
+      CheckOvertrading();
+   }
+}
+
+//+------------------------------------------------------------------+
+//| DETECTAR OVERTRADING                                              |
+//+------------------------------------------------------------------+
+void CheckOvertrading()
+{
+   if(PositionsTotal() < 2) return;
+
+   // Contar ops abiertas en los ultimos 10 minutos
+   int opsRecientes = 0;
+   datetime hace10min = TimeCurrent() - 600;
+   MqlDateTime dtH; TimeToStruct(TimeCurrent(), dtH);
+
+   for(int i = 0; i < PositionsTotal(); i++) {
+      ulong tk = PositionGetTicket(i);
+      if(!PositionSelectByTicket(tk)) continue;
+      datetime openT = (datetime)PositionGetInteger(POSITION_TIME);
+      MqlDateTime dtO; TimeToStruct(openT, dtO);
+      if(dtO.year == dtH.year && dtO.mon == dtH.mon && dtO.day == dtH.day)
+         if(openT >= hace10min) opsRecientes++;
+   }
+
+   if(opsRecientes >= 3)
+      AnadirScore(1, "OVERTRADING");
 }
 
 //+------------------------------------------------------------------+
@@ -279,7 +561,10 @@ void CerrarTodas(string motivo)
 void SendRiskEvent(string tipo, double valor)
 {
    string json = "{\\"tipo\\":\\"" + tipo + "\\","
-               + "\\"valor\\":" + DoubleToString(valor, 2) + ","
+               + "\\"valor\\":" + DoubleToString(valor,2) + ","
+               + "\\"score\\":" + DoubleToString(scoreActual,1) + ","
+               + "\\"perfil\\":\\"" + GetPerfil() + "\\","
+               + "\\"disciplina\\":" + IntegerToString(GetIndiceDisciplina()) + ","
                + "\\"account\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)) + "}";
    Post(ENDPOINT + "/mt-risk", json);
 }
@@ -297,11 +582,11 @@ void RegisterAccount()
       + "\\"server\\":\\"" + EscJ(AccountInfoString(ACCOUNT_SERVER)) + "\\","
       + "\\"currency\\":\\"" + EscJ(AccountInfoString(ACCOUNT_CURRENCY)) + "\\","
       + "\\"leverage\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LEVERAGE)) + ","
-      + "\\"balance\\":" + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE), 2) + ","
+      + "\\"balance\\":" + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE),2) + ","
       + "\\"platform\\":\\"MT5\\","
       + "\\"account_type\\":\\"" + tipo + "\\""
       + "}";
-   Log("Cuenta registrada: " + Post(ENDPOINT + "/mt-register", json));
+   Log("Cuenta: " + Post(ENDPOINT + "/mt-register", json));
 }
 
 //+------------------------------------------------------------------+
@@ -332,20 +617,20 @@ void SendPos(ulong tk)
       + "\\"ticket\\":" + IntegerToString(tk) + ","
       + "\\"symbol\\":\\"" + EscJ(PositionGetString(POSITION_SYMBOL)) + "\\","
       + "\\"type\\":\\"" + tipo + "\\","
-      + "\\"volume\\":" + DoubleToString(PositionGetDouble(POSITION_VOLUME), 2) + ","
-      + "\\"open_price\\":" + DoubleToString(PositionGetDouble(POSITION_PRICE_OPEN), 5) + ","
-      + "\\"sl\\":" + DoubleToString(PositionGetDouble(POSITION_SL), 5) + ","
-      + "\\"tp\\":" + DoubleToString(PositionGetDouble(POSITION_TP), 5) + ","
+      + "\\"volume\\":" + DoubleToString(PositionGetDouble(POSITION_VOLUME),2) + ","
+      + "\\"open_price\\":" + DoubleToString(PositionGetDouble(POSITION_PRICE_OPEN),5) + ","
+      + "\\"sl\\":" + DoubleToString(PositionGetDouble(POSITION_SL),5) + ","
+      + "\\"tp\\":" + DoubleToString(PositionGetDouble(POSITION_TP),5) + ","
       + "\\"open_time\\":\\"" + FmtDT((datetime)PositionGetInteger(POSITION_TIME)) + "\\","
-      + "\\"profit\\":" + DoubleToString(PositionGetDouble(POSITION_PROFIT), 2) + ","
-      + "\\"swap\\":" + DoubleToString(PositionGetDouble(POSITION_SWAP), 2) + ","
+      + "\\"profit\\":" + DoubleToString(PositionGetDouble(POSITION_PROFIT),2) + ","
+      + "\\"swap\\":" + DoubleToString(PositionGetDouble(POSITION_SWAP),2) + ","
       + "\\"comment\\":\\"" + EscJ(PositionGetString(POSITION_COMMENT)) + "\\","
       + "\\"magic\\":" + IntegerToString(PositionGetInteger(POSITION_MAGIC)) + ","
       + "\\"account\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN))
       + "}";
    string resp = Post(ENDPOINT + "/mt-sync", json);
    if(StringFind(resp, "close_all") >= 0) CerrarTodas("Solicitud servidor");
-   Log("Sync ticket " + IntegerToString(tk));
+   Log("Sync " + IntegerToString(tk));
 }
 
 //+------------------------------------------------------------------+
@@ -353,12 +638,20 @@ void SendPos(ulong tk)
 //+------------------------------------------------------------------+
 void CheckClosedTrades()
 {
-   HistorySelect(TimeCurrent() - 86400, TimeCurrent());
+   HistorySelect(TimeCurrent()-86400, TimeCurrent());
    for(int i = HistoryDealsTotal()-1; i >= 0; i--) {
       ulong dk = HistoryDealGetTicket(i);
       if(!dk) continue;
-      if((ENUM_DEAL_ENTRY)HistoryDealGetInteger(dk, DEAL_ENTRY) != DEAL_ENTRY_OUT) continue;
+      if((ENUM_DEAL_ENTRY)HistoryDealGetInteger(dk,DEAL_ENTRY) != DEAL_ENTRY_OUT) continue;
       if(Sent(dk)) continue;
+
+      // Actualizar ultima cierre para deteccion de impulsividad
+      datetime closeT = (datetime)HistoryDealGetInteger(dk, DEAL_TIME);
+      if(closeT > ultimaCierre) {
+         ultimaCierre = closeT;
+         GlobalVariableSet(GV_LAST_CLOSE, (double)ultimaCierre);
+      }
+
       SendClosed(dk);
       MarkSent(dk);
    }
@@ -371,32 +664,32 @@ void SendClosed(ulong dk)
    HistorySelectByPosition(posId);
    for(int j = 0; j < HistoryDealsTotal(); j++) {
       ulong d = HistoryDealGetTicket(j);
-      if((ENUM_DEAL_ENTRY)HistoryDealGetInteger(d, DEAL_ENTRY) == DEAL_ENTRY_IN) {
+      if((ENUM_DEAL_ENTRY)HistoryDealGetInteger(d,DEAL_ENTRY) == DEAL_ENTRY_IN) {
          openPx = HistoryDealGetDouble(d, DEAL_PRICE);
          openT  = (datetime)HistoryDealGetInteger(d, DEAL_TIME);
-         tipo   = HistoryDealGetInteger(d, DEAL_TYPE) == DEAL_TYPE_BUY ? "BUY" : "SELL";
+         tipo   = HistoryDealGetInteger(d,DEAL_TYPE) == DEAL_TYPE_BUY ? "BUY" : "SELL";
          break;
       }
    }
    string json = "{"
       + "\\"ticket\\":" + IntegerToString(posId) + ","
-      + "\\"symbol\\":\\"" + EscJ(HistoryDealGetString(dk, DEAL_SYMBOL)) + "\\","
+      + "\\"symbol\\":\\"" + EscJ(HistoryDealGetString(dk,DEAL_SYMBOL)) + "\\","
       + "\\"type\\":\\"" + tipo + "\\","
-      + "\\"volume\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_VOLUME), 2) + ","
-      + "\\"open_price\\":" + DoubleToString(openPx, 5) + ","
-      + "\\"close_price\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_PRICE), 5) + ","
+      + "\\"volume\\":" + DoubleToString(HistoryDealGetDouble(dk,DEAL_VOLUME),2) + ","
+      + "\\"open_price\\":" + DoubleToString(openPx,5) + ","
+      + "\\"close_price\\":" + DoubleToString(HistoryDealGetDouble(dk,DEAL_PRICE),5) + ","
       + "\\"open_time\\":\\"" + FmtDT(openT) + "\\","
-      + "\\"close_time\\":\\"" + FmtDT((datetime)HistoryDealGetInteger(dk, DEAL_TIME)) + "\\","
-      + "\\"profit\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_PROFIT), 2) + ","
-      + "\\"swap\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_SWAP), 2) + ","
-      + "\\"commission\\":" + DoubleToString(HistoryDealGetDouble(dk, DEAL_COMMISSION), 2) + ","
-      + "\\"comment\\":\\"" + EscJ(HistoryDealGetString(dk, DEAL_COMMENT)) + "\\","
-      + "\\"magic\\":" + IntegerToString(HistoryDealGetInteger(dk, DEAL_MAGIC)) + ","
+      + "\\"close_time\\":\\"" + FmtDT((datetime)HistoryDealGetInteger(dk,DEAL_TIME)) + "\\","
+      + "\\"profit\\":" + DoubleToString(HistoryDealGetDouble(dk,DEAL_PROFIT),2) + ","
+      + "\\"swap\\":" + DoubleToString(HistoryDealGetDouble(dk,DEAL_SWAP),2) + ","
+      + "\\"commission\\":" + DoubleToString(HistoryDealGetDouble(dk,DEAL_COMMISSION),2) + ","
+      + "\\"comment\\":\\"" + EscJ(HistoryDealGetString(dk,DEAL_COMMENT)) + "\\","
+      + "\\"magic\\":" + IntegerToString(HistoryDealGetInteger(dk,DEAL_MAGIC)) + ","
       + "\\"account\\":" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN))
       + "}";
    Post(ENDPOINT + "/mt-trade", json);
-   Log("Cerrada ticket=" + IntegerToString(posId) +
-       " profit=" + DoubleToString(HistoryDealGetDouble(dk, DEAL_PROFIT), 2));
+   Log("Cerrada " + IntegerToString(posId) +
+       " profit=" + DoubleToString(HistoryDealGetDouble(dk,DEAL_PROFIT),2));
 }
 
 //+------------------------------------------------------------------+
