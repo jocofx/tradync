@@ -599,7 +599,11 @@
       .grid-2-1, .grid-1-2 { grid-template-columns: 1fr; }
       .grid-3 { grid-template-columns: 1fr 1fr; }
     }
-  </style>
+  
+    /* Backward compat: support both .active and .active-panel */
+    .tab-panel { display: none !important; }
+    .tab-panel.active, .tab-panel.active-panel { display: block !important; }
+</style>
 </head>
 <body>
 <div class="app-shell">
@@ -3026,11 +3030,12 @@ function toast(msg, type='info') {
 
 // Tab
 function goTab(id, el) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => { p.classList.remove('active'); p.classList.remove('active-panel'); });
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const panel = document.getElementById('panel-' + id);
-  if (panel) panel.classList.add('active');
+  if (panel) { panel.classList.add('active'); panel.classList.add('active-panel'); }
   if (el) el.classList.add('active');
+  else { var ni = document.getElementById('nav-' + id); if (ni) ni.classList.add('active'); }
 
   // Update page title
   const titles = {
@@ -3053,6 +3058,8 @@ function goTab(id, el) {
     planes: '⭐ <span>Hazte Pro+</span>'
   };
   const titleEl = document.getElementById('page-title');
+  const topbarTitle = document.getElementById('topbar-title');
+  if (topbarTitle && titles[id]) topbarTitle.textContent = titles[id].replace(/<[^>]+>/g,'');
   if (titleEl && titles[id]) titleEl.innerHTML = titles[id];
 
   // Panel-specific renders
@@ -8171,6 +8178,102 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }, 2000);
 });
+
+
+// Bridge: sync legacy metric IDs to new dashboard display
+function syncDashboardMetrics() {
+  // Pull values from legacy hidden elements and display in new dashboard
+  var map = {
+    'm-pnl': 'dash-pnl',
+    'm-wr': 'dash-winrate',
+    'm-ops': 'dash-ops-hoy',
+    'm-pf': null,
+    'm-worst': null
+  };
+  Object.keys(map).forEach(function(from) {
+    var to = map[from];
+    if (!to) return;
+    var src = document.getElementById(from);
+    var dst = document.getElementById(to);
+    if (src && dst && src.textContent) dst.textContent = src.textContent;
+  });
+  
+  // Update dash date
+  var dateEl = document.getElementById('dash-date');
+  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
+  
+  // Render recent ops in new dashboard
+  try { renderDashRecentOps(allTrades); } catch(e) {}
+  try { renderDashSessions(allTrades); } catch(e) {}
+  try { renderDashByPair(allTrades); } catch(e) {}
+  
+  // Dashboard chart
+  renderDashboardChart();
+}
+
+function renderDashboardChart() {
+  var ctx = document.getElementById('dash-chart');
+  if (!ctx || !allTrades.length) return;
+  if (window._dashChart) { window._dashChart.destroy(); }
+  
+  // Build cumulative PnL by date
+  var sorted = allTrades
+    .filter(function(t){ return t.resultado !== null && t.fecha; })
+    .sort(function(a,b){ return new Date(a.fecha)-new Date(b.fecha); });
+  
+  var cumulative = 0;
+  var labels = [];
+  var data = [];
+  sorted.forEach(function(t) {
+    cumulative += parseFloat(t.resultado||0);
+    labels.push(new Date(t.fecha).toLocaleDateString('es',{day:'numeric',month:'short'}));
+    data.push(parseFloat(cumulative.toFixed(2)));
+  });
+  
+  var isDark = !document.body.classList.contains('light-mode');
+  var gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  var textColor = isDark ? '#50505e' : '#a0a0b0';
+  
+  window._dashChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        borderColor: '#00b87a',
+        borderWidth: 2,
+        fill: true,
+        backgroundColor: function(context) {
+          var chart = context.chart;
+          var ctx2 = chart.ctx, chartArea = chart.chartArea;
+          if (!chartArea) return 'transparent';
+          var gradient = ctx2.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          gradient.addColorStop(0, 'rgba(0,184,122,0.2)');
+          gradient.addColorStop(1, 'rgba(0,184,122,0)');
+          return gradient;
+        },
+        tension: 0.4,
+        pointRadius: 0,
+        pointHoverRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: isDark ? '#222228' : '#fff',
+        titleColor: isDark ? '#f0f0f2' : '#0f0f10',
+        bodyColor: '#00b87a',
+        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+        borderWidth: 1,
+        callbacks: { label: function(ctx3) { return ' $' + ctx3.raw.toFixed(2); } }
+      }},
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: textColor, maxTicksLimit: 8, font: { size: 10 } } },
+        y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 10 }, callback: function(v) { return '$'+v; } } }
+      }
+    }
+  });
+}
 
 window.addEventListener('load', async () => {
   // Set date field
