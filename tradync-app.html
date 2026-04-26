@@ -735,6 +735,9 @@
         <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--text2)"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       </button>
       <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div id="topbar-quote" style="flex:1;text-align:center;font-size:11px;color:var(--text3);font-style:italic;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 20px;display:none;">
+        <span id="topbar-quote-text"></span> <span id="topbar-quote-author" style="opacity:0.6;"></span>
+      </div>
       <div class="topbar-right">
         <div class="ea-status-pill" id="ea-status-pill" style="display:none">
           <div class="ea-dot"></div>
@@ -8145,6 +8148,30 @@ async function initEAScoreBar() {
 }
 
 
+
+// Bridge: show quotes in topbar
+var _origShowQuote = null;
+document.addEventListener('DOMContentLoaded', function() {
+  // After main JS loads, patch showQuote to also update topbar
+  setTimeout(function() {
+    var qTextA = document.getElementById('quote-text-a');
+    var qAuthA = document.getElementById('quote-author-a');
+    if (qTextA) {
+      var observer = new MutationObserver(function() {
+        var tq = document.getElementById('topbar-quote');
+        var tt = document.getElementById('topbar-quote-text');
+        var ta = document.getElementById('topbar-quote-author');
+        if (tq && tt && ta) {
+          tt.textContent = qTextA.textContent;
+          ta.textContent = qAuthA.textContent;
+          if (qTextA.textContent) tq.style.display = 'block';
+        }
+      });
+      observer.observe(qTextA, {childList: true, characterData: true, subtree: true});
+    }
+  }, 2000);
+});
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
@@ -8620,8 +8647,15 @@ function renderPsychCharts() {
 <div id="toast" style="position:fixed;bottom:24px;right:24px;background:var(--green);color:#000;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;display:none;box-shadow:0 4px 20px rgba(0,0,0,0.3);max-width:320px;"></div>
 
 <!-- Quote elements (dashboard) -->
-<div id="quote-text-a" style="display:none"></div>
-<div id="quote-author-a" style="display:none"></div>
+<!-- Quote system elements -->
+<div id="quote-slide-a" class="quote-slide" style="display:none;position:absolute;opacity:0;">
+  <span id="quote-text-a"></span>
+  <span id="quote-author-a"></span>
+</div>
+<div id="quote-slide-b" class="quote-slide" style="display:none;position:absolute;opacity:0;">
+  <span id="quote-text-b"></span>
+  <span id="quote-author-b"></span>
+</div>
 
 <!-- Risk bar elements -->
 <div id="fixed-risk-bar" style="display:none"></div>
