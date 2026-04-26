@@ -9011,6 +9011,102 @@ function renderDashboardChart() {
   });
 }
 
+
+// ═══════════════════════════════════════════════
+// NUEVA CUENTA MODAL
+// ═══════════════════════════════════════════════
+function showNuevaCuenta() {
+  var modal = document.getElementById('modal-overlay');
+  if (modal) {
+    modal.style.display = 'flex';
+    switchModalTab('manual');
+  }
+}
+
+function switchModalTab(tab) {
+  var manualBody = document.getElementById('modal-body-manual');
+  var eaBody     = document.getElementById('modal-body-ea');
+  var btnManual  = document.getElementById('modal-tab-manual');
+  var btnEa      = document.getElementById('modal-tab-ea');
+  if (!manualBody) return;
+
+  if (tab === 'manual') {
+    manualBody.style.display = 'block';
+    eaBody.style.display     = 'none';
+    btnManual.style.borderColor = 'var(--green)';
+    btnManual.style.background  = 'var(--green-bg)';
+    btnManual.style.color       = 'var(--green)';
+    btnEa.style.borderColor  = 'var(--border)';
+    btnEa.style.background   = 'transparent';
+    btnEa.style.color        = 'var(--text2)';
+  } else {
+    manualBody.style.display = 'none';
+    eaBody.style.display     = 'block';
+    btnEa.style.borderColor  = 'var(--green)';
+    btnEa.style.background   = 'var(--green-bg)';
+    btnEa.style.color        = 'var(--green)';
+    btnManual.style.borderColor = 'var(--border)';
+    btnManual.style.background  = 'transparent';
+    btnManual.style.color       = 'var(--text2)';
+    setEaStep(1);
+  }
+}
+
+function setEaStep(step) {
+  [1,2,3].forEach(function(s) {
+    var body = document.getElementById('ea-modal-step-' + s);
+    var btn  = document.getElementById('ea-step-' + s + '-btn');
+    if (body) body.style.display = s === step ? 'block' : 'none';
+    if (btn) {
+      btn.style.background = s === step ? 'var(--bg2)' : 'transparent';
+      btn.style.color      = s === step ? 'var(--text)' : 'var(--text3)';
+    }
+  });
+  if (step === 3) setTimeout(function() { try { checkEAModalConnection(); } catch(e) {} }, 300);
+}
+
+async function checkEAModalConnection() {
+  if (!currentUser) return;
+  var icon  = document.getElementById('ea-modal-status-icon');
+  var title = document.getElementById('ea-modal-status-title');
+  var desc  = document.getElementById('ea-modal-status-desc');
+  if (icon)  icon.textContent  = '🔄';
+  if (title) title.textContent = 'Verificando...';
+  try {
+    var r = await sb.from('cuentas').select('*').eq('user_id', currentUser.id).eq('activa', true);
+    var cuentas = (r.data || []).filter(function(c) { return c.broker || c.plataforma; });
+    if (cuentas.length) {
+      if (icon)  icon.textContent  = '✅';
+      if (title) title.textContent = '¡Conectado correctamente!';
+      if (desc)  desc.textContent  = cuentas.length + ' cuenta' + (cuentas.length > 1 ? 's' : '') + ' sincronizada' + (cuentas.length > 1 ? 's' : '') + ' con TradyncApp.';
+      var listEl = document.getElementById('ea-modal-accounts-list');
+      var accEl  = document.getElementById('ea-modal-accounts');
+      if (listEl) {
+        listEl.innerHTML = cuentas.map(function(c) {
+          return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border-radius:8px;">' +
+            '<div style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);flex-shrink:0;"></div>' +
+            '<div style="flex:1;">' +
+              '<div style="font-size:13px;font-weight:700;">' + (c.nombre || 'Cuenta MT') + '</div>' +
+              '<div style="font-size:11px;color:var(--text3);">' + (c.broker || '') + ' · ' + (c.tipo || '') + (c.balance ? ' · $' + parseFloat(c.balance).toFixed(0) : '') + '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+      }
+      if (accEl) accEl.style.display = 'block';
+      // Refresh accounts in background
+      try { await loadAccountsFromNotion(); renderCuentas(); } catch(e2) {}
+    } else {
+      if (icon)  icon.textContent  = '⏳';
+      if (title) title.textContent = 'Esperando datos del EA...';
+      if (desc)  desc.textContent  = 'El EA aún no ha enviado datos. Comprueba que está activo en MT5 y que el Trading Algorítmico está activado (botón verde).';
+    }
+  } catch(e) {
+    if (icon)  icon.textContent  = '❌';
+    if (title) title.textContent = 'Error verificando';
+    console.error('checkEAModalConnection error:', e);
+  }
+}
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
@@ -9537,24 +9633,128 @@ function renderPsychCharts() {
 <div id="weekday-performance" style="display:none"></div>
 
 <!-- New account modal (legacy) -->
-<div id="modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:100%;max-width:440px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-      <div style="font-size:16px;font-weight:700;">Nueva cuenta</div>
-      <button onclick="closeModal()" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;">✕</button>
+<div id="modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:520px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.5);">
+
+    <!-- Header -->
+    <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:17px;font-weight:800;color:var(--text);">Nueva cuenta</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;">Añade una cuenta de trading manualmente o sincroniza con MT4/5</div>
+      </div>
+      <button onclick="closeModal()" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">✕</button>
     </div>
-    <div class="form-group"><label>Nombre</label><input id="m-nombre" type="text" placeholder="Ej: FTMO Challenge 100K"></div>
-    <div class="form-row">
-      <div class="form-group"><label>Tipo</label><select id="m-tipo"><option value="real">Real</option><option value="demo">Demo</option><option value="prop_firm">Prop Firm</option><option value="concurso">Challenge</option></select></div>
-      <div class="form-group"><label>Fase/Plataforma</label><input id="m-fase" type="text" placeholder="MT5, FTMO..."></div>
+
+    <!-- Mode selector -->
+    <div style="padding:16px 24px 0;">
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button id="modal-tab-manual" onclick="switchModalTab('manual')" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--green);background:var(--green-bg);color:var(--green);font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;">
+          ✏ Manual
+        </button>
+        <button id="modal-tab-ea" onclick="switchModalTab('ea')" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--border);background:transparent;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;">
+          🔌 Sincronizar con EA
+        </button>
+      </div>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label>Balance inicial ($)</label><input id="m-balance" type="number" placeholder="100000"></div>
-      <div class="form-group"><label>Broker</label><input id="m-broker" type="text" placeholder="IC Markets, FTMO..."></div>
+
+    <!-- MANUAL TAB -->
+    <div id="modal-body-manual" style="padding:0 24px 24px;">
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Nombre de la cuenta</label>
+        <input id="m-nombre" type="text" placeholder="Ej: FTMO Challenge 100K">
+      </div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="m-tipo">
+            <option value="real">💰 Capital Propio — Real</option>
+            <option value="demo">🧪 Capital Propio — Demo</option>
+            <option value="prop_firm">🏆 Prop Firm</option>
+            <option value="concurso">🎯 Challenge</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Plataforma</label>
+          <input id="m-fase" type="text" placeholder="MT5, MT4, TradingView...">
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:20px;">
+        <div class="form-group">
+          <label>Balance inicial ($)</label>
+          <input id="m-balance" type="number" placeholder="100000">
+        </div>
+        <div class="form-group">
+          <label>Broker</label>
+          <input id="m-broker" type="text" placeholder="IC Markets, FTMO...">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="closeModal()" class="btn btn-secondary" style="flex:1;">Cancelar</button>
+        <button onclick="saveAccount()" class="btn btn-primary" style="flex:2;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+          Guardar cuenta
+        </button>
+      </div>
     </div>
-    <div style="display:flex;gap:10px;margin-top:4px;">
-      <button onclick="closeModal()" class="btn btn-secondary" style="flex:1;">Cancelar</button>
-      <button onclick="saveAccount()" class="btn btn-primary" style="flex:2;">Guardar cuenta</button>
+
+    <!-- EA TAB -->
+    <div id="modal-body-ea" style="display:none;padding:0 24px 24px;">
+
+      <!-- Step indicator -->
+      <div style="display:flex;gap:0;margin-bottom:20px;background:var(--bg3);border-radius:10px;padding:3px;">
+        <div id="ea-step-1-btn" onclick="setEaStep(1)" style="flex:1;text-align:center;padding:8px;border-radius:8px;font-size:11px;font-weight:700;font-family:monospace;cursor:pointer;background:var(--bg2);color:var(--text);">1 DESCARGA</div>
+        <div id="ea-step-2-btn" onclick="setEaStep(2)" style="flex:1;text-align:center;padding:8px;border-radius:8px;font-size:11px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text3);">2 INSTALA</div>
+        <div id="ea-step-3-btn" onclick="setEaStep(3)" style="flex:1;text-align:center;padding:8px;border-radius:8px;font-size:11px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text3);">3 CONECTA</div>
+      </div>
+
+      <!-- Step 1: Download -->
+      <div id="ea-modal-step-1">
+        <div style="text-align:center;padding:10px 0 20px;">
+          <div style="font-size:36px;margin-bottom:12px;">⚡</div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:6px;">Descarga el Expert Advisor</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.6;">El EA se descarga con tu token ya incluido.<br>Solo tienes que compilarlo y arrastrarlo al gráfico.</div>
+          <div style="display:flex;gap:10px;justify-content:center;">
+            <button onclick="downloadEA('mt5', this)" style="background:var(--green);color:#fff;border:none;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">↓ Descargar para MT5</button>
+            <button onclick="downloadEA('mt4', this)" style="background:var(--bg4);color:var(--text2);border:1px solid var(--border2);padding:12px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">↓ Descargar para MT4</button>
+          </div>
+        </div>
+        <button onclick="setEaStep(2)" style="width:100%;background:none;border:none;color:var(--green);font-size:12px;cursor:pointer;font-family:monospace;padding:8px 0;">Ya lo descargué → Ver cómo instalarlo →</button>
+      </div>
+
+      <!-- Step 2: Install -->
+      <div id="ea-modal-step-2" style="display:none;">
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+          <div style="background:var(--bg3);border-radius:10px;padding:12px 14px;">
+            <div style="font-size:10px;color:var(--green);font-family:monospace;letter-spacing:1px;margin-bottom:6px;">PASO 1 — COPIA EL ARCHIVO</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;">MT5: <strong style="color:var(--text)">Archivo → Abrir carpeta de datos → MQL5 → Experts</strong><br>Copia el .mq5, ve al Navigator → clic derecho → <strong style="color:var(--text)">Actualizar</strong><br>Doble clic en el EA → MetaEditor → pulsa <strong style="color:var(--green)">F7</strong> para compilar</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:10px;padding:12px 14px;">
+            <div style="font-size:10px;color:var(--green);font-family:monospace;letter-spacing:1px;margin-bottom:6px;">PASO 2 — ACTIVA WEBREQUESTS</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;"><strong style="color:var(--text)">Herramientas → Opciones → Expert Advisors</strong><br>✅ "Permitir WebRequest" → añade:<br><code style="background:var(--bg4);padding:2px 8px;border-radius:4px;color:var(--green);">https://www.tradyncapp.com</code></div>
+          </div>
+          <div style="background:var(--bg3);border-radius:10px;padding:12px 14px;">
+            <div style="font-size:10px;color:var(--green);font-family:monospace;letter-spacing:1px;margin-bottom:6px;">PASO 3 — ARRASTRA AL GRÁFICO</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7;">Navigator → Expert Advisors → <strong style="color:var(--green)">TradyncSync_MT5</strong><br>Arrástralo al gráfico → en "Common" activa ✅ <strong style="color:var(--text)">Allow WebRequests</strong> → OK</div>
+          </div>
+        </div>
+        <button onclick="setEaStep(3)" style="width:100%;background:var(--green);color:#fff;border:none;padding:12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">Ya instalé el EA → Verificar conexión →</button>
+      </div>
+
+      <!-- Step 3: Verify -->
+      <div id="ea-modal-step-3" style="display:none;">
+        <div style="text-align:center;padding:16px 0;">
+          <div id="ea-modal-status-icon" style="font-size:44px;margin-bottom:12px;">🔄</div>
+          <div id="ea-modal-status-title" style="font-size:16px;font-weight:800;margin-bottom:6px;">Verificando conexión...</div>
+          <div id="ea-modal-status-desc" style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:16px;">Asegúrate de que el EA está activo y el botón "Algo Trading" está en verde en MT5.</div>
+          <button onclick="checkEAModalConnection()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:8px 20px;border-radius:8px;font-size:12px;cursor:pointer;font-family:monospace;">↺ Verificar ahora</button>
+        </div>
+        <div id="ea-modal-accounts" style="display:none;margin-top:4px;">
+          <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:8px;">CUENTAS DETECTADAS</div>
+          <div id="ea-modal-accounts-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+          <button onclick="closeModal()" class="btn btn-primary" style="width:100%;margin-top:14px;">¡Listo! Cerrar</button>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
