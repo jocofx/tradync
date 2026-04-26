@@ -1270,101 +1270,179 @@
       </div>
     </div>
       <div class="tab-panel" id="panel-riesgo">
-      <div class="section-title">Control de riesgo en tiempo real</div>
 
-      <div class="risk-banner safe" id="risk-banner">
-        <div class="risk-banner-left">
-          <div class="risk-banner-icon">🟢</div>
-          <div>
-            <div class="risk-banner-title" id="risk-banner-title">Puedes operar</div>
-            <div class="risk-banner-sub" id="risk-banner-sub">Dentro de todos los límites</div>
-          </div>
-        </div>
-        <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;" id="risk-banner-time"></div>
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <h1 style="font-size:20px;font-weight:800;letter-spacing:-0.4px;">Control de Riesgo</h1>
+    <div style="font-size:11px;color:var(--text3);font-family:monospace;" id="risk-banner-time"></div>
+  </div>
+
+  <!-- Status banner -->
+  <div id="risk-banner" class="risk-banner safe" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:12px;margin-bottom:18px;border:1px solid rgba(0,184,122,0.2);background:rgba(0,184,122,0.07);">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex-shrink:0;"></div>
+      <div>
+        <div id="risk-banner-title" style="font-size:14px;font-weight:700;color:var(--text);">Puedes operar</div>
+        <div id="risk-banner-sub" style="font-size:12px;color:var(--text2);margin-top:2px;">Dentro de todos los límites</div>
       </div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);font-family:monospace;" id="risk-ops-restantes"></div>
+  </div>
 
-      <div class="risk-meters">
-        <div class="risk-meter">
-          <div class="risk-meter-label">Pérdida hoy</div>
-          <div class="risk-meter-value" id="rm-loss" style="color:var(--red)">$0</div>
-          <div class="risk-meter-bar"><div class="risk-meter-fill" id="rm-loss-bar" style="background:var(--red);width:0%"></div></div>
-          <div class="risk-meter-sub" id="rm-loss-sub">Límite: $200</div>
+  <!-- 4 Metric meters -->
+  <div class="grid-4" style="margin-bottom:18px;">
+
+    <div class="card" style="padding:16px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
+        <div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-weight:600;margin-bottom:4px;">Pérdida hoy</div>
+          <div id="rm-loss" style="font-size:24px;font-weight:800;color:var(--red);letter-spacing:-0.5px;">$0</div>
         </div>
-        <div class="risk-meter">
-          <div class="risk-meter-label">Ops. hoy</div>
-          <div class="risk-meter-value" id="rm-ops" style="color:var(--blue)">0/5</div>
-          <div class="risk-meter-bar"><div class="risk-meter-fill" id="rm-ops-bar" style="background:var(--blue);width:0%"></div></div>
-          <div class="risk-meter-sub" id="rm-ops-sub">Máximo: 5 operaciones</div>
-        </div>
-        <div class="risk-meter">
-          <div class="risk-meter-label">P&L hoy</div>
-          <div class="risk-meter-value" id="rm-pnl" style="color:var(--green)">$0</div>
-          <div class="risk-meter-bar"><div class="risk-meter-fill" id="rm-pnl-bar" style="background:var(--green);width:0%"></div></div>
-          <div class="risk-meter-sub" id="rm-pnl-sub">Objetivo: no configurado</div>
-        </div>
-        <div class="risk-meter">
-          <div class="risk-meter-label">Win rate hoy</div>
-          <div class="risk-meter-value" id="rm-wr" style="color:var(--amber)">—</div>
-          <div class="risk-meter-bar"><div class="risk-meter-fill" id="rm-wr-bar" style="background:var(--amber);width:0%"></div></div>
-          <div class="risk-meter-sub">Operaciones de hoy</div>
+        <div style="width:32px;height:32px;border-radius:8px;background:var(--red-bg);display:flex;align-items:center;justify-content:center;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="var(--red)" stroke-width="1.5"><polyline points="1 4 6 10 10 7 15 13"/></svg>
         </div>
       </div>
+      <div style="height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-bottom:6px;">
+        <div id="rm-loss-bar" style="height:100%;background:var(--red);border-radius:3px;width:0%;transition:width 0.5s;"></div>
+      </div>
+      <div id="rm-loss-sub" style="font-size:11px;color:var(--text3);">Límite: $200</div>
+    </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
-        <div class="card">
-          <div class="card-title">Configurar límites</div>
-          <div class="form-field" style="margin-bottom:12px;">
-            <label class="form-label">Pérdida máxima diaria ($)</label>
-            <input class="form-input" type="number" id="cfg-maxloss" placeholder="200" oninput="updateRiskConfig()">
-          </div>
-          <div class="form-field" style="margin-bottom:12px;">
-            <label class="form-label">Máximo de operaciones por día</label>
-            <input class="form-input" type="number" id="cfg-maxops" placeholder="5" oninput="updateRiskConfig()">
-          </div>
-          <div class="form-field" style="margin-bottom:12px;">
-            <label class="form-label">Objetivo diario ($)</label>
-            <input class="form-input" type="number" id="cfg-objetivo" placeholder="300" oninput="updateRiskConfig()">
-          </div>
-          <div class="form-field" style="margin-bottom:0;">
-            <label class="form-label">% riesgo por operación</label>
-            <input class="form-input" type="number" id="cfg-riskpct" placeholder="1" step="0.1" oninput="updateRiskConfig()">
-          </div>
+    <div class="card" style="padding:16px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
+        <div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-weight:600;margin-bottom:4px;">Ops. hoy</div>
+          <div id="rm-ops" style="font-size:24px;font-weight:800;color:var(--blue);letter-spacing:-0.5px;">0/5</div>
         </div>
-
-        <div class="card">
-          <div class="card-title">Calculadora de posición</div>
-          <div class="form-field" style="margin-bottom:12px;">
-            <label class="form-label">Capital de la cuenta ($)</label>
-            <input class="form-input" type="number" id="calc-capital" placeholder="10000" oninput="calcPosition()">
-          </div>
-          <div class="form-field" style="margin-bottom:12px;">
-            <label class="form-label">Precio entrada</label>
-            <input class="form-input" type="number" id="calc-entrada" placeholder="5240.25" step="0.01" oninput="calcPosition()">
-          </div>
-          <div class="form-field" style="margin-bottom:12px;">
-            <label class="form-label">Stop Loss</label>
-            <input class="form-input" type="number" id="calc-sl" placeholder="5232.00" step="0.01" oninput="calcPosition()">
-          </div>
-          <div class="form-field" style="margin-bottom:12px;">
-            <label class="form-label">Take Profit</label>
-            <input class="form-input" type="number" id="calc-tp" placeholder="5260.00" step="0.01" oninput="calcPosition()">
-          </div>
-          <div class="calc-result" id="calc-result" style="display:none;">
-            <div class="calc-result-row"><span class="calc-result-label">Riesgo máximo</span><span class="calc-result-val" id="cr-risk" style="color:var(--red)">—</span></div>
-            <div class="calc-result-row"><span class="calc-result-label">Contratos óptimos</span><span class="calc-result-val" id="cr-size" style="color:var(--blue)">—</span></div>
-            <div class="calc-result-row"><span class="calc-result-label">Ganancia potencial</span><span class="calc-result-val" id="cr-reward" style="color:var(--green)">—</span></div>
-            <div class="calc-result-row"><span class="calc-result-label">Ratio R:B</span><span class="calc-result-val" id="cr-rr" style="color:var(--amber)">—</span></div>
-          </div>
+        <div style="width:32px;height:32px;border-radius:8px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="var(--blue)" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
         </div>
       </div>
+      <div style="height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-bottom:6px;">
+        <div id="rm-ops-bar" style="height:100%;background:var(--blue);border-radius:3px;width:0%;transition:width 0.5s;"></div>
+      </div>
+      <div id="rm-ops-sub" style="font-size:11px;color:var(--text3);">Máximo: 5 operaciones</div>
+    </div>
 
-      <div class="card">
-        <div class="card-title">Estadísticas por sesión</div>
-        <div id="session-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
-          <div style="color:var(--text3);font-size:12px;font-family:monospace;grid-column:1/-1;">Sincroniza operaciones para ver estadísticas por sesión</div>
+    <div class="card" style="padding:16px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
+        <div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-weight:600;margin-bottom:4px;">P&L hoy</div>
+          <div id="rm-pnl" style="font-size:24px;font-weight:800;color:var(--green);letter-spacing:-0.5px;">$0</div>
+        </div>
+        <div style="width:32px;height:32px;border-radius:8px;background:var(--green-bg);display:flex;align-items:center;justify-content:center;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="var(--green)" stroke-width="1.5"><polyline points="1 11 5 7 9 9 15 3"/></svg>
+        </div>
+      </div>
+      <div style="height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-bottom:6px;">
+        <div id="rm-pnl-bar" style="height:100%;background:var(--green);border-radius:3px;width:0%;transition:width 0.5s;"></div>
+      </div>
+      <div id="rm-pnl-sub" style="font-size:11px;color:var(--text3);">Objetivo: no configurado</div>
+    </div>
+
+    <div class="card" style="padding:16px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
+        <div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-weight:600;margin-bottom:4px;">Win Rate hoy</div>
+          <div id="rm-wr" style="font-size:24px;font-weight:800;color:var(--amber);letter-spacing:-0.5px;">—</div>
+        </div>
+        <div style="width:32px;height:32px;border-radius:8px;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="var(--amber)" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>
+        </div>
+      </div>
+      <div style="height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-bottom:6px;">
+        <div id="rm-wr-bar" style="height:100%;background:var(--amber);border-radius:3px;width:0%;transition:width 0.5s;"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);">Operaciones de hoy</div>
+    </div>
+
+  </div>
+
+  <!-- Config + Calculator -->
+  <div class="grid-2" style="margin-bottom:18px;">
+
+    <!-- Configurar límites -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.6px;">Configurar límites</div>
+      </div>
+      <div style="padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label>Pérdida máxima diaria ($)</label>
+          <input type="number" id="cfg-maxloss" placeholder="200" oninput="updateRiskConfig()">
+        </div>
+        <div class="form-group">
+          <label>Máximo de operaciones/día</label>
+          <input type="number" id="cfg-maxops" placeholder="5" oninput="updateRiskConfig()">
+        </div>
+        <div class="form-group">
+          <label>Objetivo diario ($)</label>
+          <input type="number" id="cfg-objetivo" placeholder="300" oninput="updateRiskConfig()">
+        </div>
+        <div class="form-group">
+          <label>% riesgo por operación</label>
+          <input type="number" id="cfg-riskpct" placeholder="1" step="0.1" oninput="updateRiskConfig()">
         </div>
       </div>
     </div>
+
+    <!-- Calculadora -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.6px;">Calculadora de posición</div>
+      </div>
+      <div style="padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="form-group">
+          <label>Capital de la cuenta ($)</label>
+          <input type="number" id="calc-capital" placeholder="10000" oninput="calcPosition()">
+        </div>
+        <div class="form-group">
+          <label>Precio de entrada</label>
+          <input type="number" id="calc-entrada" placeholder="5240.25" step="0.01" oninput="calcPosition()">
+        </div>
+        <div class="form-group">
+          <label>Stop Loss</label>
+          <input type="number" id="calc-sl" placeholder="5232.00" step="0.01" oninput="calcPosition()">
+        </div>
+        <div class="form-group">
+          <label>Take Profit</label>
+          <input type="number" id="calc-tp" placeholder="5260.00" step="0.01" oninput="calcPosition()">
+        </div>
+      </div>
+      <div id="calc-result" style="display:none;margin:0 18px 16px;padding:14px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Riesgo máximo</div>
+            <div id="cr-risk" style="font-size:16px;font-weight:800;color:var(--red);">—</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Contratos óptimos</div>
+            <div id="cr-size" style="font-size:16px;font-weight:800;color:var(--blue);">—</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Ganancia potencial</div>
+            <div id="cr-reward" style="font-size:16px;font-weight:800;color:var(--green);">—</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Ratio R:B</div>
+            <div id="cr-rr" style="font-size:16px;font-weight:800;color:var(--amber);">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Estadísticas por sesión -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+      <div style="font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.6px;">Estadísticas por sesión</div>
+    </div>
+    <div id="session-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;">
+    </div>
+  </div>
+
+</div>
       <div class="tab-panel" id="panel-calendario">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
     <h1 style="font-size:20px;font-weight:800;letter-spacing:-0.4px;">Calendario</h1>
