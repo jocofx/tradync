@@ -1632,120 +1632,197 @@
       </div>
     </div>
       <div class="tab-panel" id="panel-cuentas">
-      <div class="section-title">Mis cuentas de trading</div>
-      <div class="accounts-grid" id="accounts-grid">
-        <div class="add-account-card" onclick="openModal()">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg>
-          Añadir cuenta
-        </div>
-      </div>
 
-      <!-- COMPARATIVA -->
-      <div class="card" style="margin-top:18px;margin-bottom:18px;">
-        <div class="card-title">Comparativa entre cuentas <span class="card-title-badge" id="accounts-compare-badge">—</span></div>
-        <div style="position:relative;height:200px;"><canvas id="accounts-compare-chart"></canvas></div>
-      </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <h1 style="font-size:20px;font-weight:800;letter-spacing:-0.4px;">Cuentas</h1>
+    <button onclick="openModal()" class="btn btn-primary">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg>
+      Nueva cuenta
+    </button>
+  </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
-        <div class="card">
-          <div class="card-title">Win Rate por cuenta</div>
-          <div style="position:relative;height:180px;"><canvas id="accounts-wr-chart"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Profit Factor por cuenta</div>
-          <div style="position:relative;height:180px;"><canvas id="accounts-pf-chart"></canvas></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Estadísticas detalladas por cuenta</div>
-        <div id="accounts-stats"><div style="color:var(--text3);font-size:12px;font-family:monospace">Añade cuentas para ver estadísticas comparativas</div></div>
-      </div>
-      <!-- PROP FIRM TRACKER -->
-      <div class="section-title" style="margin-top:8px;">Tracker Prop Firm</div>
-      <div id="propfirm-tracker" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:18px;">
-        <div style="color:var(--text3);font-size:12px;font-family:monospace;grid-column:1/-1;">Añade una cuenta de tipo Prop Firm para ver el tracker de reglas</div>
-      </div>
-
+  <!-- Accounts grid — JS populates this -->
+  <div id="accounts-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:20px;">
+    <div onclick="openModal()" style="border:2px dashed var(--border2);border-radius:12px;padding:20px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;color:var(--text3);font-size:13px;font-weight:500;transition:all 0.15s;min-height:100px;" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg>
+      Añadir cuenta
     </div>
+  </div>
+
+  <!-- Charts row -->
+  <div class="grid-3" style="margin-bottom:16px;">
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Comparativa P&L</div>
+        <span id="accounts-compare-badge" style="font-size:11px;color:var(--text3);font-family:monospace;"></span>
+      </div>
+      <div style="padding:14px;height:180px;position:relative;"><canvas id="accounts-compare-chart"></canvas></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Win Rate por cuenta</div>
+      </div>
+      <div style="padding:14px;height:180px;position:relative;"><canvas id="accounts-wr-chart"></canvas></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Profit Factor</div>
+      </div>
+      <div style="padding:14px;height:180px;position:relative;"><canvas id="accounts-pf-chart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Stats table -->
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px;">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Estadísticas por cuenta</div>
+    </div>
+    <div id="accounts-stats" style="overflow-x:auto;">
+      <div style="padding:20px;text-align:center;color:var(--text3);font-size:12px;">Añade cuentas para ver estadísticas comparativas</div>
+    </div>
+  </div>
+
+  <!-- Prop Firm Tracker -->
+  <div style="margin-bottom:6px;">
+    <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">Tracker Prop Firm</div>
+    <div id="propfirm-tracker" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+      <div style="color:var(--text3);font-size:12px;grid-column:1/-1;padding:16px;text-align:center;">Añade una cuenta de tipo Prop Firm para ver el tracker de reglas</div>
+    </div>
+  </div>
+
+</div>
       <div class="tab-panel" id="panel-premarket">
-      <div class="section-title">Preparación de la sesión</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;align-items:start;">
-        <div class="card">
-          <div class="card-title">Checklist pre-market <span class="card-title-badge" id="checklist-pct">0%</span></div>
-          <div class="checklist-progress"><div class="checklist-progress-fill" id="checklist-bar" style="width:0%"></div></div>
-          <div id="checklist-items" style="margin:10px 0;min-height:40px;"></div>
-          <div style="display:flex;gap:8px;margin-top:12px;align-items:center;">
-            <input class="form-input" id="new-checklist-item" placeholder="Escribe una condición y pulsa Enter..." style="flex:1;padding:7px 12px;font-size:12px;" onkeydown="if(event.key==='Enter')addChecklistItem()">
-            <button class="btn btn-primary" onclick="addChecklistItem()" style="font-size:12px;padding:7px 14px;white-space:nowrap;">+ Añadir</button>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Plan del día</div>
-          <div class="form-grid" style="margin-bottom:14px;">
-            <div class="form-field">
-              <label class="form-label">Sesgo del mercado</label>
-              <select class="form-select" id="plan-sesgo">
-                <option>Alcista</option><option>Bajista</option><option>Lateral</option><option>Sin sesgo claro</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label class="form-label">Máx. operaciones hoy</label>
-              <input class="form-input" type="number" id="plan-maxops" placeholder="3">
-            </div>
-          </div>
-          <div class="form-field" style="margin-bottom:12px;">
-            <label class="form-label">Niveles clave a vigilar</label>
-            <input class="form-input" type="text" id="plan-niveles" placeholder="ES: 5240 soporte / 5280 resistencia...">
-          </div>
-          <div class="form-field" style="margin-bottom:12px;">
-            <label class="form-label">Lo que NO haré hoy</label>
-            <input class="form-input" type="text" id="plan-no" placeholder="No operar las primeras 15 min...">
-          </div>
-          <div class="form-field" style="margin-bottom:16px;">
-            <label class="form-label">Notas adicionales</label>
-            <textarea class="form-textarea" id="plan-notas" style="min-height:60px;" placeholder="Contexto macro, niveles de ayer, earnings..."></textarea>
-          </div>
-          <button class="btn btn-primary" onclick="savePlan()">Guardar plan del día</button>
-          <span id="plan-saved" style="font-size:12px;color:var(--green);font-family:'DM Mono',monospace;margin-left:10px;"></span>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <h1 style="font-size:20px;font-weight:800;letter-spacing:-0.4px;">Pre-Market</h1>
+    <div style="font-size:12px;color:var(--text3);font-family:monospace;" id="macro-date"></div>
+  </div>
+
+  <!-- Top row: checklist + plan -->
+  <div class="grid-2" style="margin-bottom:16px;align-items:start;">
+
+    <!-- Checklist -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Checklist Pre-Market</div>
+        <span id="checklist-pct" style="font-size:12px;font-weight:700;color:var(--green);font-family:monospace;">0%</span>
+      </div>
+      <!-- Progress bar -->
+      <div style="height:3px;background:var(--bg4);">
+        <div id="checklist-bar" style="height:100%;background:var(--green);width:0%;transition:width 0.4s;"></div>
+      </div>
+      <div style="padding:14px 18px;">
+        <div id="checklist-items" style="min-height:40px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px;"></div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="new-checklist-item" placeholder="Añadir condición..." style="flex:1;" onkeydown="if(event.key==='Enter')addChecklistItem()">
+          <button onclick="addChecklistItem()" class="btn btn-primary" style="white-space:nowrap;">+ Añadir</button>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
-        <div class="card" style="overflow:hidden;padding:0;">
-          <div style="padding:14px 16px 8px;" class="card-title">Eventos macro hoy <span class="card-title-badge" id="macro-date"></span></div>
-          <div class="tradingview-widget-container" style="height:300px;">
-            <div class="tradingview-widget-container__widget"></div>
-            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
-            {
-              "colorTheme": "dark",
-              "isTransparent": true,
-              "width": "100%",
-              "height": "300",
-              "locale": "es",
-              "importanceFilter": "-1,0,1",
-              "countryFilter": "us,eu,gb,jp,au,ca,ch,cn,nz"
-            }
-            </script>
+    </div>
+
+    <!-- Plan del día -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Plan del día</div>
+      </div>
+      <div style="padding:16px 18px;">
+        <div class="form-row" style="margin-bottom:14px;">
+          <div class="form-group">
+            <label>Sesgo del mercado</label>
+            <select id="plan-sesgo">
+              <option>Alcista</option><option>Bajista</option><option>Lateral</option><option>Sin sesgo claro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Máx. operaciones hoy</label>
+            <input type="number" id="plan-maxops" placeholder="3">
           </div>
         </div>
-        <div class="card">
-          <div class="card-title">
-            Historial de planes
-            <div style="display:flex;gap:8px;">
-              <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changePmMonth(-1)">←</button>
-              <span class="card-title-badge" id="pm-cal-month-label" style="display:flex;align-items:center;"></span>
-              <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="changePmMonth(1)">→</button>
-            </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Niveles clave a vigilar</label>
+          <input type="text" id="plan-niveles" placeholder="ES: 5240 soporte / 5280 resistencia...">
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Lo que NO haré hoy</label>
+          <input type="text" id="plan-no" placeholder="No operar las primeras 15 min...">
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label>Notas adicionales</label>
+          <textarea id="plan-notas" rows="3" style="resize:vertical;" placeholder="Contexto macro, niveles de ayer, earnings..."></textarea>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button onclick="savePlan()" class="btn btn-primary">Guardar plan del día</button>
+          <span id="plan-saved" style="font-size:11px;color:var(--green);font-family:monospace;"></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom row: macro events + historial -->
+  <div class="grid-2" style="margin-bottom:16px;">
+
+    <!-- Eventos macro -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Eventos macro hoy</div>
+      </div>
+      <div class="tradingview-widget-container" style="height:300px;">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
+        {
+          "colorTheme": "dark",
+          "isTransparent": true,
+          "width": "100%",
+          "height": "300",
+          "locale": "es",
+          "importanceFilter": "-1,0,1",
+          "countryFilter": "us,eu,gb,jp,au,ca,ch,cn,nz"
+        }
+        </script>
+      </div>
+    </div>
+
+    <!-- Historial de planes -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Historial de planes</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button onclick="changePmMonth(-1)" style="width:26px;height:26px;border:1px solid var(--border2);border-radius:6px;background:transparent;color:var(--text2);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;">‹</button>
+          <span id="pm-cal-month-label" style="font-size:12px;font-weight:600;color:var(--text);min-width:90px;text-align:center;"></span>
+          <button onclick="changePmMonth(1)" style="width:26px;height:26px;border:1px solid var(--border2);border-radius:6px;background:transparent;color:var(--text2);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;">›</button>
+        </div>
+      </div>
+      <div style="padding:14px 18px;">
+        <!-- Day headers -->
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px;">
+          <div style="text-align:center;font-size:10px;font-weight:600;color:var(--text3);">L</div>
+          <div style="text-align:center;font-size:10px;font-weight:600;color:var(--text3);">M</div>
+          <div style="text-align:center;font-size:10px;font-weight:600;color:var(--text3);">X</div>
+          <div style="text-align:center;font-size:10px;font-weight:600;color:var(--text3);">J</div>
+          <div style="text-align:center;font-size:10px;font-weight:600;color:var(--text3);">V</div>
+          <div style="text-align:center;font-size:10px;font-weight:600;color:var(--text3);">S</div>
+          <div style="text-align:center;font-size:10px;font-weight:600;color:var(--text3);">D</div>
+        </div>
+        <div id="pm-cal-header" style="display:none;"></div>
+        <div id="pm-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;"></div>
+        <div style="display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);">
+            <div style="width:10px;height:10px;border-radius:3px;background:var(--green);opacity:0.8;"></div>Plan completo
           </div>
-          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;" id="pm-cal-header"></div>
-          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" id="pm-cal-grid"></div>
-          <div style="display:flex;gap:14px;margin-top:10px;">
-            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);opacity:0.7;"></div>Plan completo</div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--amber);opacity:0.7;"></div>Parcial</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);">
+            <div style="width:10px;height:10px;border-radius:3px;background:var(--amber);opacity:0.8;"></div>Parcial
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);">
+            <div style="width:10px;height:10px;border-radius:3px;background:var(--bg4);"></div>Sin plan
           </div>
         </div>
       </div>
     </div>
+
+  </div>
+
+</div>
       <div class="tab-panel" id="panel-habitos">
       <div class="section-title">Tracker de hábitos y bienestar</div>
 
