@@ -5736,9 +5736,23 @@ function openModal() {
 }
 
 function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('open');
-  document.getElementById('m-nombre').value = '';
-  document.getElementById('m-balance').value = '';
+  var modal = document.getElementById('modal-overlay');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+    // Reset form fields
+    ['m-nombre','m-balance','m-fase','m-broker'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+  }
+}
+
+function handleModalOutsideClick(event) {
+  var inner = document.getElementById('modal-inner');
+  if (inner && !inner.contains(event.target)) {
+    closeModal();
+  }
 }
 
 async function saveAccount() {
@@ -9023,6 +9037,10 @@ function showNuevaCuenta() {
   }
 }
 
+function openModal() {
+  showNuevaCuenta();
+}
+
 function switchModalTab(tab) {
   var manualBody = document.getElementById('modal-body-manual');
   var eaBody     = document.getElementById('modal-body-ea');
@@ -9633,8 +9651,8 @@ function renderPsychCharts() {
 <div id="weekday-performance" style="display:none"></div>
 
 <!-- New account modal (legacy) -->
-<div id="modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:520px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.5);">
+<div id="modal-overlay" onclick="handleModalOutsideClick(event)" style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
+  <div id="modal-inner" style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:500px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.5);max-height:calc(100vh - 32px);overflow-y:auto;margin:auto;">
 
     <!-- Header -->
     <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
