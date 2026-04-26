@@ -4866,10 +4866,148 @@ function openAccountDetail(id) {
     recentHTML += '<div style="color:var(--text3);font-size:12px;">Sin operaciones en esta cuenta</div>';
   }
 
+  // Set header
   document.getElementById('account-modal-title').textContent = acc.nombre;
-  document.getElementById('account-modal-body').innerHTML = propHTML + statsHTML + recentHTML;
-  document.getElementById('account-modal-overlay').classList.add('open');
+  window._editingAccountId = acc.id;
+  window._editingAccountNotionId = acc.notionId || acc.id;
+
+  // Subtitle: tipo + broker + balance
+  var subtitle = '';
+  if (acc.tipo === 'prop') subtitle = '🏆 Prop Firm';
+  else if (acc.tipo === 'demo') subtitle = '🧪 Demo';
+  else subtitle = '💰 Capital Propio';
+  if (acc.broker) subtitle += ' · ' + acc.broker;
+  if (acc.fase) subtitle += ' · ' + acc.fase;
+  var subtitleEl = document.getElementById('account-modal-subtitle');
+  if (subtitleEl) subtitleEl.textContent = subtitle;
+
+  // Build premium stats HTML
+  var statsCardHTML = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">' +
+    buildStatCard('P&L Total', (pnl>=0?'+':'')+'$'+pnl.toFixed(2), pnl>=0?'var(--green)':'var(--red)', 'var(--green-bg)') +
+    buildStatCard('Win Rate', wr+'%', 'var(--blue)', 'var(--blue-bg)') +
+    buildStatCard('Profit Factor', pf, 'var(--amber)', 'var(--amber-bg)') +
+    buildStatCard('Operaciones', trades.length, 'var(--text)', 'var(--bg3)') +
+  '</div>' +
+  '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">' +
+    buildStatCard('Mejor trade', '+$'+best.toFixed(2), 'var(--green)', 'var(--green-bg)') +
+    buildStatCard('Peor trade', '$'+worst.toFixed(2), 'var(--red)', 'var(--red-bg)') +
+    buildStatCard('RR Promedio', rrAvg+':1', 'var(--blue)', 'var(--blue-bg)') +
+  '</div>';
+
+  // Edit fields card
+  var editCardHTML = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">' +
+    '<div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:12px;">AJUSTES DE CUENTA</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+      '<div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:5px;">Tipo de cuenta</label>' +
+      '<select id="acc-edit-tipo" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;">' +
+        '<option value="real"' + (acc.tipo==='real'?' selected':'') + '>💰 Capital Propio — Real</option>' +
+        '<option value="demo"' + (acc.tipo==='demo'?' selected':'') + '>🧪 Capital Propio — Demo</option>' +
+        '<option value="prop"' + (acc.tipo==='prop'?' selected':'') + '>🏆 Prop Firm</option>' +
+        '<option value="concurso"' + (acc.tipo==='concurso'?' selected':'') + '>🎯 Challenge</option>' +
+      '</select></div>' +
+      '<div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:5px;">Balance inicial ($)</label>' +
+      '<input type="number" id="acc-edit-balance" value="' + (acc.balance||0) + '" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;"></div>' +
+    '</div>' +
+    '<div style="margin-top:10px;display:flex;justify-content:flex-end;">' +
+      '<button onclick="saveAccountEdits()" style="background:var(--green);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Guardar cambios</button>' +
+    '</div>' +
+  '</div>';
+
+  // Recent trades
+  var recentHTML2 = '<div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;font-family:monospace;margin-bottom:10px;">ÚLTIMAS OPERACIONES</div>';
+  if (trades.length) {
+    recentHTML2 += '<div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);">' +
+      trades.slice(0,8).map(function(t, i) {
+        var pnlClr = (t.resultado||0)>=0 ? 'var(--green)' : 'var(--red)';
+        var dir = (t.direccion||'').toUpperCase();
+        var dirBg = dir==='BUY'||dir==='LONG' ? 'var(--green-bg)' : 'var(--red-bg)';
+        var dirColor = dir==='BUY'||dir==='LONG' ? 'var(--green)' : 'var(--red)';
+        return '<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:' + (i<Math.min(trades.length,8)-1?'1px solid var(--border)':'none') + ';font-size:12px;">' +
+          '<span style="font-size:9px;background:' + dirBg + ';color:' + dirColor + ';padding:2px 7px;border-radius:4px;font-weight:700;min-width:36px;text-align:center;">' + (dir||'—') + '</span>' +
+          '<span style="font-weight:600;color:var(--text);min-width:70px;">' + (t.instrumento||'—') + '</span>' +
+          '<span style="color:var(--text3);flex:1;">' + (t.fecha?new Date(t.fecha).toLocaleDateString('es'):'') + '</span>' +
+          '<span style="font-weight:700;color:' + pnlClr + ';">' + ((t.resultado||0)>=0?'+':'') + '$' + Math.abs(t.resultado||0).toFixed(2) + '</span>' +
+        '</div>';
+      }).join('') + '</div>';
+  } else {
+    recentHTML2 += '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px;">Sin operaciones registradas en esta cuenta</div>';
+  }
+
+  document.getElementById('account-modal-body').innerHTML = propHTML + statsCardHTML + editCardHTML + recentHTML2;
+  var overlay = document.getElementById('account-modal-overlay');
+  overlay.style.display = 'flex';
 }
+
+function buildStatCard(label, value, color, bg) {
+  return '<div style="background:' + bg + ';border-radius:10px;padding:12px 14px;">' +
+    '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;font-weight:600;">' + label + '</div>' +
+    '<div style="font-size:18px;font-weight:800;color:' + color + ';letter-spacing:-0.3px;">' + value + '</div>' +
+  '</div>';
+}
+
+function startEditAccountName() {
+  var viewEl = document.getElementById('account-title-view');
+  var editEl = document.getElementById('account-title-edit');
+  var input  = document.getElementById('account-name-input');
+  var title  = document.getElementById('account-modal-title');
+  if (!viewEl || !editEl || !input) return;
+  input.value = title.textContent;
+  viewEl.style.display = 'none';
+  editEl.style.display = 'flex';
+  setTimeout(function() { input.focus(); input.select(); }, 50);
+}
+
+function cancelEditAccountName() {
+  document.getElementById('account-title-view').style.display = 'flex';
+  document.getElementById('account-title-edit').style.display = 'none';
+}
+
+async function saveAccountName() {
+  var input = document.getElementById('account-name-input');
+  var newName = (input.value || '').trim();
+  if (!newName) return;
+  var id = window._editingAccountNotionId;
+  try {
+    await sb.from('cuentas').update({ nombre: newName }).eq('id', id);
+    document.getElementById('account-modal-title').textContent = newName;
+    // Update local accounts array
+    var acc = accounts.find(function(a){ return String(a.id)===String(window._editingAccountId); });
+    if (acc) acc.nombre = newName;
+    cancelEditAccountName();
+    try { renderAccounts(); } catch(e) {}
+    toast('Nombre actualizado ✓', 'success');
+  } catch(e) {
+    toast('Error guardando: ' + e.message, 'error');
+  }
+}
+
+async function saveAccountEdits() {
+  var id     = window._editingAccountNotionId;
+  var tipo   = (document.getElementById('acc-edit-tipo')   || {}).value;
+  var balance = parseFloat((document.getElementById('acc-edit-balance') || {}).value) || 0;
+  try {
+    await sb.from('cuentas').update({ tipo: tipo, balance: balance }).eq('id', id);
+    var acc = accounts.find(function(a){ return String(a.id)===String(window._editingAccountId); });
+    if (acc) { acc.tipo = tipo; acc.balance = balance; }
+    try { renderAccounts(); } catch(e) {}
+    toast('Cuenta actualizada ✓', 'success');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+function closeAccountModal() {
+  var el = document.getElementById('account-modal-overlay');
+  if (el) el.style.display = 'none';
+  cancelEditAccountName();
+}
+
+function handleAccountModalOutsideClick(event) {
+  var inner = document.getElementById('account-modal-inner');
+  if (inner && !inner.contains(event.target)) closeAccountModal();
+}
+
+function _openAccountDetailOLD(
 
 // ─── AI COACH ────────────────────────────────────────────────────
 const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
@@ -9876,13 +10014,30 @@ function renderPsychCharts() {
 </div>
 
 <!-- Account detail modal -->
-<div id="account-modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;">
-  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div id="account-modal-title" style="font-size:18px;font-weight:800;"></div>
-      <button onclick="closeAccountModal()" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;">✕</button>
+<div id="account-modal-overlay" onclick="handleAccountModalOutsideClick(event)" style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
+  <div id="account-modal-inner" style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:600px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.5);max-height:calc(100vh - 32px);overflow-y:auto;margin:auto;">
+
+    <!-- Header -->
+    <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="flex:1;min-width:0;">
+        <!-- Editable title -->
+        <div style="display:flex;align-items:center;gap:8px;" id="account-title-view">
+          <div id="account-modal-title" style="font-size:18px;font-weight:800;color:var(--text);letter-spacing:-0.3px;"></div>
+          <button onclick="startEditAccountName()" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;border-radius:6px;font-size:13px;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'" title="Editar nombre">✏</button>
+        </div>
+        <div style="display:none;align-items:center;gap:8px;" id="account-title-edit">
+          <input id="account-name-input" type="text" style="font-size:16px;font-weight:700;background:var(--bg3);border:2px solid var(--green);border-radius:8px;padding:4px 10px;color:var(--text);outline:none;flex:1;" onkeydown="if(event.key==='Enter')saveAccountName();if(event.key==='Escape')cancelEditAccountName();">
+          <button onclick="saveAccountName()" style="background:var(--green);color:#fff;border:none;padding:5px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;">✓</button>
+          <button onclick="cancelEditAccountName()" style="background:var(--bg4);color:var(--text2);border:1px solid var(--border2);padding:5px 10px;border-radius:7px;font-size:12px;cursor:pointer;">✕</button>
+        </div>
+        <div id="account-modal-subtitle" style="font-size:12px;color:var(--text3);margin-top:3px;"></div>
+      </div>
+      <button onclick="closeAccountModal()" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">✕</button>
     </div>
-    <div id="account-modal-body"></div>
+
+    <!-- Body -->
+    <div style="padding:20px 24px;" id="account-modal-body"></div>
+
   </div>
 </div>
 
