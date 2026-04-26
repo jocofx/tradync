@@ -603,6 +603,163 @@
     /* Backward compat: support both .active and .active-panel */
     .tab-panel { display: none !important; }
     .tab-panel.active, .tab-panel.active-panel { display: block !important; }
+
+    /* ═══════════════════════════════════════════
+       PREMIUM PANEL STYLES — Match boceto
+    ═══════════════════════════════════════════ */
+
+    /* Panel headers */
+    .tab-panel > .section-title,
+    .tab-panel > div > .section-title {
+      font-size: 10px !important;
+      font-weight: 600 !important;
+      color: var(--text3) !important;
+      text-transform: uppercase !important;
+      letter-spacing: 1.5px !important;
+      margin-bottom: 14px !important;
+    }
+
+    /* Tables premium style */
+    .card table th {
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 8px 14px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      background: transparent;
+    }
+    .card table td {
+      font-size: 12px;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    .card table tr:last-child td { border-bottom: none; }
+    .card table tbody tr:hover td { background: var(--bg3); cursor: pointer; }
+
+    /* Filter bars */
+    .ops-filter-bar select,
+    .ops-filter-bar input {
+      background: var(--bg3) !important;
+      border: 1px solid var(--border2) !important;
+      border-radius: 7px !important;
+      font-size: 12px !important;
+      padding: 6px 10px !important;
+      color: var(--text) !important;
+    }
+
+    /* Stats grid cards */
+    .stat-card {
+      background: var(--bg2) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 12px !important;
+      padding: 14px 16px !important;
+      box-shadow: var(--shadow) !important;
+    }
+    .stat-value {
+      font-size: 22px !important;
+      font-weight: 800 !important;
+      letter-spacing: -0.5px !important;
+      line-height: 1.1 !important;
+    }
+    .stat-label {
+      font-size: 10px !important;
+      color: var(--text3) !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.8px !important;
+      font-weight: 600 !important;
+    }
+
+    /* Account cards */
+    .account-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.15s;
+    }
+    .account-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.15); cursor: pointer; }
+
+    /* Risk bars */
+    .risk-progress-track {
+      height: 6px !important;
+      background: var(--bg4) !important;
+      border-radius: 3px !important;
+    }
+
+    /* Form inputs global */
+    .form-select {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      color: var(--text);
+    }
+
+    /* Buttons inside panels */
+    .tab-panel button:not(.nav-item):not(.btn):not(.seg-btn):not(.broker-tab):not(.theme-btn) {
+      transition: all 0.15s;
+    }
+
+    /* Trade row hover */
+    .trade-row:hover { background: var(--bg3); }
+
+    /* Calendar cells */
+    .cal-day {
+      border-radius: 8px !important;
+      border: 1px solid var(--border) !important;
+    }
+    .cal-day:hover { background: var(--bg3) !important; cursor: pointer; }
+
+    /* Habit cards */
+    .habit-card, .habit-item {
+      border-radius: 10px !important;
+      border: 1px solid var(--border) !important;
+    }
+
+    /* Charts canvas */
+    canvas { border-radius: 8px; }
+
+    /* Score donut */
+    .score-circle { filter: drop-shadow(0 2px 8px rgba(0,184,122,0.2)); }
+
+    /* Insights cards */
+    .insight-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    /* Panel page titles — bigger, bolder */
+    .tab-panel h1, .tab-panel h2 {
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      color: var(--text);
+    }
+
+    /* Topbar quote display */
+    #topbar-quote {
+      flex: 1;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text3);
+      font-style: italic;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      padding: 0 20px;
+    }
+
+    /* Smooth panel transitions */
+    .tab-panel { animation: fadeIn 0.15s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    /* main area compatibility */
+    .main { flex: 1 !important; min-width: 0 !important; overflow: hidden !important; }
 </style>
 </head>
 <body>
@@ -2468,11 +2625,15 @@ function goTab(id, el) {
   if (id==='broker') setTimeout(function(){try{brokerAutoStep()}catch(e){}},300);
 }
 function toggleTheme() {
-  document.body.classList.toggle('light-mode');
-  localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+  var isLight = document.body.classList.toggle('light-mode');
+  localStorage.setItem('tj_theme', isLight ? 'light' : 'dark');
+  var btn = document.getElementById('btn-theme');
+  if (btn) btn.innerHTML = isLight ? 
+    '<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8z"/></svg>' :
+    '<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/></svg>';
 }
 // Load saved theme
-if (localStorage.getItem('theme') === 'light') document.body.classList.add('light-mode');
+if (localStorage.getItem('tj_theme') === 'light') document.body.classList.add('light-mode');
 
 // Dashboard chart helper
 var dashChartInstance = null;
@@ -3088,7 +3249,7 @@ function goTab(id, el) {
   if (id === 'calendario') setTimeout(() => { try { renderCalendar(); } catch(e){} }, 50);
   if (id === 'premarket') setTimeout(() => { try { renderPmCalendar(); } catch(e){} }, 50);
   if (id === 'diario') setTimeout(() => { try { initDiario(); } catch(e){} }, 50);
-  if (id === 'dashboard') setTimeout(() => { try { renderEquity(); renderDashboardCharts(); } catch(e){} }, 50);
+  if (id === 'dashboard') setTimeout(() => { try { renderEquity(); renderDashboardCharts(); } catch(e){} setTimeout(function(){ try{ syncDashboardMetrics(); }catch(e2){} }, 200); }, 50);
 }
 
 // Toggle tag
@@ -8180,35 +8341,48 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-// Bridge: sync legacy metric IDs to new dashboard display
+// Bridge: sync data to new dashboard display
 function syncDashboardMetrics() {
-  // Pull values from legacy hidden elements and display in new dashboard
-  var map = {
-    'm-pnl': 'dash-pnl',
-    'm-wr': 'dash-winrate',
-    'm-ops': 'dash-ops-hoy',
-    'm-pf': null,
-    'm-worst': null
-  };
-  Object.keys(map).forEach(function(from) {
-    var to = map[from];
-    if (!to) return;
-    var src = document.getElementById(from);
-    var dst = document.getElementById(to);
-    if (src && dst && src.textContent) dst.textContent = src.textContent;
-  });
+  if (typeof allTrades === 'undefined') return;
   
-  // Update dash date
-  var dateEl = document.getElementById('dash-date');
-  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
+  var trades = allTrades || [];
+  var resultados = trades.map(function(t){ return t.resultado; }).filter(function(r){ return r !== null && r !== undefined; });
+  var wins = resultados.filter(function(r){ return r > 0; });
+  var losses = resultados.filter(function(r){ return r < 0; });
+  var totalPnl = resultados.reduce(function(a,b){ return a+parseFloat(b); }, 0);
+  var winRate = resultados.length ? (wins.length/resultados.length*100) : 0;
+  var best = wins.length ? Math.max.apply(null,wins) : 0;
   
-  // Render recent ops in new dashboard
-  try { renderDashRecentOps(allTrades); } catch(e) {}
-  try { renderDashSessions(allTrades); } catch(e) {}
-  try { renderDashByPair(allTrades); } catch(e) {}
+  // Today ops
+  var today = new Date().toISOString().slice(0,10);
+  var todayOps = trades.filter(function(t){ return t.fecha && t.fecha.slice(0,10)===today; });
   
-  // Dashboard chart
-  renderDashboardChart();
+  // Update metric cards
+  function setEl(id, val) { var e=document.getElementById(id); if(e) e.textContent=val; }
+  function setColor(id, pos) { var e=document.getElementById(id); if(e) e.style.color=pos?'var(--green)':'var(--red)'; }
+  
+  var pnlStr = (totalPnl>=0?'+':'')+'$'+Math.abs(totalPnl).toFixed(0);
+  setEl('dash-pnl', pnlStr);
+  setColor('dash-pnl', totalPnl>=0);
+  setEl('dash-winrate', winRate.toFixed(1)+'%');
+  setEl('dash-total-ops', resultados.length);
+  setEl('dash-ops-hoy', todayOps.length);
+  setEl('dash-ops-sub', 'de '+trades.length+' operaciones totales');
+  setEl('dash-best', '$'+best.toFixed(0));
+  setColor('dash-best', true);
+  
+  // PnL % delta (vs last month rough estimate)
+  var pctEl = document.getElementById('dash-pnl-pct');
+  if (pctEl) { pctEl.textContent = winRate.toFixed(1)+'% win rate'; pctEl.style.color='var(--green)'; }
+  
+  // Date
+  setEl('dash-date', new Date().toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'}));
+  
+  // Render components
+  try { renderDashRecentOps(trades); } catch(e) {}
+  try { renderDashSessions(trades); } catch(e) {}
+  try { renderDashByPair(trades); } catch(e) {}
+  try { renderDashboardChart(); } catch(e) {}
 }
 
 function renderDashboardChart() {
@@ -8361,6 +8535,10 @@ window.addEventListener('load', async () => {
     renderFreeLimitBanner();
     await loadAiUsage();
     await loadChatHistory();
+    // Sync new dashboard display
+    setTimeout(function() {
+      try { syncDashboardMetrics(); } catch(e) { console.warn('dash sync:', e); }
+    }, 300);
   }
 
   // Start quote carousel
