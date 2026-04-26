@@ -1,788 +1,19 @@
 <!DOCTYPE html>
-<!-- v20260416121630 -->
 <html lang="es">
 <head>
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TradyncApp — Trading Journal</title>
+  <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Tradync — Tu Trading Journal Profesional</title>
 <meta name="description" content="Tradync es el journal de trading más completo en español. Registra tus operaciones, analiza tu psicología, controla el riesgo y mejora con tu Coach IA personal.">
 <meta name="robots" content="noindex, nofollow">
-<!-- Open Graph -->
 <meta property="og:title" content="Tradync — Tu Trading Journal Profesional">
 <meta property="og:description" content="Journal de trading con Coach IA, estadísticas avanzadas y control de riesgo en tiempo real.">
 <meta property="og:image" content="https://www.tradyncapp.com/og-image.png">
 <meta property="og:url" content="https://www.tradyncapp.com/tradync-app.html">
 <meta property="og:type" content="website">
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-XXXXXXXXXX');
-</script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  /* TAB PANELS */
-  .tab-panel { display: none !important; width: 100%; box-sizing: border-box; }
-  .tab-panel.active { display: block !important; position: relative; }
-
-
-  .mobile-nav-icon { font-size: 20px; line-height: 1; }
-  .mobile-nav-label { font-size: 9px; color: var(--text3); font-family: monospace; letter-spacing: 0.5px; text-transform: uppercase; }
-
-
-  :root {
-    --bg: #0a0b0e; --bg2: #0f1115; --bg3: #151820; --bg4: #1c2028;
-    --border: rgba(255,255,255,0.06); --border2: rgba(255,255,255,0.12);
-    --text: #e8eaf0; --text2: #8b8fa8; --text3: #555870;
-    --green: #00d4a0; --green2: #00a37a; --green-bg: rgba(0,212,160,0.08);
-    --red: #ff4d6d; --red-bg: rgba(255,77,109,0.08);
-    --amber: #f5a623; --amber-bg: rgba(245,166,35,0.08);
-    --blue: #4d9fff; --blue-bg: rgba(77,159,255,0.08);
-    --purple: #a78bfa; --purple-bg: rgba(167,139,250,0.08);
-  }
-  .light-mode {
-    --bg: #f4f6fb; --bg2: #ffffff; --bg3: #eef1f8; --bg4: #e4e8f4;
-    --border: rgba(0,0,0,0.07); --border2: rgba(0,0,0,0.14);
-    --text: #0d1117; --text2: #4a5270; --text3: #9098b8;
-    --green: #059669; --green2: #047857; --green-bg: rgba(5,150,105,0.08);
-    --red: #dc2626; --red-bg: rgba(220,38,38,0.07);
-    --amber: #d97706; --amber-bg: rgba(217,119,6,0.08);
-    --blue: #2563eb; --blue-bg: rgba(37,99,235,0.08);
-    --purple: #7c3aed; --purple-bg: rgba(124,58,237,0.08);
-  }
-  .light-mode {
-    --bg: #f8f9fb; --bg2: #ffffff; --bg3: #f1f3f7; --bg4: #e8ecf2;
-    --border: rgba(0,0,0,0.07); --border2: rgba(0,0,0,0.14);
-    --text: #0f1117; --text2: #5a6070; --text3: #9aa0b0;
-    --green: #059669; --green2: #047857; --green-bg: rgba(5,150,105,0.08);
-    --red: #dc2626; --red-bg: rgba(220,38,38,0.07);
-    --amber: #d97706; --amber-bg: rgba(217,119,6,0.08);
-    --blue: #2563eb; --blue-bg: rgba(37,99,235,0.08);
-    --purple: #7c3aed; --purple-bg: rgba(124,58,237,0.08);
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-  body::before {
-    content: ''; position: fixed; inset: 0;
-    background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
-    background-size: 40px 40px; pointer-events: none; z-index: 0;
-  }
-  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
-
-  /* SIDEBAR */
-  .sidebar { width: 220px; height: 100vh; background: var(--bg2); border-right: 1px solid var(--border); padding: 0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
-  .sidebar.hidden { transform: translateX(-220px); }
-  .logo { padding: 0 20px 28px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-  .logo-text { font-size: 16px; font-weight: 800; letter-spacing: -0.5px; }
-  .logo-text span { color: var(--green); }
-  .logo-sub { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 2px; letter-spacing: 1px; }
-  .nav-section { padding: 0 12px; margin-bottom: 8px; } .sidebar-scroll { flex: 1; overflow-y: auto; padding: 20px 0 8px; scrollbar-width: thin; scrollbar-color: var(--border2) transparent; } .sidebar-scroll::-webkit-scrollbar { width: 4px; } .sidebar-scroll::-webkit-scrollbar-track { background: transparent; } .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-  .nav-label { font-size: 9px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; font-family: 'DM Mono', monospace; padding: 0 8px; margin-bottom: 6px; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); transition: all 0.15s; margin-bottom: 2px; }
-  .nav-item:hover { background: var(--bg3); color: var(--text); }
-  .nav-item.active { background: var(--green-bg); color: var(--green); }
-
-  /* NOTION STATUS */
-
-  /* MAIN */
-  .main { margin-left: 220px; flex: 1; padding: 32px 36px; transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1), max-width 0.3s cubic-bezier(0.4,0,0.2,1); }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
-  .header-left h1 { font-size: 26px; font-weight: 800; letter-spacing: -1px; }
-  .header-left h1 span { color: var(--green); }
-  .header-date { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 4px; }
-  .header-actions { display: flex; gap: 10px; align-items: center; }
-
-  /* BUTTONS */
-  .btn { padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--border2); background: var(--bg3); color: var(--text); font-family: 'Syne', sans-serif; transition: all 0.15s; }
-  .btn:hover { background: var(--bg4); }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-primary { background: var(--green); color: #000; border-color: var(--green); }
-  .btn-primary:hover { background: var(--green2); border-color: var(--green2); }
-  .btn-danger { background: var(--red-bg); color: var(--red); border-color: rgba(255,77,109,0.3); }
-
-  /* TABS */
-  .tabs { display: flex; gap: 4px; margin-bottom: 28px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 4px; width: fit-content; }
-  .tab-btn { padding: 7px 18px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text2); font-family: 'Syne', sans-serif; transition: all 0.15s; }
-  .tab-btn.active { background: var(--bg4); color: var(--text); }
-
-  /* CARDS */
-  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 22px 22px 18px; }
-  .card-title { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text2); margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; }
-  .card-title-badge { font-size: 10px; font-family: 'DM Mono', monospace; background: var(--bg4); border: 1px solid var(--border); padding: 3px 8px; border-radius: 20px; color: var(--text3); font-weight: 400; text-transform: none; }
-
-  /* METRICS */
-  .metrics-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 24px; }
-  .metric-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 18px 18px 16px; position: relative; overflow: hidden; }
-  .metric-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: 14px 14px 0 0; }
-  .metric-card.green::after { background: var(--green); }
-  .metric-card.red::after { background: var(--red); }
-  .metric-card.blue::after { background: var(--blue); }
-  .metric-card.amber::after { background: var(--amber); }
-  .metric-card.purple::after { background: var(--purple); }
-  .metric-label { font-size: 10px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; font-family: 'DM Mono', monospace; margin-bottom: 10px; }
-  .metric-value { font-size: 22px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
-  .metric-value.green { color: var(--green); }
-  .metric-value.red { color: var(--red); }
-  .metric-value.blue { color: var(--blue); }
-  .metric-value.amber { color: var(--amber); }
-  .metric-value.purple { color: var(--purple); }
-  .metric-sub { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 6px; }
-
-  /* TABLE */
-  .trade-table { width: 100%; border-collapse: collapse; }
-  .trade-table th { text-align: left; font-size: 9px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; font-family: 'DM Mono', monospace; font-weight: 400; padding: 0 10px 12px 0; border-bottom: 1px solid var(--border); }
-  .trade-table td { padding: 10px 10px 10px 0; font-size: 12px; border-bottom: 1px solid var(--border); color: var(--text2); font-family: 'DM Mono', monospace; }
-  .trade-table tr:last-child td { border-bottom: none; }
-  .trade-table tr:hover td { color: var(--text); }
-  .pnl-pos { color: var(--green); font-weight: 500; }
-  .pnl-neg { color: var(--red); font-weight: 500; }
-  .badge-fut { background: var(--purple-bg); color: var(--purple); padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; }
-  .badge-cfd { background: var(--blue-bg); color: var(--blue); padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; }
-  .badge-long { background: var(--green-bg); color: var(--green); padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; }
-  .badge-short { background: var(--red-bg); color: var(--red); padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; }
-
-  /* FORM */
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
-  .form-field { display: flex; flex-direction: column; gap: 6px; }
-  .form-label { font-size: 10px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; font-family: 'DM Mono', monospace; }
-  .form-input, .form-select, .form-textarea { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; outline: none; transition: border-color 0.15s; width: 100%; }
-  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--green); }
-  .form-select option { background: var(--bg3); }
-  .form-textarea { resize: vertical; min-height: 80px; }
-
-  /* EQUITY CURVE */
-  .equity-svg { width: 100%; overflow: visible; }
-
-  /* STATS */
-  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
-  .stat-row:last-child { border-bottom: none; }
-  .stat-name { font-size: 12px; color: var(--text2); }
-  .stat-val { font-size: 13px; font-weight: 600; font-family: 'DM Mono', monospace; }
-
-  /* PSYCH */
-  .psych-bars { display: flex; flex-direction: column; gap: 10px; }
-  .psych-row { display: flex; flex-direction: column; gap: 4px; }
-  .psych-row-header { display: flex; justify-content: space-between; }
-  .psych-name { font-size: 11px; color: var(--text2); }
-  .psych-score { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
-  .psych-bar-bg { height: 5px; background: var(--bg4); border-radius: 3px; overflow: hidden; }
-  .psych-bar-fill { height: 100%; border-radius: 3px; }
-
-  /* EMOTION */
-  .emotion-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-  .emotion-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 10px 6px; text-align: center; cursor: pointer; transition: all 0.15s; }
-  .emotion-item:hover, .emotion-item.selected { border-color: var(--border2); background: var(--bg4); }
-  .emotion-icon { font-size: 18px; margin-bottom: 4px; }
-  .emotion-label { font-size: 9px; color: var(--text3); font-family: 'DM Mono', monospace; }
-
-  /* TOAST */
-  .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 9999; transition: all 0.3s; opacity: 0; transform: translateY(10px); pointer-events: none; }
-  .toast.show { opacity: 1; transform: translateY(0); }
-  .toast.success { background: var(--green); color: #000; }
-  .toast.info { background: var(--bg4); color: var(--text); border: 1px solid var(--border2); }
-
-  /* LOADING */
-  .loading-row td { text-align: center; padding: 32px; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 12px; }
-  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border2); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .two-col { display: grid; grid-template-columns: 1fr 340px; gap: 18px; margin-bottom: 18px; }
-  /* DASHBOARD GRID CLASSES */
-  .dash-grid-2-1 { display:grid; grid-template-columns:2fr 1fr; gap:18px; margin-bottom:18px; }
-  .dash-grid-3col { display:grid; grid-template-columns:180px 1fr 200px; gap:18px; margin-bottom:18px; }
-  .dash-grid-2col { display:grid; grid-template-columns:260px 1fr; gap:18px; margin-bottom:18px; }
-  /* OPERACIONES GRID CLASSES */
-  .ops-charts-3col { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:16px; }
-  .ops-charts-2col { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:16px; }
-
-
-  .section-title { font-size: 10px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; font-family: 'DM Mono', monospace; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
-  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .tag { font-size: 9px; font-family: 'DM Mono', monospace; padding: 3px 10px; border-radius: 20px; cursor: pointer; border: 1px solid; transition: opacity 0.15s; display: inline-block; }
-  .tag.revenge { background: var(--red-bg); color: var(--red); border-color: rgba(255,77,109,0.2); }
-  .tag.fomo { background: var(--amber-bg); color: var(--amber); border-color: rgba(245,166,35,0.2); }
-  .tag.overtrading { background: var(--purple-bg); color: var(--purple); border-color: rgba(167,139,250,0.2); }
-  .tag.discipline { background: var(--green-bg); color: var(--green); border-color: rgba(0,212,160,0.2); }
-  /* ── ERROR TAGS ─────────────────────────────────────────── */
-  .error-tag {
-    font-size: 11px; font-family: 'DM Mono', monospace; padding: 7px 12px;
-    border-radius: 20px; border: 1px solid var(--border2);
-    cursor: pointer; transition: all 0.15s; display: flex; align-items: center;
-    gap: 6px; justify-content: center; background: var(--bg3); color: var(--text2);
-    user-select: none;
-  }
-  .error-tag.inactive { opacity: 0.35; }
-  .error-tag:not(.inactive) { opacity: 1; box-shadow: 0 0 0 1.5px currentColor; }
-  .error-tag.revenge { background: rgba(255,77,109,0.12); color: var(--red); border-color: rgba(255,77,109,0.3); }
-  .error-tag.fomo { background: rgba(245,166,35,0.12); color: var(--amber); border-color: rgba(245,166,35,0.3); }
-  .error-tag.overtrading { background: rgba(167,139,250,0.12); color: #a78bfa; border-color: rgba(167,139,250,0.3); }
-  .error-tag.discipline { background: rgba(0,212,160,0.12); color: var(--green); border-color: rgba(0,212,160,0.3); }
-  .error-tag.emotions { background: rgba(77,159,255,0.12); color: var(--blue); border-color: rgba(77,159,255,0.3); }
-  .error-tag.sizing { background: rgba(255,77,109,0.12); color: var(--red); border-color: rgba(255,77,109,0.3); }
-
-  .tag.neutral { background: var(--bg4); color: var(--text3); border-color: var(--border); }
-  .tag.inactive { opacity: 0.25; filter: grayscale(0.8); }
-  .tag.sl-move { background: rgba(68,136,255,0.12); color: #4d9fff; border-color: rgba(68,136,255,0.3); }
-  .tag.early-close { background: rgba(167,139,250,0.12); color: var(--purple); border-color: rgba(167,139,250,0.3); }
-
-  /* CALENDAR */
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-  .cal-day-label { font-size: 9px; color: var(--text3); text-align: center; font-family: 'DM Mono', monospace; padding-bottom: 6px; }
-  .cal-day { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; font-family: 'DM Mono', monospace; color: var(--text3); background: var(--bg3); border: 1px solid var(--border); cursor: default; gap: 2px; }
-  .cal-day.win { background: var(--green-bg); color: var(--green); border-color: rgba(0,212,160,0.2); }
-  .cal-day.loss { background: var(--red-bg); color: var(--red); border-color: rgba(255,77,109,0.2); }
-  .cal-day.today { border-color: var(--green); }
-  .cal-day.empty { background: transparent; border-color: transparent; }
-
-
-  /* HABIT CALENDAR */
-  .habit-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-  .habit-cal-label { font-size: 9px; color: var(--text3); text-align: center; font-family: 'DM Mono', monospace; padding-bottom: 6px; }
-  .habit-cal-day { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: default; background: var(--bg3); border: 1px solid var(--border); gap: 3px; transition: all 0.15s; }
-  .habit-cal-day.has-data { cursor: pointer; }
-  .habit-cal-day.has-data:hover { border-color: var(--border2); transform: scale(1.05); }
-  .habit-cal-day.today { border-color: var(--green); }
-  .habit-cal-day.empty { background: transparent; border-color: transparent; }
-  .habit-cal-day-num { font-size: 9px; color: var(--text3); font-family: 'DM Mono', monospace; }
-  .habit-cal-day.has-data .habit-cal-day-num { color: var(--text2); }
-
-  /* HABIT MANAGER */
-  .habit-manage-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .habit-manage-item:last-child { border-bottom: none; }
-  .habit-manage-icon { font-size: 18px; width: 32px; text-align: center; }
-  .habit-manage-name { flex: 1; font-size: 13px; color: var(--text); }
-  .habit-manage-actions { display: flex; gap: 6px; }
-  .habit-small-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border2); background: transparent; color: var(--text3); font-size: 11px; cursor: pointer; font-family: 'DM Mono', monospace; transition: all 0.15s; }
-  .habit-small-btn:hover { background: var(--bg4); color: var(--text); }
-  .habit-small-btn.del { color: var(--red); border-color: rgba(255,77,109,0.2); }
-  .habit-small-btn.del:hover { background: var(--red-bg); }
-
-  /* RING SVG */
-  .habit-ring { transform: rotate(-90deg); }
-  .habit-ring-bg { fill: none; stroke: var(--bg4); stroke-width: 3; }
-  .habit-ring-fill { fill: none; stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 0.4s; }
-
-  /* HABITS */
-  .habit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
-  .habit-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; cursor: pointer; transition: all 0.15s; }
-  .habit-card.active { border-color: var(--green); background: var(--green-bg); }
-  .habit-icon { font-size: 22px; margin-bottom: 6px; }
-  .habit-label { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 1px; }
-  .habit-card.active .habit-label { color: var(--green); }
-  .habit-rating { display: flex; gap: 4px; justify-content: center; margin-top: 6px; }
-  .habit-star { font-size: 14px; cursor: pointer; opacity: 0.3; transition: opacity 0.1s; }
-  .habit-star.on { opacity: 1; }
-
-  /* CHECKLIST */
-  .checklist-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
-  .checklist-item:last-child { border-bottom: none; }
-  .checklist-box { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--border2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-  .checklist-box.checked { background: var(--green); border-color: var(--green); }
-  .checklist-text { font-size: 13px; color: var(--text2); flex: 1; }
-  .checklist-item.checked .checklist-text { color: var(--text3); text-decoration: line-through; }
-  .checklist-progress { height: 5px; background: var(--bg4); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
-  .checklist-progress-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.3s; }
-
-  /* CONSISTENCY SCORE */
-  .score-circle { width: 100px; height: 100px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 12px; border: 3px solid; }
-  .score-number { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
-  .score-label { font-size: 9px; font-family: 'DM Mono', monospace; letter-spacing: 1px; }
-
-  /* SURVEY */
-  .survey-question { margin-bottom: 18px; }
-  .survey-q-text { font-size: 13px; color: var(--text); margin-bottom: 10px; font-weight: 500; }
-  .survey-options { display: flex; gap: 6px; flex-wrap: wrap; }
-  .survey-option { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border2); background: transparent; color: var(--text2); font-size: 12px; cursor: pointer; font-family: 'DM Mono', monospace; transition: all 0.15s; }
-  .survey-option.selected { background: var(--green-bg); border-color: var(--green); color: var(--green); }
-
-  /* MACRO EVENTS */
-  .macro-event { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .macro-event:last-child { border-bottom: none; }
-  .macro-impact { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .macro-impact.high { background: var(--red); }
-  .macro-impact.medium { background: var(--amber); }
-  .macro-impact.low { background: var(--green); }
-  .macro-time { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; min-width: 50px; }
-  .macro-name { font-size: 13px; color: var(--text); flex: 1; }
-  .macro-badge { font-size: 9px; font-family: 'DM Mono', monospace; padding: 2px 8px; border-radius: 20px; }
-  .macro-badge.high { background: var(--red-bg); color: var(--red); }
-  .macro-badge.medium { background: var(--amber-bg); color: var(--amber); }
-
-  /* AI COACH */
-  .ai-chat { display: flex; flex-direction: column; gap: 14px; max-height: 420px; overflow-y: auto; margin-bottom: 14px; padding-right: 6px; scroll-behavior: smooth; }
-  .ai-msg { display: flex; gap: 10px; align-items: flex-start; }
-  .ai-msg.user { flex-direction: row-reverse; }
-  .ai-avatar { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
-  .ai-avatar.bot { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,212,160,0.2); }
-  .ai-avatar.user { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(77,159,255,0.2); }
-  .ai-bubble { padding: 14px 16px; border-radius: 12px; font-size: 13px; line-height: 1.6; max-width: 88%; }
-  .ai-bubble.bot { background: var(--bg2); color: var(--text2); border: 1px solid var(--border2); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-  .ai-bubble.user { background: var(--blue-bg); color: var(--text); border: 1px solid rgba(77,159,255,0.15); }
-  .ai-input-row { display: flex; gap: 8px; }
-  .ai-typing { display: flex; gap: 4px; align-items: center; padding: 10px 14px; }
-  .ai-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); animation: aidot 1.2s infinite; }
-  .ai-dot:nth-child(2) { animation-delay: 0.2s; }
-  .ai-dot:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes aidot { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
-
-  /* INSTRUMENT STATS */
-  .instr-bar-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
-  .instr-bar-row:last-child { border-bottom: none; }
-  .instr-name { font-size: 12px; font-family: 'DM Mono', monospace; min-width: 80px; color: var(--text2); }
-  .instr-bar-bg { flex: 1; height: 6px; background: var(--bg4); border-radius: 3px; overflow: hidden; }
-  .instr-bar-fill { height: 100%; border-radius: 3px; }
-  .instr-val { font-size: 12px; font-family: 'DM Mono', monospace; font-weight: 600; min-width: 70px; text-align: right; }
-
-  /* PROJECTION */
-  .proj-svg { width: 100%; height: 160px; }
-
-  /* MONTH COMPARE */
-  .month-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
-  .month-bar-container { width: 100%; display: flex; align-items: flex-end; justify-content: center; height: 100px; }
-  .month-bar { width: 70%; border-radius: 4px 4px 0 0; min-height: 3px; transition: height 0.5s; }
-  .month-label { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; }
-  .month-val { font-size: 11px; font-weight: 600; font-family: 'DM Mono', monospace; }
-
-  /* DAY DETAIL MODAL */
-  .cal-day.has-trades { cursor: pointer; }
-  .cal-day.has-trades:hover { transform: scale(1.08); transition: transform 0.1s; }
-  .day-modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: 16px; padding: 0; width: 860px; max-width: 96vw; max-height: 92vh; overflow: hidden; display: flex; flex-direction: column; }
-  .day-modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .day-modal-title { font-size: 16px; font-weight: 800; letter-spacing: -0.5px; }
-  .day-modal-close { width: 28px; height: 28px; border-radius: 8px; background: var(--bg3); border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--text2); }
-  .day-modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; overscroll-behavior: contain; }
-  .day-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
-  .day-summary-item { background: var(--bg3); border-radius: 8px; padding: 10px 12px; }
-  .day-summary-label { font-size: 9px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 1px; margin-bottom: 4px; }
-  .day-summary-value { font-size: 16px; font-weight: 800; }
-  .day-trade-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
-  .day-trade-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .day-trade-instr { font-size: 14px; font-weight: 700; }
-  .day-trade-pnl { font-size: 16px; font-weight: 800; }
-  .day-trade-details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
-  .day-trade-detail { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; }
-  .day-trade-detail span { color: var(--text2); display: block; font-size: 12px; margin-top: 1px; }
-  .day-trade-note { font-size: 12px; color: var(--text2); background: var(--bg4); border-radius: 6px; padding: 8px 10px; margin-top: 6px; line-height: 1.5; font-family: 'DM Mono', monospace; }
-  .day-emo-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-family: 'DM Mono', monospace; background: var(--bg4); border: 1px solid var(--border); padding: 3px 8px; border-radius: 20px; color: var(--text2); margin-top: 6px; }
-
-  .cal-pnl { font-size: 10px; font-weight: 500; opacity: 0.9; }
-
-  /* RISK CONTROL BANNER */
-  .risk-banner { border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border: 1px solid; }
-  .risk-banner.safe { background: var(--green-bg); border-color: rgba(0,212,160,0.2); }
-  .risk-banner.warn { background: var(--amber-bg); border-color: rgba(245,166,35,0.3); }
-  .risk-banner.danger { background: var(--red-bg); border-color: rgba(255,77,109,0.3); }
-  .risk-banner.stop { background: rgba(255,77,109,0.2); border-color: var(--red); }
-  .risk-banner-left { display: flex; align-items: center; gap: 12px; }
-  .risk-banner-icon { font-size: 20px; }
-  .risk-banner-title { font-size: 13px; font-weight: 700; }
-  .risk-banner-sub { font-size: 11px; font-family: 'DM Mono', monospace; margin-top: 2px; }
-  .risk-banner.safe .risk-banner-title { color: var(--green); }
-  .risk-banner.warn .risk-banner-title { color: var(--amber); }
-  .risk-banner.danger .risk-banner-title, .risk-banner.stop .risk-banner-title { color: var(--red); }
-  .risk-banner-sub { color: var(--text2); }
-
-  /* RISK METERS */
-  .risk-meters { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-  .risk-meter { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
-  .risk-meter-label { font-size: 9px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; font-family: 'DM Mono', monospace; margin-bottom: 8px; }
-  .risk-meter-value { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
-  .risk-meter-bar { height: 4px; background: var(--bg4); border-radius: 2px; overflow: hidden; }
-  .risk-meter-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
-  .risk-meter-sub { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 5px; }
-
-  /* CALC */
-  .calc-result { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-top: 14px; }
-  .calc-result-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
-  .calc-result-row:last-child { border-bottom: none; }
-  .calc-result-label { color: var(--text2); }
-  .calc-result-val { font-family: 'DM Mono', monospace; font-weight: 600; }
-
-  /* SESSION HEATMAP */
-  .heatmap-grid { display: grid; grid-template-columns: 60px repeat(5, 1fr); gap: 4px; }
-  .heatmap-cell { padding: 8px 4px; border-radius: 6px; text-align: center; font-size: 10px; font-family: 'DM Mono', monospace; }
-  .heatmap-label { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; display: flex; align-items: center; }
-  .heatmap-header { font-size: 9px; color: var(--text3); font-family: 'DM Mono', monospace; text-align: center; padding-bottom: 4px; letter-spacing: 1px; }
-
-  /* STATS GRID */
-  .stats-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 18px; }
-
-
-  /* ACCOUNTS */
-  .account-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.15s; position: relative; }
-  .account-card:hover { border-color: var(--border2); }
-  .account-card.selected { border-color: var(--green); background: var(--green-bg); }
-  .account-card.prop { border-color: rgba(245,166,35,0.3); }
-  .account-card.prop.selected { border-color: var(--amber); background: var(--amber-bg); }
-  .account-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-  .account-balance { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
-  .account-type-badge { font-size: 9px; font-family: 'DM Mono', monospace; padding: 2px 8px; border-radius: 20px; display: inline-block; letter-spacing: 1px; }
-  .account-type-badge.own { background: var(--green-bg); color: var(--green); }
-  .account-type-badge.prop { background: var(--amber-bg); color: var(--amber); }
-  .account-pnl { font-size: 11px; font-family: 'DM Mono', monospace; margin-top: 6px; }
-  .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
-  .add-account-card { background: transparent; border: 1px dashed var(--border2); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text3); font-size: 13px; min-height: 100px; }
-  .add-account-card:hover { border-color: var(--green); color: var(--green); }
-
-  /* IMAGE UPLOAD */
-  .img-upload-zone { border: 1px dashed var(--border2); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--bg3); }
-  .img-upload-zone:hover { border-color: var(--green); }
-  .img-upload-zone.has-image { border-color: var(--green); border-style: solid; padding: 8px; }
-  .img-preview { width: 100%; border-radius: 8px; max-height: 160px; object-fit: cover; display: block; }
-  .img-upload-label { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 6px; }
-  .img-upload-icon { font-size: 24px; margin-bottom: 6px; }
-  .img-remove { font-size: 10px; color: var(--red); cursor: pointer; margin-top: 4px; font-family: 'DM Mono', monospace; }
-
-  /* MODAL */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: 16px; padding: 28px; width: 440px; max-width: 90vw; }
-  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
-  .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
-
-  /* QUOTE */
-  .quote-wrap { overflow: hidden; height: 40px; position: relative; flex-shrink: 1; flex-grow: 1; }
-  .quote-slide { position: absolute; top: 0; left: 0; width: 100%; transition: transform 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.55s; }
-  .quote-slide.active { transform: translateX(0); opacity: 1; pointer-events: auto; }
-  .quote-slide.exit-left { transform: translateX(-110%); opacity: 0; pointer-events: none; }
-  .quote-slide.enter-right { transform: translateX(110%); opacity: 0; pointer-events: none; }
-  .quote-text { font-size: 12px; color: var(--text2); font-style: italic; line-height: 1.4; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 14px; }
-  .quote-author { font-size: 9px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 3px; letter-spacing: 0.5px; display: block; }
-
-
-  /* OPERATION STATUS */
-  .status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; font-family: 'DM Mono', monospace; }
-  .status-badge.open { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(245,166,35,0.25); }
-  .status-badge.closed { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,212,160,0.25); }
-  .status-dot { width: 6px; height: 6px; border-radius: 50%; }
-  .status-dot.open { background: var(--amber); animation: pulse-dot 1.5s infinite; }
-  .status-dot.closed { background: var(--green); }
-  @keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-
-  /* EDIT MODAL */
-  .edit-modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: 16px; padding: 0; width: 620px; max-width: 95vw; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
-  .edit-modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .edit-modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
-  .edit-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
-
-
-  /* PREMARKET CALENDAR */
-  .pm-cal-day { aspect-ratio:1; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:12px; font-weight:600; font-family:'DM Mono',monospace; background:var(--bg3); border:1px solid var(--border); gap:3px; }
-  .pm-cal-day.has-plan { cursor:pointer; border-color:var(--border2); }
-  .pm-cal-day.has-plan:hover { transform:scale(1.05); transition:transform 0.1s; }
-  .pm-cal-day.complete { background:var(--green-bg); border-color:rgba(0,212,160,0.25); color:var(--green); }
-  .pm-cal-day.partial { background:var(--amber-bg); border-color:rgba(245,166,35,0.25); color:var(--amber); }
-  .pm-cal-day.planned { background:var(--blue-bg); border-color:rgba(77,159,255,0.2); color:var(--blue); }
-  .pm-cal-day.today { border-color:var(--green) !important; }
-  .pm-cal-day.empty { background:transparent; border-color:transparent; }
-  .pm-cal-pct { font-size:9px; opacity:0.8; }
-
-
-  /* MOBILE RESPONSIVE */
-  .hamburger { display:none; flex-direction:column; gap:4px; cursor:pointer; padding:8px; border-radius:8px; border:1px solid var(--border2); background:var(--bg3); }
-  .hamburger span { width:18px; height:2px; background:var(--text2); border-radius:2px; transition:all 0.3s; display:block; }
-  .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99; }
-  .sidebar-overlay.open { display:block; }
-
-  @media (max-width: 768px) {
-    /* ═══════════════════════════════════════════════════════
-       MOBILE RESPONSIVE — iPhone 15 Pro Max (430pt)
-    ═══════════════════════════════════════════════════════ */
-
-    /* ── LAYOUT BASE ─────────────────────────────────────── */
-    html, body { overflow-x: hidden; }
-    .sidebar {
-      transform: translateX(-100%);
-      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-      z-index: 200;
-      position: fixed;
-      width: 280px !important;
-    }
-    .sidebar.open { transform: translateX(0); }
-    .layout { display: block !important; }
-    .main {
-      margin-left: 0 !important;
-      padding: 12px 10px 82px 10px !important;
-      padding-top: max(12px, env(safe-area-inset-top)) !important;
-      min-height: 100vh;
-    }
-
-    /* ── HEADER ─────────────────────────────────────────── */
-    .header {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      flex-wrap: nowrap !important;
-      margin-bottom: 12px !important;
-      gap: 8px !important;
-    }
-    .header-left {
-      gap: 0 !important;
-      flex: 1;
-      min-width: 0;
-    }
-    .header-left h1 {
-      font-size: 18px !important;
-      font-weight: 800 !important;
-      letter-spacing: -0.5px !important;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .header-date { display: none !important; }
-    .header-left > div[style*="width:1px"] { display: none !important; }
-    .quote-wrap { display: none !important; }
-    .hamburger { display: none !important; }
-    #sidebar-show-btn { display: none !important; }
-    #sidebar-toggle-btn { display: none !important; }
-    /* Hide all header buttons except theme */
-    .header-actions .btn:not(#theme-btn) { display: none !important; }
-    #logout-btn { display: none !important; }
-    .header-actions { flex-shrink: 0; }
-    #theme-btn { padding: 7px 10px !important; font-size: 15px !important; }
-
-    /* ── RISK BAR ───────────────────────────────────────── */
-    #fixed-risk-bar {
-      padding: 9px 12px !important;
-      border-radius: 10px !important;
-      margin-bottom: 10px !important;
-      flex-direction: row !important;
-      align-items: center !important;
-    }
-    #fixed-risk-text { font-size: 12px !important; }
-    #fixed-risk-detail { font-size: 10px !important; }
-
-    /* ── SECTION TITLE ──────────────────────────────────── */
-    .section-title { font-size: 9px !important; margin-bottom: 10px !important; }
-
-    /* ── CARDS ──────────────────────────────────────────── */
-    .card {
-      padding: 12px 11px 10px !important;
-      border-radius: 12px !important;
-    }
-    .card-title {
-      font-size: 10px !important;
-      margin-bottom: 10px !important;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-
-    /* ── METRICS ────────────────────────────────────────── */
-    .metrics-grid {
-      grid-template-columns: repeat(3, 1fr) !important;
-      gap: 6px !important;
-      margin-bottom: 10px !important;
-    }
-    .metric-card {
-      padding: 8px 7px 6px !important;
-      border-radius: 10px !important;
-    }
-    .metric-value {
-      font-size: 14px !important;
-      letter-spacing: -0.5px !important;
-    }
-    .metric-label {
-      font-size: 7px !important;
-      margin-bottom: 4px !important;
-      letter-spacing: 0.8px !important;
-    }
-    .metric-sub { font-size: 8px !important; margin-top: 2px !important; }
-
-    /* ── DASHBOARD GRIDS ────────────────────────────────── */
-    .dash-grid-2-1,
-    .dash-grid-3col,
-    .dash-grid-2col {
-      grid-template-columns: 1fr !important;
-      gap: 8px !important;
-      margin-bottom: 8px !important;
-    }
-    /* Chart heights */
-    .dash-grid-2-1 .card [style*="height:160px"],
-    .dash-grid-2col .card [style*="height:160px"],
-    .dash-grid-3col .card [style*="height:140px"] { height: 100px !important; }
-    .dash-grid-3col .card [style*="height:130px"],
-    .dash-grid-3col .card [style*="width:130px"] { height: 80px !important; width: 80px !important; }
-    /* Stats rows compact */
-    #panel-dashboard .stat-row { padding: 5px 0 !important; }
-    #panel-dashboard .stat-name { font-size: 11px !important; }
-    #panel-dashboard .stat-val { font-size: 11px !important; }
-
-    /* ── OPERACIONES GRIDS ──────────────────────────────── */
-    .ops-charts-3col,
-    .ops-charts-2col {
-      grid-template-columns: 1fr !important;
-      gap: 8px !important;
-      margin-bottom: 8px !important;
-    }
-    .ops-charts-3col .card [style*="height:180px"],
-    .ops-charts-2col .card [style*="height:160px"] { height: 100px !important; }
-    #panel-operaciones .card { padding: 12px 10px 8px !important; }
-    /* Filter bar */
-    .ops-filter-bar {
-      flex-direction: column !important;
-      gap: 6px !important;
-    }
-    .ops-filter-select,
-    .ops-filter-bar .btn { width: 100% !important; font-size: 15px !important; }
-
-    /* ── ALL OTHER GRIDS → 1 col ────────────────────────── */
-    .two-col,
-    .stats-3col,
-    [style*="grid-template-columns:2fr 1fr"],
-    [style*="grid-template-columns: 2fr 1fr"],
-    [style*="grid-template-columns:3fr 1fr"],
-    [style*="grid-template-columns:1fr 1fr"],
-    [style*="grid-template-columns: 1fr 1fr"],
-    [style*="grid-template-columns:1fr 300px"],
-    [style*="grid-template-columns:1fr 280px"],
-    [style*="grid-template-columns:1fr 320px"],
-    [style*="grid-template-columns:1fr 340px"],
-    [style*="grid-template-columns:260px 1fr"],
-    [style*="grid-template-columns:180px 1fr"],
-    [style*="grid-template-columns:160px 1fr"] {
-      grid-template-columns: 1fr !important;
-      gap: 8px !important;
-    }
-    [style*="grid-template-columns:repeat(3"],
-    [style*="grid-template-columns: repeat(3"],
-    [style*="grid-template-columns:1fr 1fr 1fr"] {
-      grid-template-columns: 1fr !important;
-      gap: 8px !important;
-    }
-    [style*="grid-template-columns:repeat(4"],
-    [style*="grid-template-columns: repeat(4"] {
-      grid-template-columns: repeat(2, 1fr) !important;
-      gap: 8px !important;
-    }
-
-    /* ── FORMS ──────────────────────────────────────────── */
-    .form-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
-    .form-input, .form-select, .form-textarea {
-      font-size: 16px !important;
-      padding: 10px 12px !important;
-    }
-
-    /* ── TABLES ─────────────────────────────────────────── */
-    [style*="overflow-x:auto"] { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
-    .trade-table { min-width: 580px; font-size: 11px !important; }
-    .trade-table th { font-size: 8px !important; padding-bottom: 8px !important; }
-    .trade-table td { padding: 7px 8px 7px 0 !important; }
-
-    /* ── MODALS ─────────────────────────────────────────── */
-    .day-modal, .edit-modal, .modal {
-      width: 97vw !important;
-      max-width: 97vw !important;
-      max-height: 88vh !important;
-      overflow-y: auto !important;
-      border-radius: 16px !important;
-    }
-    .modal-overlay { padding: 10px !important; }
-
-    /* ── AI CHAT ────────────────────────────────────────── */
-    .ai-bubble { max-width: 94% !important; font-size: 13px !important; }
-    .ai-chat { max-height: 280px !important; }
-    [style*="height:580px"] { height: auto !important; min-height: 280px !important; }
-    [style*="height:420px"] { max-height: 260px !important; }
-
-    /* ── HABITS ─────────────────────────────────────────── */
-    .habit-grid { grid-template-columns: repeat(2, 1fr) !important; }
-    #habits-today-grid { grid-template-columns: repeat(2, 1fr) !important; }
-
-    /* ── DAY SUMMARY ────────────────────────────────────── */
-    .day-summary { grid-template-columns: repeat(2, 1fr) !important; }
-
-    /* ── ACCOUNTS ───────────────────────────────────────── */
-    .accounts-grid { grid-template-columns: 1fr !important; }
-
-    /* ── PLAN CARDS ─────────────────────────────────────── */
-    [style*="grid-template-columns:repeat(3,1fr)"] { grid-template-columns: 1fr !important; }
-    [style*="max-width:940px"] { max-width: 100% !important; }
-
-    /* ── CHARTS GENERAL ─────────────────────────────────── */
-    .charts-grid { grid-template-columns: 1fr !important; }
-
-    /* ── RISK METERS ────────────────────────────────────── */
-    .risk-meters { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-    .risk-meter { padding: 10px !important; }
-    .risk-meter-value { font-size: 18px !important; }
-
-    /* ── SURVEY ─────────────────────────────────────────── */
-    .survey-options { gap: 6px !important; }
-    .survey-option { font-size: 12px !important; padding: 6px 10px !important; }
-
-    /* ── CALENDAR ───────────────────────────────────────── */
-    .cal-day { font-size: 11px !important; border-radius: 6px !important; }
-    .cal-pnl { font-size: 8px !important; }
-
-    /* ── BOTTOM NAV ─────────────────────────────────────── */
-    .mobile-nav { display: flex !important; }
-
-  }
-
-  /* ── MOBILE BOTTOM NAV STYLES ───────────────────────────── */
-  .mobile-nav {
-    display: none;
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: var(--bg2);
-    border-top: 1px solid var(--border2);
-    z-index: 99999;
-    height: 70px;
-    padding: 0;
-    justify-content: space-around;
-    align-items: center;
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.3);
-    transform-origin: bottom left;
-    will-change: transform;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-  }
-  .mobile-nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    padding: 0 8px;
-    cursor: pointer;
-    border-radius: 12px;
-    height: 70px;
-    min-width: 60px;
-    transition: all 0.15s;
-    flex: 1;
-  }
-  .mobile-nav-item.active .mobile-nav-icon { color: var(--green); }
-  .mobile-nav-item.active .mobile-nav-label { color: var(--green); }
-  .mobile-nav-icon { font-size: 24px; line-height: 1; color: var(--text2); display: flex; align-items: center; justify-content: center; }
-  .mobile-nav-label { font-size: 10px; color: var(--text3); font-family: monospace; letter-spacing: 0.5px; text-transform: uppercase; }
-  /* Menu modal items */
-  .mmenu-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 16px 10px;
-    border-radius: 14px;
-    border: 1px solid var(--border);
-    background: var(--bg3);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .mmenu-item:active { background: var(--bg4); border-color: var(--border2); }
-  .mmenu-icon { font-size: 26px; line-height: 1; }
-  .mmenu-label { font-size: 11px; color: var(--text2); font-family: monospace; text-align: center; letter-spacing: 0.5px; }
-</style>
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script>
-// Fallback CDN if unpkg blocked (Edge tracking prevention)
-if (typeof supabase === 'undefined') {
-  document.write('<scr' + 'ipt src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></scr' + 'ipt>');
-}
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<!-- PWA -->
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#00d4a0">
 <meta name="mobile-web-app-capable" content="yes">
@@ -790,562 +21,852 @@ if (typeof supabase === 'undefined') {
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tradync">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <style>
+    /* ═══════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Dark mode (default) */
+      --bg:     #0a0a0c;
+      --bg2:    #111114;
+      --bg3:    #1a1a1e;
+      --bg4:    #222228;
+      --border: rgba(255,255,255,0.07);
+      --border2:rgba(255,255,255,0.12);
+      --text:   #f0f0f2;
+      --text2:  #9090a0;
+      --text3:  #50505e;
+      --green:  #00b87a;
+      --green2: #009966;
+      --green3: #00d4a0;
+      --green-bg:  rgba(0,184,122,0.10);
+      --green-mid: rgba(0,184,122,0.12);
+      --red:    #f43f5e;
+      --red-bg: rgba(244,63,94,0.10);
+      --amber:  #f59e0b;
+      --amber-bg: rgba(245,158,11,0.10);
+      --blue:   #3b82f6;
+      --blue-bg:  rgba(59,130,246,0.10);
+      --purple: #00b87a;
+      --purple-bg: rgba(0,184,122,0.10);
+      --shadow: 0 1px 4px rgba(0,0,0,0.4);
+      --radius: 10px;
+      --radius-lg: 12px;
+    }
+
+    .light-mode {
+      --bg:     #f5f5f7;
+      --bg2:    #ffffff;
+      --bg3:    #f0f0f3;
+      --bg4:    #e8e8ed;
+      --border: rgba(0,0,0,0.08);
+      --border2:rgba(0,0,0,0.14);
+      --text:   #0f0f10;
+      --text2:  #6b6b7a;
+      --text3:  #a0a0b0;
+      --green:  #00b87a;
+      --green2: #009966;
+      --green3: #00c896;
+      --green-bg:  #e6f9f3;
+      --green-mid: rgba(0,184,122,0.10);
+      --red:    #f43f5e;
+      --red-bg: #feeaed;
+      --amber:  #f59e0b;
+      --amber-bg: #fef3dc;
+      --blue:   #3b82f6;
+      --blue-bg:  #eff6ff;
+      --purple: #00b87a;
+      --purple-bg: rgba(0,184,122,0.10);
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'Inter', 'Outfit', sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ═══════════════════════════════════════════
+       LAYOUT PRINCIPAL
+    ═══════════════════════════════════════════ */
+    .app-shell {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ═══════════════════════════════════════════
+       SIDEBAR
+    ═══════════════════════════════════════════ */
+    .sidebar {
+      width: 220px;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transition: width 0.25s ease;
+      z-index: 100;
+    }
+    .sidebar.collapsed { width: 56px; }
+    .sidebar.collapsed .nav-label,
+    .sidebar.collapsed .nav-section-label,
+    .sidebar.collapsed .logo-text,
+    .sidebar.collapsed .search-bar,
+    .sidebar.collapsed .sidebar-user-info,
+    .sidebar.collapsed .nav-badge { display: none; }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 14px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .logo-icon {
+      width: 30px; height: 30px;
+      background: var(--green);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-icon svg { width: 16px; height: 16px; }
+    .logo-text { line-height: 1.2; }
+    .logo-text .logo-name { font-size: 13px; font-weight: 700; color: var(--text); }
+    .logo-text .logo-sub { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .sidebar-search {
+      padding: 8px 10px;
+      flex-shrink: 0;
+    }
+    .search-bar {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 10px;
+      cursor: pointer;
+    }
+    .search-bar svg { width: 12px; height: 12px; opacity: 0.5; flex-shrink: 0; }
+    .search-bar span { font-size: 12px; color: var(--text3); flex: 1; }
+    .search-kbd { display: flex; gap: 2px; }
+    .kbd {
+      background: var(--bg4); border: 1px solid var(--border2);
+      border-radius: 4px; font-size: 9px; color: var(--text3); padding: 1px 5px;
+    }
+
+    .nav-section-label {
+      font-size: 10px; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      font-weight: 600;
+      padding: 10px 14px 4px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 7px 12px;
+      margin: 1px 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12.5px;
+      color: var(--text2);
+      transition: all 0.15s;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .nav-item:hover { background: var(--bg3); color: var(--text); }
+    .nav-item.active {
+      background: var(--green-mid);
+      color: var(--green);
+      font-weight: 600;
+      border-color: rgba(0,184,122,0.15);
+    }
+    .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.65; }
+    .nav-item.active svg { opacity: 1; }
+    .nav-label { flex: 1; }
+    .nav-badge {
+      font-size: 10px; background: var(--green);
+      color: #fff; padding: 1px 7px; border-radius: 10px; font-weight: 600;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .sidebar-user {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 10px; border-radius: 9px; cursor: pointer;
+    }
+    .sidebar-user:hover { background: var(--bg3); }
+    .user-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .sidebar-user-info .u-name { font-size: 12px; font-weight: 600; color: var(--text); }
+    .sidebar-user-info .u-plan { font-size: 10px; color: var(--green); font-weight: 500; }
+
+    /* ═══════════════════════════════════════════
+       MAIN CONTENT AREA
+    ═══════════════════════════════════════════ */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    /* ═══════════════════════════════════════════
+       TOPBAR / HEADER
+    ═══════════════════════════════════════════ */
+    .topbar {
+      height: 50px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 10px;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+    .topbar-title {
+      font-size: 15px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.3px;
+    }
+    .topbar-tabs {
+      display: flex; gap: 2px; margin-left: 12px;
+    }
+    .topbar-tab {
+      padding: 5px 12px; border-radius: 7px;
+      font-size: 12px; color: var(--text2);
+      cursor: pointer; border: 1px solid transparent;
+    }
+    .topbar-tab.active {
+      border-color: var(--border2);
+      background: var(--bg3); color: var(--text); font-weight: 500;
+    }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+    .ea-status-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--green-mid);
+      border: 1px solid rgba(0,184,122,0.2);
+      border-radius: 20px; padding: 4px 11px;
+      font-size: 11px; color: var(--green); font-weight: 600;
+    }
+    .ea-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .date-pill {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--text2);
+      background: var(--bg3); border: 1px solid var(--border);
+      padding: 5px 10px; border-radius: 7px;
+    }
+    .hamburger-btn {
+      display: none; /* hidden on desktop */
+      width: 32px; height: 32px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 7px; cursor: pointer;
+      align-items: center; justify-content: center;
+    }
+
+    /* Topbar buttons */
+    .btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 13px; border-radius: 8px;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.15s;
+    }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-primary:hover { background: var(--green2); }
+    .btn-secondary {
+      background: var(--bg3); color: var(--text2);
+      border: 1px solid var(--border2);
+    }
+    .btn-secondary:hover { color: var(--text); background: var(--bg4); }
+
+    /* ═══════════════════════════════════════════
+       RISK BAR (below topbar)
+    ═══════════════════════════════════════════ */
+    #risk-bar {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 18px;
+      display: flex; align-items: center;
+      gap: 12px; font-size: 11px; flex-shrink: 0;
+      font-family: monospace;
+    }
+
+    /* EA Score Bar */
+    #ea-score-bar {
+      display: none;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      padding: 5px 18px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      font-size: 11px;
+      font-family: monospace;
+      flex-shrink: 0;
+    }
+
+    /* ═══════════════════════════════════════════
+       CONTENT AREA
+    ═══════════════════════════════════════════ */
+    .content-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .tab-panel {
+      padding: 20px;
+      min-height: 100%;
+    }
+    .tab-panel:not(.active-panel) { display: none; }
+
+    /* ═══════════════════════════════════════════
+       CARDS
+    ═══════════════════════════════════════════ */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+    }
+    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: box-shadow 0.2s; }
+    .card-title {
+      font-size: 11px; font-weight: 600;
+      color: var(--text); text-transform: uppercase;
+      letter-spacing: 0.6px; margin-bottom: 12px;
+    }
+    .card-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    /* Metric cards */
+    .metric-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+    }
+    .metric-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .metric-icon svg { width: 15px; height: 15px; }
+    .metric-label { font-size: 11px; color: var(--text2); font-weight: 500; margin-bottom: 4px; }
+    .metric-value { font-size: 21px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; line-height: 1; }
+    .metric-delta { font-size: 11px; color: var(--text3); margin-top: 5px; display: flex; align-items: center; gap: 4px; }
+    .delta-up { color: var(--green); font-weight: 600; }
+    .delta-down { color: var(--red); font-weight: 600; }
+
+    /* ═══════════════════════════════════════════
+       SECTION TITLES
+    ═══════════════════════════════════════════ */
+    .section-title {
+      font-size: 10px; font-weight: 600;
+      color: var(--text3); text-transform: uppercase;
+      letter-spacing: 1.5px; margin-bottom: 12px;
+    }
+    .page-title {
+      font-size: 18px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.3px; margin-bottom: 16px;
+    }
+
+    /* ═══════════════════════════════════════════
+       TABLES
+    ═══════════════════════════════════════════ */
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      font-size: 10px; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 8px 14px; text-align: left;
+      font-weight: 600; border-bottom: 1px solid var(--border);
+    }
+    td {
+      font-size: 12px; padding: 9px 14px;
+      color: var(--text); border-bottom: 1px solid var(--border);
+    }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--bg3); }
+
+    /* ═══════════════════════════════════════════
+       BADGES & PILLS
+    ═══════════════════════════════════════════ */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 2px 8px; border-radius: 6px;
+      font-size: 10px; font-weight: 700;
+    }
+    .badge-buy { background: var(--green-bg); color: var(--green); }
+    .badge-sell { background: var(--red-bg); color: var(--red); }
+    .badge-green { background: var(--green-bg); color: var(--green); }
+    .badge-red { background: var(--red-bg); color: var(--red); }
+    .badge-amber { background: var(--amber-bg); color: var(--amber); }
+    .badge-blue { background: var(--blue-bg); color: var(--blue); }
+
+    /* Legacy support for existing JS */
+    .tag-buy { background: var(--green-bg); color: var(--green); padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 700; }
+    .tag-sell { background: var(--red-bg); color: var(--red); padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 700; }
+    .tag-win { background: var(--green-bg); color: var(--green); padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 600; }
+    .tag-loss { background: var(--red-bg); color: var(--red); padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 600; }
+
+    /* ═══════════════════════════════════════════
+       FORMS & INPUTS
+    ═══════════════════════════════════════════ */
+    input, select, textarea {
+      background: var(--bg3); border: 1px solid var(--border2);
+      border-radius: 8px; padding: 9px 12px;
+      color: var(--text); font-size: 13px;
+      width: 100%; outline: none; transition: border 0.15s;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--green); }
+    label { font-size: 11px; color: var(--text2); font-weight: 500; display: block; margin-bottom: 5px; }
+    .form-group { margin-bottom: 14px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ═══════════════════════════════════════════
+       MODAL
+    ═══════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000; display: none;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: 16px; padding: 24px;
+      width: 100%; max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 18px; }
+
+    /* ═══════════════════════════════════════════
+       CHARTS AREA (P&L area chart)
+    ═══════════════════════════════════════════ */
+    .chart-container { position: relative; }
+    .chart-container canvas { border-radius: 8px; }
+
+    /* ═══════════════════════════════════════════
+       MINI BARS (for rankings)
+    ═══════════════════════════════════════════ */
+    .mini-bar-track {
+      height: 4px; background: var(--bg4);
+      border-radius: 2px; overflow: hidden; margin-top: 5px;
+    }
+    .mini-bar-fill { height: 100%; border-radius: 2px; }
+
+    /* ═══════════════════════════════════════════
+       HORIZONTAL BARS (sessions etc)
+    ═══════════════════════════════════════════ */
+    .hbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .hbar-label { font-size: 11px; color: var(--text2); width: 70px; flex-shrink: 0; }
+    .hbar-track { flex: 1; height: 7px; background: var(--bg4); border-radius: 4px; overflow: hidden; }
+    .hbar-fill { height: 100%; border-radius: 4px; }
+    .hbar-value { font-size: 11px; font-weight: 600; color: var(--text); width: 36px; text-align: right; flex-shrink: 0; }
+
+    /* ═══════════════════════════════════════════
+       SEGMENTED CONTROL
+    ═══════════════════════════════════════════ */
+    .seg-control {
+      display: flex; background: var(--bg3);
+      border-radius: 8px; padding: 2px; gap: 2px;
+    }
+    .seg-btn {
+      flex: 1; padding: 5px 12px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; cursor: pointer;
+      border: none; background: transparent; color: var(--text2);
+      transition: all 0.15s;
+    }
+    .seg-btn.active { background: var(--bg2); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+    /* ═══════════════════════════════════════════
+       GRID UTILITIES
+    ═══════════════════════════════════════════ */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+    .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+    .grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 14px; }
+
+    /* ═══════════════════════════════════════════
+       DIVIDER
+    ═══════════════════════════════════════════ */
+    .divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+    /* ═══════════════════════════════════════════
+       PROGRESS BARS
+    ═══════════════════════════════════════════ */
+    .progress-track {
+      height: 5px; background: var(--bg4);
+      border-radius: 3px; overflow: hidden;
+    }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+
+    /* ═══════════════════════════════════════════
+       STATUS DOTS
+    ═══════════════════════════════════════════ */
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .dot-red { background: var(--red); }
+    .dot-amber { background: var(--amber); }
+
+    /* ═══════════════════════════════════════════
+       SCROLL STYLING
+    ═══════════════════════════════════════════ */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border2); }
+
+    /* ═══════════════════════════════════════════
+       LEGACY COMPATIBILITY (existing JS uses these)
+    ═══════════════════════════════════════════ */
+    .logo { display: flex; align-items: center; gap: 8px; }
+    .logo-text { font-size: 14px; font-weight: 800; color: var(--text); }
+    .logo-text span { color: var(--green); }
+    .nav-section { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; padding: 10px 14px 4px; font-weight: 600; }
+    .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; box-shadow: var(--shadow); }
+    .stat-value { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); line-height: 1; }
+    .stat-label { font-size: 11px; color: var(--text2); font-weight: 500; margin-bottom: 4px; }
+    .text-green { color: var(--green); }
+    .text-red { color: var(--red); }
+    .text-amber { color: var(--amber); }
+    .text-muted { color: var(--text2); }
+    .text-xs { font-size: 11px; }
+    .text-sm { font-size: 12px; }
+    .font-mono { font-family: monospace; }
+    .font-bold { font-weight: 700; }
+    .flex { display: flex; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-3 { margin-bottom: 12px; }
+    .mb-4 { margin-bottom: 16px; }
+    .mt-2 { margin-top: 8px; }
+    .mt-3 { margin-top: 12px; }
+    .w-full { width: 100%; }
+    .btn-ghost { background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); padding: 7px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+    .btn-ghost:hover { color: var(--text); }
+    .btn-danger { background: var(--red-bg); border: 1px solid var(--red); color: var(--red); padding: 7px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+    .input-group { display: flex; gap: 8px; }
+    .checkbox-group { display: flex; align-items: center; gap: 8px; }
+    .checkbox-group input { width: auto; }
+    .tag { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+
+    /* Broker tab styles */
+    .broker-tab { flex: 1; padding: 10px 0; border: 2px solid var(--border); border-radius: 10px; font-size: 12px; font-weight: 700; font-family: monospace; cursor: pointer; background: transparent; color: var(--text2); transition: all 0.2s; }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; left: -220px; height: 100%; transition: left 0.25s; }
+      .sidebar.mobile-open { left: 0; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
+      .hamburger-btn { display: flex; }
+      .grid-4 { grid-template-columns: repeat(2,1fr); }
+      .grid-2-1, .grid-1-2 { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
 </head>
 <body>
+<div class="app-shell">
 
-
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
-<div class="layout">
-  <aside class="sidebar">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 0;">
-      <div class="logo">
-        <div class="logo-text">Tradync<span>App</span></div>
-        <div class="logo-sub">TRADING JOURNAL</div>
+  <!-- ═══════════════════════════════════════
+       SIDEBAR
+  ═══════════════════════════════════════ -->
+  <div class="sidebar" id="sidebar">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 16 16" fill="none">
+          <path d="M8 2L14 5.5V10.5L8 14L2 10.5V5.5L8 2Z" fill="white" opacity="0.9"/>
+          <path d="M8 5L11 6.8V9.8L8 11.5L5 9.8V6.8L8 5Z" fill="white" opacity="0.5"/>
+        </svg>
       </div>
-      <button id="sidebar-toggle-btn" onclick="toggleSidebar()"
-        style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);cursor:pointer;color:var(--text2);font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"
-        title="Ocultar menú">‹</button>
-    </div>
-    <div class="sidebar-scroll">
-    <div class="nav-section">
-      <div class="nav-label">Navegación</div>
-      <div class="nav-item active" onclick="goTab('dashboard', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
-        Dashboard
-      </div>
-      <div class="nav-item" onclick="goTab('insights', this)" style="position:relative;">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 2a5 5 0 1 1 0 10A5 5 0 0 1 8 3z" opacity=".3"/><path d="M7 5h2v4H7zm0 5h2v2H7z"/></svg>
-        Insights
-        <span id="insights-badge" style="position:absolute;top:6px;right:8px;background:var(--green);color:#000;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;font-family:monospace;display:none;">NEW</span>
-      </div>
-      <div class="nav-item" onclick="goTab('broker', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a2 2 0 0 1 2-2z" opacity=".3"/><path d="M8 2a1 1 0 0 0-1 1v1h2V3a1 1 0 0 0-1-1zM5 5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H5z"/></svg>
-        Conectar Broker
-      </div>
-      <div class="nav-item" onclick="goTab('operaciones', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M2 4h12v1.5H2zm0 3.5h12V9H2zm0 3.5h8v1.5H2z"/></svg>
-        Operaciones
-      </div>
-      <div class="nav-item" onclick="goTab('nueva', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg>
-        Nueva Operación
-      </div>
-      <div class="nav-item" onclick="goTab('riesgo', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L2 4v4c0 3.3 2.6 6.4 6 7 3.4-.6 6-3.7 6-7V4L8 1z"/></svg>
-        Control Riesgo
-      </div>
-      <div class="nav-item" onclick="goTab('calendario', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="14" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1 7h14M5 1v3M11 1v3"/></svg>
-        Calendario
-      </div>
-      <div class="nav-item" onclick="goTab('estadisticas', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/></svg>
-        Estadísticas
-      </div>
-      <div class="nav-item" onclick="goTab('cuentas', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3zm0 5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8zm1 4a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2H3z"/></svg>
-        Cuentas
-      </div>
-      <div class="nav-item" onclick="goTab('premarket', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM4.5 7.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1zM8 4a.5.5 0 0 1 .5.5v3.793l2.146 2.147a.5.5 0 0 1-.707.707L7.646 8.854A.5.5 0 0 1 7.5 8.5v-4A.5.5 0 0 1 8 4z"/></svg>
-        Pre-Market
-      </div>
-      <div class="nav-item" onclick="goTab('habitos', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm0 2a.5.5 0 0 0-.5.5v4.793l-2.146 2.147a.5.5 0 0 0 .707.707L8.354 9.854A.5.5 0 0 0 8.5 9.5v-5A.5.5 0 0 0 8 4z"/></svg>
-        Hábitos
-      </div>
-      <div class="nav-item" onclick="goTab('ia', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062z"/></svg>
-        Coach IA
-      </div>
-      <div class="nav-item" onclick="goTab('diario', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M4 1h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H4zm1 3h6v1H5V5zm0 2h6v1H5V7zm0 2h4v1H5V9z"/></svg>
-        Diario
-      </div>
-      <div class="nav-item" onclick="goTab('psicologia', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a5.5 5.5 0 1 0 0 11A5.5 5.5 0 0 0 8 1zM8 10a.75.75 0 1 1 0-1.5A.75.75 0 0 1 8 10zm.75-3.25a.75.75 0 0 1-1.5 0V4.5a.75.75 0 0 1 1.5 0v2.25z"/></svg>
-        Psicología
+      <div class="logo-text">
+        <div class="logo-name">TradyncApp</div>
+        <div class="logo-sub">Trading Journal</div>
       </div>
     </div>
 
-    </div>
-    <div style="padding:16px 12px;border-top:1px solid var(--border);flex-shrink:0;">
-      <div class="nav-item" onclick="goTab('logros', this)">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.5 3 3.5.5-2.5 2.5.6 3.5L8 9l-3.1 1.5.6-3.5L3 4.5l3.5-.5z"/><path d="M4 13h8v1.5H4z" opacity=".5"/></svg>
-        Logros
-      </div>
-      <div class="nav-item" onclick="window.location.href='afiliados.html'" style="color:var(--text2);">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm-5 9a5 5 0 0 1 10 0v1H3v-1z"/><path d="M14 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm1 6v-1a4 4 0 0 0-2.5-3.7"/><path d="M2 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM1 13v-1a4 4 0 0 1 2.5-3.7"/></svg>
-        Afiliados
-      </div>
-      <div class="nav-item" onclick="goTab('planes', this)" style="background:linear-gradient(135deg,rgba(0,212,160,0.15),rgba(77,159,255,0.15));border:1px solid rgba(0,212,160,0.3);color:var(--green);font-weight:700;">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l2 4 4.5.65-3.25 3.17.77 4.48L8 11.1l-4.02 2.2.77-4.48L1.5 5.65 6 5z"/></svg>
-        Hazte Pro+
-      </div>
-    </div>
-  </aside>
-
-  <main class="main">
-    <div class="header">
-      <div class="header-left" style="display:flex;align-items:center;gap:16px;flex:1;min-width:0;">
-        <div class="hamburger" onclick="toggleSidebar()" id="hamburger">
-          <span></span><span></span><span></span>
-        </div>
-        <div>
-          <h1 id="page-title">Mi <span>Trading</span> Journal</h1>
-          <div class="header-date" id="current-date"></div>
-        </div>
-        <div style="width:1px;height:36px;background:var(--border);flex-shrink:0;"></div>
-        <div class="quote-wrap" id="quote-wrap" style="flex:1;max-width:600px;min-width:200px;">
-          <div class="quote-slide active" id="quote-slide-a">
-            <div class="quote-text" id="quote-text-a"></div>
-            <div class="quote-author" id="quote-author-a"></div>
-          </div>
-          <div class="quote-slide enter" id="quote-slide-b" style="transform:translateX(110%);opacity:0;">
-            <div class="quote-text" id="quote-text-b"></div>
-            <div class="quote-author" id="quote-author-b"></div>
-          </div>
-        </div>
-      </div>
-      <div class="header-actions">
-        
-        <button class="btn" id="theme-btn" onclick="toggleTheme()" style="font-size:16px;padding:7px 12px;" title="Cambiar tema">🌙</button>
-        <button class="btn" onclick="openModal()">+ Nueva cuenta</button>
-        <button class="btn btn-primary" onclick="goTab('nueva', null)">+ Nueva operación</button>
-      </div>
-    </div>
-
-    <!-- FIXED RISK BAR -->
-    <div id="fixed-risk-bar" onclick="goTab('riesgo',document.querySelector('[onclick*=riesgo]'))" style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-radius:10px;margin-bottom:20px;cursor:pointer;transition:all 0.2s;border:1px solid;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span id="fixed-risk-text" style="font-size:13px;font-weight:700;font-family:'DM Mono',monospace;">⏳ Cargando...</span>
-        <span id="fixed-risk-detail" style="font-size:11px;font-family:'DM Mono',monospace;opacity:0.7;"></span>
-      </div>
-      <span style="font-size:11px;font-family:'DM Mono',monospace;opacity:0.5;">Control Riesgo →</span>
-    </div>
-
-    <!-- DASHBOARD -->
-    <div class="tab-panel active" id="panel-dashboard">
-
-      <!-- METRICS ROW -->
-      <div class="metrics-grid" style="grid-template-columns:repeat(6,1fr);margin-bottom:20px;">
-        <div class="metric-card green"><div class="metric-label">P&L Total</div><div class="metric-value green" id="m-pnl">—</div><div class="metric-sub" id="m-pnl-sub">acumulado</div></div>
-        <div class="metric-card blue"><div class="metric-label">Win Rate</div><div class="metric-value blue" id="m-wr">—</div><div class="metric-sub" id="m-wr-sub">wins/ops</div></div>
-        <div class="metric-card amber"><div class="metric-label">Profit Factor</div><div class="metric-value amber" id="m-pf">—</div><div class="metric-sub">ganancia/pérdida</div></div>
-        <div class="metric-card purple"><div class="metric-label">Total Ops.</div><div class="metric-value purple" id="m-ops">—</div><div class="metric-sub" id="m-ops-sub">registradas</div></div>
-        <div class="metric-card red"><div class="metric-label">Max Drawdown</div><div class="metric-value red" id="m-worst">—</div><div class="metric-sub">mayor pérdida</div></div>
-        <div class="metric-card green"><div class="metric-label">RR Medio</div><div class="metric-value green" id="m-rr-dash">—</div><div class="metric-sub">ratio riesgo</div></div>
-      </div>
-
-      <!-- EQUITY + DAILY -->
-      <div class="dash-grid-2-1">
-        <div class="card">
-          <div class="card-title">Curva de equity <span class="card-title-badge" id="equity-badge">—</span></div>
-          <div style="position:relative;height:160px;"><canvas id="equity-chart"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title">P&L hoy <span class="card-title-badge" id="today-badge">—</span></div>
-          <div style="position:relative;height:160px;"><canvas id="today-chart"></canvas></div>
-        </div>
-      </div>
-
-      <!-- WIN/LOSS + SETUP + STATS -->
-      <div class="dash-grid-3col">
-        <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
-          <div class="card-title" style="text-align:center;width:100%;">Win / Loss</div>
-          <div style="position:relative;height:130px;width:130px;"><canvas id="winloss-chart"></canvas></div>
-          <div style="display:flex;gap:12px;margin-top:8px;">
-            <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);"></div><span id="wl-wins">—W</span></div>
-            <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;"><div style="width:8px;height:8px;border-radius:2px;background:var(--red);"></div><span id="wl-losses">—L</span></div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Rendimiento por setup</div>
-          <div style="position:relative;height:140px;"><canvas id="setup-chart"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Estadísticas</div>
-          <div class="stat-row"><span class="stat-name">Mayor ganancia</span><span class="stat-val" id="s-best" style="color:var(--green)">—</span></div>
-          <div class="stat-row"><span class="stat-name">Mayor pérdida</span><span class="stat-val" id="s-worst" style="color:var(--red)">—</span></div>
-          <div class="stat-row"><span class="stat-name">Media/op</span><span class="stat-val" id="s-avg">—</span></div>
-          <div class="stat-row"><span class="stat-name">RR promedio</span><span class="stat-val" id="s-rr">—</span></div>
-          <div class="stat-row"><span class="stat-name">Días operados</span><span class="stat-val" id="s-days">—</span></div>
-        </div>
-      </div>
-
-      <!-- SESSION + DISTRIBUTION -->
-      <div class="dash-grid-2col">
-        <div class="card">
-          <div class="card-title">Por sesión</div>
-          <div style="position:relative;height:160px;"><canvas id="session-chart"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Distribución de resultados <span class="card-title-badge">Histograma</span></div>
-          <div style="position:relative;height:160px;"><canvas id="dist-chart"></canvas></div>
-        </div>
-      </div>
-
-      <!-- RECENT TRADES TABLE -->
-      <div class="card">
-        <div class="card-title">Últimas operaciones <span class="card-title-badge" style="cursor:pointer" onclick="goTab('operaciones',null)">Ver todas →</span></div>
-        <div style="overflow-x:auto;">
-          <table class="trade-table">
-            <thead><tr><th></th><th>Fecha</th><th>Instrumento</th><th>Tipo</th><th>Dir.</th><th>Entrada</th><th>SL</th><th>TP</th><th>Contratos</th><th>Resultado</th><th>Emoción</th><th>Estado</th><th></th></tr></thead>
-            <tbody id="recent-trades-body"><tr class="loading-row"><td colspan="12"><span class="spinner"></span>Cargando...</td></tr></tbody>
-          </table>
+    <!-- Search -->
+    <div class="sidebar-search">
+      <div class="search-bar" onclick="document.dispatchEvent(new KeyboardEvent('keydown',{key:'k',metaKey:true}))">
+        <svg viewBox="0 0 16 16" fill="currentColor" style="color:var(--text3)">
+          <path d="M6.5 1a5.5 5.5 0 1 0 3.45 9.79l2.88 2.88a.75.75 0 1 0 1.06-1.06L11.01 9.73A5.5 5.5 0 0 0 6.5 1zm-4 5.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/>
+        </svg>
+        <span>Buscar...</span>
+        <div class="search-kbd">
+          <span class="kbd">⌘</span><span class="kbd">K</span>
         </div>
       </div>
     </div>
 
+    <!-- Nav -->
+    <div class="nav-section-label">Principal</div>
+    <div class="nav-item active" id="nav-dashboard" onclick="goTab('dashboard', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2V2zm7 0h5v5H9V2zm-7 7h5v5H2V9zm7 0h5v5H9V9z"/></svg>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-item" id="nav-operaciones" onclick="goTab('operaciones', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>
+      <span class="nav-label">Operaciones</span>
+    </div>
+    <div class="nav-item" id="nav-calendario" onclick="goTab('calendario', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5z"/></svg>
+      <span class="nav-label">Calendario</span>
+    </div>
+    <div class="nav-item" id="nav-estadisticas" onclick="goTab('estadisticas', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/></svg>
+      <span class="nav-label">Estadísticas</span>
+    </div>
 
-<div class="tab-panel" id="panel-insights">
-      <div class="section-title">Insights Automaticos</div>
+    <div class="nav-section-label">Gestión</div>
+    <div class="nav-item" id="nav-riesgo" onclick="goTab('riesgo', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319z"/></svg>
+      <span class="nav-label">Control Riesgo</span>
+    </div>
+    <div class="nav-item" id="nav-cuentas" onclick="goTab('cuentas', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>
+      <span class="nav-label">Cuentas</span>
+    </div>
+    <div class="nav-item" id="nav-premarket" onclick="goTab('premarket', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
+      <span class="nav-label">Pre-Market</span>
+    </div>
+    <div class="nav-item" id="nav-habitos" onclick="goTab('habitos', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/></svg>
+      <span class="nav-label">Hábitos</span>
+    </div>
 
-      <!-- Loading state -->
-      <div id="insights-loading" style="text-align:center;padding:60px 0;display:none;">
-        <span class="spinner"></span>
-        <div style="font-size:12px;color:var(--text3);font-family:monospace;margin-top:12px;">Analizando tus operaciones...</div>
+    <div class="nav-section-label">Análisis</div>
+    <div class="nav-item" id="nav-insights" onclick="goTab('insights', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2H2a2 2 0 0 1-2-2V2z"/></svg>
+      <span class="nav-label">Insights</span>
+    </div>
+    <div class="nav-item" id="nav-ia" onclick="goTab('ia', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>
+      <span class="nav-label">Coach IA</span>
+    </div>
+    <div class="nav-item" id="nav-diario" onclick="goTab('diario', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M5 1a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H5zm1 4h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1 0-1zm0 2h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1 0-1zm0 2h2a.5.5 0 0 1 0 1H6a.5.5 0 0 1 0-1z"/></svg>
+      <span class="nav-label">Diario</span>
+    </div>
+    <div class="nav-item" id="nav-psicologia" onclick="goTab('psicologia', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a5 5 0 0 0-5 5v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a6 6 0 1 1 12 0v6a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h1V6a5 5 0 0 0-5-5z"/></svg>
+      <span class="nav-label">Psicología</span>
+    </div>
+    <div class="nav-item" id="nav-gestor-ea" onclick="goTab('gestor-ea', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5z"/><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1z" opacity=".3"/></svg>
+      <span class="nav-label">Gestor EA</span>
+    </div>
+
+    <div class="nav-section-label">Cuenta</div>
+    <div class="nav-item" id="nav-broker" onclick="goTab('broker', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2V2zm0 7h5v5H2V9zm7-7h5v5H9V2zm0 7h5v5H9V9z" opacity=".3"/><path d="M1 1h6v6H1V1zm1 1v4h4V2H2zm7-1h6v6H9V1zm1 1v4h4V2h-4zM1 9h6v6H1V9zm1 1v4h4v-4H2zm7-1h6v6H9V9zm1 1v4h4v-4h-4z"/></svg>
+      <span class="nav-label">Conectar Broker</span>
+    </div>
+    <div class="nav-item" id="nav-logros" onclick="goTab('logros', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5c0 .538-.012 1.05-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.537.255L13.3 15.1a.5.5 0 0 1-.3.9H3a.5.5 0 0 1-.3-.9l1.838-1.379c.16-.12.343-.207.537-.255L6.5 13.11v-2.173c-.955-.234-2.043-1.146-2.833-3.012a3 3 0 1 1-1.132-5.89A33.076 33.076 0 0 1 2.5.5z"/></svg>
+      <span class="nav-label">Logros</span>
+    </div>
+    <div class="nav-item" id="nav-afiliados" onclick="goTab('planes', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"/><path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg>
+      <span class="nav-label">Afiliados</span>
+    </div>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <div class="nav-item" onclick="goTab('planes', null)" style="margin-bottom:4px;">
+        <svg viewBox="0 0 16 16" fill="currentColor" width="15" height="15"><path d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5c0 .538-.012 1.05-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.537.255L13.3 15.1a.5.5 0 0 1-.3.9H3a.5.5 0 0 1-.3-.9l1.838-1.379c.16-.12.343-.207.537-.255L6.5 13.11v-2.173c-.955-.234-2.043-1.146-2.833-3.012a3 3 0 1 1-1.132-5.89A33.076 33.076 0 0 1 2.5.5z"/></svg>
+        <span class="nav-label" style="color:var(--amber);font-weight:600;">Plan Pro ★</span>
       </div>
-
-      <!-- Empty state -->
-      <div id="insights-empty" style="display:none;text-align:center;padding:60px 20px;">
-        <div style="font-size:48px;margin-bottom:16px;">🔍</div>
-        <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Necesitas mas operaciones</div>
-        <div style="font-size:13px;color:var(--text2);max-width:360px;margin:0 auto;line-height:1.6;">Registra al menos 5 operaciones finalizadas para que el sistema pueda detectar patrones y generar insights personalizados.</div>
+      <div class="sidebar-user" id="sidebar-user-btn">
+        <div class="user-avatar" id="user-avatar-initials">JC</div>
+        <div class="sidebar-user-info">
+          <div class="u-name" id="sidebar-user-name">Usuario</div>
+          <div class="u-plan">Plan Pro</div>
+        </div>
       </div>
+    </div>
+  </div>
 
-      <!-- Insights content -->
-      <div id="insights-content" style="display:none;">
+  <!-- ═══════════════════════════════════════
+       MAIN AREA
+  ═══════════════════════════════════════ -->
+  <div class="main-area">
 
-        <!-- Trader Score -->
-        <div class="card" style="margin-bottom:18px;">
-          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-            <div style="flex:1;min-width:200px;">
-              <div class="card-title" style="margin-bottom:6px;">Tu Perfil de Trader</div>
-              <div id="insights-trader-type" style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"></div>
-              <div id="insights-trader-desc" style="font-size:13px;color:var(--text2);margin-top:4px;line-height:1.5;"></div>
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <button class="hamburger-btn" onclick="toggleSidebar()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--text2)"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-right">
+        <div class="ea-status-pill" id="ea-status-pill" style="display:none">
+          <div class="ea-dot"></div>
+          <span id="ea-pill-text">MT5 · 96/100</span>
+        </div>
+        <button class="btn btn-secondary" id="btn-theme" onclick="toggleTheme()">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/></svg>
+        </button>
+        <button class="btn btn-secondary" onclick="showNuevaOp()">+ Operación</button>
+        <button class="btn btn-primary" onclick="showNuevaCuenta()">+ Cuenta</button>
+      </div>
+    </div>
+
+    <!-- RISK BAR -->
+    <div id="risk-bar" style="display:none">
+      <span id="risk-bar-content" style="color:var(--text2)">Cargando...</span>
+    </div>
+
+    <!-- EA SCORE BAR -->
+    <div id="ea-score-bar">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="status-dot dot-green" id="ea-score-dot"></div>
+          <span style="color:var(--text3);font-size:10px;letter-spacing:1px;">EA CONECTADO</span>
+        </div>
+        <span>Score: <span id="ea-score-val" style="font-weight:700;color:var(--text)">0</span></span>
+        <span style="color:var(--border2)">|</span>
+        <span id="ea-perfil-val" style="font-weight:700;color:var(--green)">Disciplinado</span>
+        <span style="color:var(--border2)">|</span>
+        <span>Disciplina: <span id="ea-disciplina-val" style="font-weight:700;color:var(--green)">100</span>/100</span>
+        <span style="color:var(--border2)">|</span>
+        <span style="color:var(--text2)">Violaciones: <span id="ea-violaciones-val">0</span></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:80px;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;">
+          <div id="ea-disciplina-bar" style="height:100%;width:100%;background:var(--green);border-radius:2px;transition:width 0.5s;"></div>
+        </div>
+        <span style="font-size:10px;color:var(--text3)">P&L: <span id="ea-pnl-val" style="color:var(--text)">$0</span></span>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content-scroll">
+      <div class="tab-panel active-panel" id="panel-dashboard">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+          <h1 style="font-size:20px;font-weight:800;letter-spacing:-0.4px;color:var(--text)">Dashboard</h1>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="date-pill">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5z"/></svg>
+              <span id="dash-date">Hoy</span>
             </div>
-            <div style="text-align:center;flex-shrink:0;">
-              <div style="position:relative;width:100px;height:100px;">
-                <canvas id="insights-score-chart" width="100" height="100"></canvas>
-                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                  <div id="insights-score-val" style="font-size:28px;font-weight:800;font-family:monospace;"></div>
-                  <div style="font-size:9px;color:var(--text3);font-family:monospace;">SCORE</div>
-                </div>
+          </div>
+        </div>
+
+        <!-- Metric cards row -->
+        <div class="grid-4" style="margin-bottom:16px;" id="dash-metrics">
+          <div class="metric-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+              <div><div class="metric-label">P&L Total</div><div class="metric-value text-green" id="dash-pnl">+$0</div></div>
+              <div class="metric-icon" style="background:var(--green-bg)">
+                <svg viewBox="0 0 16 16" fill="none" stroke="var(--green)" stroke-width="1.5"><polyline points="1 11 5 7 9 9 15 3"/></svg>
               </div>
             </div>
+            <div class="metric-delta"><span class="delta-up" id="dash-pnl-pct">0%</span> este mes</div>
           </div>
-          <!-- Score breakdown -->
-          <div id="insights-score-bars" style="margin-top:16px;display:grid;gap:8px;"></div>
-        </div>
-
-        <!-- Key Insights Grid -->
-        <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">INSIGHTS DETECTADOS</div>
-        <div id="insights-grid" style="display:grid;gap:12px;margin-bottom:18px;"></div>
-
-        <!-- Alerts -->
-        <div id="insights-alerts-section" style="display:none;margin-bottom:18px;">
-          <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">ALERTAS ACTIVAS</div>
-          <div id="insights-alerts" style="display:grid;gap:8px;"></div>
-        </div>
-
-        <!-- Best conditions -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;" class="dash-grid-2col">
-          <div class="card">
-            <div class="card-title">Mejor sesion</div>
-            <div id="insights-best-session" style="font-size:22px;font-weight:800;color:var(--green);margin:8px 0 4px;"></div>
-            <div id="insights-best-session-sub" style="font-size:12px;color:var(--text2);"></div>
-          </div>
-          <div class="card">
-            <div class="card-title">Mejor activo</div>
-            <div id="insights-best-asset" style="font-size:22px;font-weight:800;color:var(--green);margin:8px 0 4px;"></div>
-            <div id="insights-best-asset-sub" style="font-size:12px;color:var(--text2);"></div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;" class="dash-grid-2col">
-          <div class="card">
-            <div class="card-title">Mejor dia de la semana</div>
-            <div id="insights-best-day" style="font-size:22px;font-weight:800;color:var(--green);margin:8px 0 4px;"></div>
-            <div id="insights-best-day-sub" style="font-size:12px;color:var(--text2);"></div>
-          </div>
-          <div class="card">
-            <div class="card-title">Setup mas rentable</div>
-            <div id="insights-best-setup" style="font-size:22px;font-weight:800;color:var(--green);margin:8px 0 4px;"></div>
-            <div id="insights-best-setup-sub" style="font-size:12px;color:var(--text2);"></div>
-          </div>
-        </div>
-
-        <!-- Psychological errors -->
-        <div class="card" style="margin-bottom:18px;">
-          <div class="card-title">Errores psicologicos mas frecuentes</div>
-          <div id="insights-errors" style="margin-top:8px;display:grid;gap:6px;"></div>
-        </div>
-
-        <!-- Weekly recommendation -->
-        <div class="card" id="insights-recommendation" style="background:linear-gradient(135deg,rgba(0,212,160,0.08),rgba(77,159,255,0.06));border-color:rgba(0,212,160,0.2);display:none;">
-          <div style="font-size:10px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:8px;">RECOMENDACION SEMANAL</div>
-          <div id="insights-rec-text" style="font-size:14px;color:var(--text);line-height:1.7;"></div>
-        </div>
-
-        <!-- Last updated -->
-        <div style="text-align:center;margin-top:16px;">
-          <span id="insights-updated" style="font-size:11px;color:var(--text3);font-family:monospace;"></span>
-          <button onclick="runInsights()" style="margin-left:12px;font-size:11px;color:var(--green);background:none;border:none;cursor:pointer;font-family:monospace;">↺ Actualizar</button>
-        </div>
-      </div>
-    </div>
-
-<div class="tab-panel" id="panel-gestor-ea">
-  <div class="section-title">Gestor EA</div>
-
-  <div id="gestor-ea-empty" style="text-align:center;padding:60px 20px;display:none;">
-    <div style="font-size:48px;margin-bottom:16px;">🔌</div>
-    <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Sin EA conectado</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">Conecta MetaTrader 4/5 para ver el analisis conductual en tiempo real.</div>
-    <button onclick="goTab('broker',null)" style="background:var(--green);color:#000;border:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">Conectar Broker →</button>
-  </div>
-
-  <div id="gestor-ea-content" style="display:none;">
-
-    <!-- Score principal -->
-    <div class="card" style="margin-bottom:16px;text-align:center;padding:24px;">
-      <div style="display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap;">
-        <div>
-          <div style="position:relative;width:120px;height:120px;margin:0 auto 8px;">
-            <canvas id="ea-score-donut" width="120" height="120"></canvas>
-            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-              <div id="gestor-score-num" style="font-size:36px;font-weight:800;font-family:monospace;">0</div>
-              <div style="font-size:10px;color:var(--text3);font-family:monospace;">SCORE</div>
-            </div>
-          </div>
-          <div id="gestor-perfil" style="font-size:14px;font-weight:700;color:var(--green);">Disciplinado</div>
-        </div>
-        <div style="text-align:left;">
-          <div style="margin-bottom:16px;">
-            <div style="font-size:11px;color:var(--text3);font-family:monospace;margin-bottom:4px;">INDICE DE DISCIPLINA</div>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div style="flex:1;height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;width:160px;">
-                <div id="gestor-disc-bar" style="height:100%;width:100%;background:var(--green);border-radius:4px;transition:width 0.8s;"></div>
+          <div class="metric-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+              <div><div class="metric-label">Win Rate</div><div class="metric-value" id="dash-winrate">0%</div></div>
+              <div class="metric-icon" style="background:var(--blue-bg)">
+                <svg viewBox="0 0 16 16" fill="none" stroke="var(--blue)" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>
               </div>
-              <div id="gestor-disc-num" style="font-size:20px;font-weight:800;font-family:monospace;color:var(--green);">100/100</div>
+            </div>
+            <div class="metric-delta" id="dash-winrate-sub">de <span id="dash-total-ops">0</span> operaciones</div>
+          </div>
+          <div class="metric-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+              <div><div class="metric-label">Ops hoy</div><div class="metric-value" id="dash-ops-hoy">0</div></div>
+              <div class="metric-icon" style="background:var(--amber-bg)">
+                <svg viewBox="0 0 16 16" fill="none" stroke="var(--amber)" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+              </div>
+            </div>
+            <div class="metric-delta" id="dash-ops-sub">operaciones registradas</div>
+          </div>
+          <div class="metric-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+              <div><div class="metric-label">Mejor trade</div><div class="metric-value text-green" id="dash-best">$0</div></div>
+              <div class="metric-icon" style="background:var(--green-bg)">
+                <svg viewBox="0 0 16 16" fill="none" stroke="var(--green)" stroke-width="1.5"><path d="M8 1v14M1 8h14" opacity=".4"/><path d="M8 4l4 4-4 4"/></svg>
+              </div>
+            </div>
+            <div class="metric-delta">operación más rentable</div>
+          </div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="grid-2-1" style="margin-bottom:14px;">
+          <div class="card" style="padding:16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+              <div class="card-title">P&L Acumulado</div>
+              <div style="display:flex;gap:4px;">
+                <button class="seg-btn active" onclick="setDashChart('pnl',this)" style="padding:4px 10px;border-radius:6px;font-size:11px;border:none;background:var(--bg3);color:var(--text2);cursor:pointer;">P&L</button>
+                <button class="seg-btn" onclick="setDashChart('ops',this)" style="padding:4px 10px;border-radius:6px;font-size:11px;border:none;background:transparent;color:var(--text3);cursor:pointer;">Ops</button>
+              </div>
+            </div>
+            <div class="chart-container" style="height:160px;">
+              <canvas id="dash-chart"></canvas>
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div class="card" style="padding:10px 14px;">
-              <div style="font-size:10px;color:var(--text3);font-family:monospace;">VIOLACIONES HOY</div>
-              <div id="gestor-violaciones" style="font-size:22px;font-weight:800;color:var(--red);">0</div>
+          <div class="card" style="padding:16px;">
+            <div class="card-title" style="margin-bottom:14px;">Por sesión</div>
+            <div id="dash-sessions"></div>
+          </div>
+        </div>
+
+        <!-- Bottom row -->
+        <div class="grid-2" style="margin-bottom:14px;">
+          <div class="card" style="padding:0;overflow:hidden;">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+              <div class="card-title" style="margin:0;">Últimas operaciones</div>
+              <button class="btn-ghost" onclick="goTab('operaciones',null)" style="font-size:11px;padding:4px 10px;border-radius:6px;">Ver todas →</button>
             </div>
-            <div class="card" style="padding:10px 14px;">
-              <div style="font-size:10px;color:var(--text3);font-family:monospace;">P&L HOY</div>
-              <div id="gestor-pnl" style="font-size:22px;font-weight:800;">$0</div>
+            <div id="dash-recent-ops"></div>
+          </div>
+          <div class="card" style="padding:0;overflow:hidden;">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+              <div class="card-title" style="margin:0;">Rendimiento por par</div>
             </div>
+            <div style="padding:14px 16px;" id="dash-by-pair"></div>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Cuentas EA con config de riesgo -->
-    <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">CUENTAS CONECTADAS — LIMITES DE RIESGO</div>
-    <div id="gestor-cuentas" style="display:grid;gap:12px;margin-bottom:18px;"></div>
-
-    <!-- Escala de perfiles -->
-    <div class="card">
-      <div class="card-title">Escala de perfiles</div>
-      <div style="margin-top:12px;display:grid;gap:8px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;"></div>
-          <div style="font-size:13px;color:var(--text2);">Score 0–5 → <strong style="color:var(--text);">Disciplinado</strong></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;"></div>
-          <div style="font-size:13px;color:var(--text2);">Score 6–10 → <strong style="color:var(--text);">Levemente impulsivo</strong></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0;"></div>
-          <div style="font-size:13px;color:var(--text2);">Score 11–20 → <strong style="color:var(--text);">Indisciplinado</strong></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;"></div>
-          <div style="font-size:13px;color:var(--text2);">Score 21–35 → <strong style="color:var(--text);">Alto riesgo</strong></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:8px;height:8px;border-radius:50%;background:#ff00aa;flex-shrink:0;"></div>
-          <div style="font-size:13px;color:var(--text2);">Score 36+ → <strong style="color:var(--text);">Trading compulsivo</strong></div>
-        </div>
-      </div>
-    </div>
-
-    <div style="text-align:center;margin-top:12px;">
-      <button onclick="loadGestorEA()" style="background:none;border:none;color:var(--green);font-size:12px;cursor:pointer;font-family:monospace;">↺ Actualizar</button>
-    </div>
-  </div>
-</div>
-
-<div class="tab-panel" id="panel-broker">
-  <div class="section-title">Conectar Broker</div>
-
-  <!-- Step tabs — clickable -->
-  <style>
-    .broker-tab { flex:1; padding:11px 0; border:2px solid var(--border); border-radius:10px; font-size:12px; font-weight:700; font-family:monospace; cursor:pointer; background:transparent; color:var(--text2); transition:all 0.2s; }
-    .broker-tab.active { background:var(--green) !important; color:#000 !important; border-color:var(--green) !important; }
-  </style>
-  <div style="display:flex;gap:6px;margin-bottom:24px;">
-    <button id="bstep-1" onclick="brokerNextStep(1)" style="flex:1;padding:11px 0;border:2px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text2);transition:all 0.2s;">⬇ DESCARGA</button>
-    <button id="bstep-2" onclick="brokerNextStep(2)" style="flex:1;padding:11px 0;border:2px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text2);transition:all 0.2s;">⚙ INSTALA</button>
-    <button id="bstep-3" onclick="brokerNextStep(3)" style="flex:1;padding:11px 0;border:2px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text2);transition:all 0.2s;">✓ CONECTA</button>
-  </div>
-
-  <!-- Step 1: Download -->
-  <div id="broker-step-1">
-    <div class="card" style="margin-bottom:16px;text-align:center;padding:28px 20px;">
-      <div style="font-size:40px;margin-bottom:12px;">⚡</div>
-      <div style="font-size:18px;font-weight:800;margin-bottom:8px;">Sincroniza MT4/MT5 con TradyncApp</div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.7;max-width:400px;margin-left:auto;margin-right:auto;">
-        Descarga el Expert Advisor para tu plataforma. Se instala en 2 minutos y tus operaciones se registran solas.
-      </div>
-      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <button onclick="downloadEA('mt5', this)" style="background:var(--green);color:#000;border:none;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
-          ↓ Descargar para MT5
-        </button>
-        <button onclick="downloadEA('mt4', this)" style="background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
-          ↓ Descargar para MT4
-        </button>
-      </div>
-    </div>
-    <div style="text-align:center;">
-      <button onclick="brokerNextStep(2)" style="background:none;border:none;color:var(--green);font-size:13px;cursor:pointer;font-family:monospace;">
-        Ya lo descargué → Ver cómo instalarlo →
-      </button>
-    </div>
-  </div>
-
-  <!-- Step 2: Install -->
-  <div id="broker-step-2" style="display:none;">
-    <div class="card" style="margin-bottom:12px;">
-      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:10px;">PASO 1 — COPIA EL ARCHIVO</div>
-      <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Copia el archivo a MetaTrader</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
-        1. Abre MetaTrader 5<br>
-        2. Menú <strong style="color:var(--text)">Archivo → Abrir carpeta de datos</strong><br>
-        3. Entra en <strong style="color:var(--green)">MQL5 → Experts</strong><br>
-        4. Copia <strong style="color:var(--green)">TradyncSync_MT5.mq5</strong> ahí<br>
-        5. En MT5 → Navigator → clic derecho → <strong style="color:var(--text)">Actualizar</strong><br>
-        6. Doble clic en el EA → MetaEditor → pulsa <strong style="color:var(--green)">F7</strong> para compilar
-      </div>
-    </div>
-    <div class="card" style="margin-bottom:12px;">
-      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:10px;">PASO 2 — ACTIVA WEBREQUESTS</div>
-      <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Permite la conexión (solo una vez)</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
-        1. MT5: <strong style="color:var(--text)">Herramientas → Opciones → Expert Advisors</strong><br>
-        2. Activa ✅ <strong style="color:var(--green)">"Permitir WebRequest para las siguientes URL"</strong><br>
-        3. Pulsa <strong style="color:var(--text)">+</strong> y añade:<br>
-        <code style="background:var(--bg4);padding:4px 10px;border-radius:6px;font-size:13px;display:inline-block;margin:6px 0;color:var(--green);">https://www.tradyncapp.com</code><br>
-        4. Pulsa <strong style="color:var(--text)">Aceptar</strong>
-      </div>
-    </div>
-    <div class="card" style="margin-bottom:16px;">
-      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:10px;">PASO 3 — ARRASTRA AL GRÁFICO</div>
-      <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Activa el EA</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
-        1. En Navigator → Expert Advisors → <strong style="color:var(--green)">TradyncSync_MT5</strong><br>
-        2. Arrástralo a cualquier gráfico<br>
-        3. Pestaña <strong style="color:var(--text)">"Common"</strong> → activa ✅ <strong style="color:var(--green)">"Allow WebRequests"</strong><br>
-        4. Pulsa <strong style="color:var(--text)">OK</strong> — ¡listo!
-      </div>
-    </div>
-    <button onclick="brokerNextStep(3)" style="width:100%;background:var(--green);color:#000;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
-      Ya instalé el EA → Verificar conexión →
-    </button>
-  </div>
-
-  <!-- Step 3: Verify + Edit accounts -->
-  <div id="broker-step-3" style="display:none;">
-    <div class="card" style="margin-bottom:16px;text-align:center;padding:24px 20px;">
-      <div id="broker-status-icon" style="font-size:44px;margin-bottom:10px;">🔄</div>
-      <div id="broker-status-title" style="font-size:17px;font-weight:800;margin-bottom:6px;">Verificando...</div>
-      <div id="broker-status-desc" style="font-size:13px;color:var(--text2);line-height:1.6;max-width:360px;margin:0 auto 16px;">
-        Asegúrate de que el EA está activo y el botón "Algo Trading" está en verde en MT5.
-      </div>
-      <button onclick="checkBrokerConnection()" style="background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:10px 24px;border-radius:8px;font-size:13px;cursor:pointer;font-family:monospace;">
-        ↺ Actualizar
-      </button>
-    </div>
-
-    <!-- Accounts list with edit -->
-    <div id="broker-accounts-list" style="display:none;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;">CUENTAS CONECTADAS</div>
-      </div>
-      <div id="broker-accounts" style="display:grid;gap:10px;"></div>
-    </div>
-
-    <!-- Edit modal -->
-    <div id="broker-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:28px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
-          <div style="font-size:17px;font-weight:800;">Editar cuenta</div>
-          <button onclick="closeBrokerEdit()" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:0 4px;">✕</button>
-        </div>
-
-        <input type="hidden" id="edit-account-id">
-
-        <!-- Nombre -->
-        <div style="margin-bottom:16px;">
-          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;">Nombre de la cuenta</label>
-          <input id="edit-account-name" type="text" placeholder="Ej: FTMO Challenge 10K"
-            style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;box-sizing:border-box;outline:none;">
-        </div>
-
-        <!-- Tipo -->
-        <div style="margin-bottom:16px;">
-          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;">Tipo de cuenta</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="edit-tipo-grid">
-            <button onclick="selectTipo('real')" id="tipo-real"
-              style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;">
-              💰 Capital Propio<br><span style="font-size:11px;font-weight:400;">Real</span>
-            </button>
-            <button onclick="selectTipo('demo')" id="tipo-demo"
-              style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;">
-              🧪 Capital Propio<br><span style="font-size:11px;font-weight:400;">Demo</span>
-            </button>
-            <button onclick="selectTipo('prop_firm')" id="tipo-prop_firm"
-              style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;">
-              🏆 Prop Firm<br><span style="font-size:11px;font-weight:400;">FTMO, MFF, etc.</span>
-            </button>
-            <button onclick="selectTipo('concurso')" id="tipo-concurso"
-              style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;">
-              🎯 Challenge<br><span style="font-size:11px;font-weight:400;">Fase de prueba</span>
-            </button>
-          </div>
-          <input type="hidden" id="edit-account-tipo" value="real">
-        </div>
-
-        <!-- Broker -->
-        <div style="margin-bottom:16px;">
-          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;">Broker / Empresa</label>
-          <input id="edit-account-broker" type="text" placeholder="Ej: FTMO, IC Markets, XM..."
-            style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;box-sizing:border-box;outline:none;">
-        </div>
-
-        <!-- Balance -->
-        <div style="margin-bottom:22px;">
-          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;">Balance de la cuenta ($)</label>
-          <input id="edit-account-balance" type="number" placeholder="Ej: 10000"
-            style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;box-sizing:border-box;outline:none;">
-        </div>
-
-        <!-- Buttons -->
-        <div style="display:flex;gap:10px;">
-          <button onclick="closeBrokerEdit()" style="flex:1;background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:12px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">Cancelar</button>
-          <button id="broker-save-btn" onclick="saveBrokerEdit()" style="flex:2;background:var(--green);color:#000;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Guardar cambios</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="tab-panel" id="panel-operaciones">
+      <div class="tab-panel" id="panel-operaciones">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
         <div class="section-title" style="margin-bottom:0;">Análisis de operaciones</div>
         <button onclick="exportCSV()" style="display:flex;align-items:center;gap:7px;padding:8px 16px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:monospace;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">
@@ -1413,8 +934,7 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
     </div>
-
-<div class="tab-panel" id="panel-nueva">
+      <div class="tab-panel" id="panel-nueva">
       <div class="section-title">Registrar operación</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;">
 
@@ -1585,8 +1105,7 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
     </div>
-
-    <div class="tab-panel" id="panel-riesgo">
+      <div class="tab-panel" id="panel-riesgo">
       <div class="section-title">Control de riesgo en tiempo real</div>
 
       <div class="risk-banner safe" id="risk-banner">
@@ -1682,8 +1201,7 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
     </div>
-
-<div class="tab-panel" id="panel-calendario">
+      <div class="tab-panel" id="panel-calendario">
       <div class="section-title">Calendario de trading</div>
       <div style="display:grid;grid-template-columns:1fr 280px;gap:18px;">
         <div class="card">
@@ -1712,8 +1230,7 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
     </div>
-
-<div class="tab-panel" id="panel-estadisticas">
+      <div class="tab-panel" id="panel-estadisticas">
       <div class="section-title">Análisis avanzado</div>
 
       <!-- ACCOUNT COMPARATOR FILTER -->
@@ -1815,8 +1332,7 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
     </div>
-
-<div class="tab-panel" id="panel-cuentas">
+      <div class="tab-panel" id="panel-cuentas">
       <div class="section-title">Mis cuentas de trading</div>
       <div class="accounts-grid" id="accounts-grid">
         <div class="add-account-card" onclick="openModal()">
@@ -1852,7 +1368,8 @@ if (typeof supabase === 'undefined') {
         <div style="color:var(--text3);font-size:12px;font-family:monospace;grid-column:1/-1;">Añade una cuenta de tipo Prop Firm para ver el tracker de reglas</div>
       </div>
 
-    </div><div class="tab-panel" id="panel-premarket">
+    </div>
+      <div class="tab-panel" id="panel-premarket">
       <div class="section-title">Preparación de la sesión</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;align-items:start;">
         <div class="card">
@@ -1930,10 +1447,7 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
     </div>
-    <div class="tab-panel"
-          <button onclick="closeHabitDetail()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);">&#x2715;</button>
-        </div>
-        <div class="tab-panel" id="panel-habitos">
+      <div class="tab-panel" id="panel-habitos">
       <div class="section-title">Tracker de hábitos y bienestar</div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
@@ -1999,7 +1513,103 @@ if (typeof supabase === 'undefined') {
         <div id="habit-detail-body"></div>
       </div>
     </div>
-    <div class="tab-panel" id="panel-ia">
+      <div class="tab-panel" id="panel-insights">
+      <div class="section-title">Insights Automaticos</div>
+
+      <!-- Loading state -->
+      <div id="insights-loading" style="text-align:center;padding:60px 0;display:none;">
+        <span class="spinner"></span>
+        <div style="font-size:12px;color:var(--text3);font-family:monospace;margin-top:12px;">Analizando tus operaciones...</div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="insights-empty" style="display:none;text-align:center;padding:60px 20px;">
+        <div style="font-size:48px;margin-bottom:16px;">🔍</div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Necesitas mas operaciones</div>
+        <div style="font-size:13px;color:var(--text2);max-width:360px;margin:0 auto;line-height:1.6;">Registra al menos 5 operaciones finalizadas para que el sistema pueda detectar patrones y generar insights personalizados.</div>
+      </div>
+
+      <!-- Insights content -->
+      <div id="insights-content" style="display:none;">
+
+        <!-- Trader Score -->
+        <div class="card" style="margin-bottom:18px;">
+          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;">
+              <div class="card-title" style="margin-bottom:6px;">Tu Perfil de Trader</div>
+              <div id="insights-trader-type" style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"></div>
+              <div id="insights-trader-desc" style="font-size:13px;color:var(--text2);margin-top:4px;line-height:1.5;"></div>
+            </div>
+            <div style="text-align:center;flex-shrink:0;">
+              <div style="position:relative;width:100px;height:100px;">
+                <canvas id="insights-score-chart" width="100" height="100"></canvas>
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                  <div id="insights-score-val" style="font-size:28px;font-weight:800;font-family:monospace;"></div>
+                  <div style="font-size:9px;color:var(--text3);font-family:monospace;">SCORE</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Score breakdown -->
+          <div id="insights-score-bars" style="margin-top:16px;display:grid;gap:8px;"></div>
+        </div>
+
+        <!-- Key Insights Grid -->
+        <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">INSIGHTS DETECTADOS</div>
+        <div id="insights-grid" style="display:grid;gap:12px;margin-bottom:18px;"></div>
+
+        <!-- Alerts -->
+        <div id="insights-alerts-section" style="display:none;margin-bottom:18px;">
+          <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">ALERTAS ACTIVAS</div>
+          <div id="insights-alerts" style="display:grid;gap:8px;"></div>
+        </div>
+
+        <!-- Best conditions -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;" class="dash-grid-2col">
+          <div class="card">
+            <div class="card-title">Mejor sesion</div>
+            <div id="insights-best-session" style="font-size:22px;font-weight:800;color:var(--green);margin:8px 0 4px;"></div>
+            <div id="insights-best-session-sub" style="font-size:12px;color:var(--text2);"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Mejor activo</div>
+            <div id="insights-best-asset" style="font-size:22px;font-weight:800;color:var(--green);margin:8px 0 4px;"></div>
+            <div id="insights-best-asset-sub" style="font-size:12px;color:var(--text2);"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;" class="dash-grid-2col">
+          <div class="card">
+            <div class="card-title">Mejor dia de la semana</div>
+            <div id="insights-best-day" style="font-size:22px;font-weight:800;color:var(--green);margin:8px 0 4px;"></div>
+            <div id="insights-best-day-sub" style="font-size:12px;color:var(--text2);"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Setup mas rentable</div>
+            <div id="insights-best-setup" style="font-size:22px;font-weight:800;color:var(--green);margin:8px 0 4px;"></div>
+            <div id="insights-best-setup-sub" style="font-size:12px;color:var(--text2);"></div>
+          </div>
+        </div>
+
+        <!-- Psychological errors -->
+        <div class="card" style="margin-bottom:18px;">
+          <div class="card-title">Errores psicologicos mas frecuentes</div>
+          <div id="insights-errors" style="margin-top:8px;display:grid;gap:6px;"></div>
+        </div>
+
+        <!-- Weekly recommendation -->
+        <div class="card" id="insights-recommendation" style="background:linear-gradient(135deg,rgba(0,212,160,0.08),rgba(77,159,255,0.06));border-color:rgba(0,212,160,0.2);display:none;">
+          <div style="font-size:10px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:8px;">RECOMENDACION SEMANAL</div>
+          <div id="insights-rec-text" style="font-size:14px;color:var(--text);line-height:1.7;"></div>
+        </div>
+
+        <!-- Last updated -->
+        <div style="text-align:center;margin-top:16px;">
+          <span id="insights-updated" style="font-size:11px;color:var(--text3);font-family:monospace;"></span>
+          <button onclick="runInsights()" style="margin-left:12px;font-size:11px;color:var(--green);background:none;border:none;cursor:pointer;font-family:monospace;">↺ Actualizar</button>
+        </div>
+      </div>
+    </div>
+      <div class="tab-panel" id="panel-ia">
       <div class="section-title">Coach IA</div>
       <div style="display:grid;grid-template-columns:1fr 320px;gap:18px;">
 
@@ -2053,7 +1663,7 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
     </div>
-    <div class="tab-panel" id="panel-diario">
+      <div class="tab-panel" id="panel-diario">
       <div class="section-title">Diario personal de trading</div>
       <div style="display:grid;grid-template-columns:1fr 300px;gap:18px;">
 
@@ -2146,10 +1756,7 @@ if (typeof supabase === 'undefined') {
         <div id="diary-detail-body"></div>
       </div>
     </div>
-
-    <!-- PSICOLOGÍA -->
-    <!-- PSICOLOGÍA -->
-    <div class="tab-panel" id="panel-psicologia">
+      <div class="tab-panel" id="panel-psicologia">
       <div class="section-title">Análisis psicológico</div>
 
       <!-- ROW 1: Alertas de riesgo psicológico -->
@@ -2182,8 +1789,255 @@ if (typeof supabase === 'undefined') {
       <div id="psy-patterns" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;"></div>
 
     </div>
+      <div class="tab-panel" id="panel-gestor-ea">
+  <div class="section-title">Gestor EA</div>
 
-<div class="tab-panel" id="panel-logros">
+  <div id="gestor-ea-empty" style="text-align:center;padding:60px 20px;display:none;">
+    <div style="font-size:48px;margin-bottom:16px;">🔌</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Sin EA conectado</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">Conecta MetaTrader 4/5 para ver el analisis conductual en tiempo real.</div>
+    <button onclick="goTab('broker',null)" style="background:var(--green);color:#000;border:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">Conectar Broker →</button>
+  </div>
+
+  <div id="gestor-ea-content" style="display:none;">
+
+    <!-- Score principal -->
+    <div class="card" style="margin-bottom:16px;text-align:center;padding:24px;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap;">
+        <div>
+          <div style="position:relative;width:120px;height:120px;margin:0 auto 8px;">
+            <canvas id="ea-score-donut" width="120" height="120"></canvas>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <div id="gestor-score-num" style="font-size:36px;font-weight:800;font-family:monospace;">0</div>
+              <div style="font-size:10px;color:var(--text3);font-family:monospace;">SCORE</div>
+            </div>
+          </div>
+          <div id="gestor-perfil" style="font-size:14px;font-weight:700;color:var(--green);">Disciplinado</div>
+        </div>
+        <div style="text-align:left;">
+          <div style="margin-bottom:16px;">
+            <div style="font-size:11px;color:var(--text3);font-family:monospace;margin-bottom:4px;">INDICE DE DISCIPLINA</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="flex:1;height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;width:160px;">
+                <div id="gestor-disc-bar" style="height:100%;width:100%;background:var(--green);border-radius:4px;transition:width 0.8s;"></div>
+              </div>
+              <div id="gestor-disc-num" style="font-size:20px;font-weight:800;font-family:monospace;color:var(--green);">100/100</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="card" style="padding:10px 14px;">
+              <div style="font-size:10px;color:var(--text3);font-family:monospace;">VIOLACIONES HOY</div>
+              <div id="gestor-violaciones" style="font-size:22px;font-weight:800;color:var(--red);">0</div>
+            </div>
+            <div class="card" style="padding:10px 14px;">
+              <div style="font-size:10px;color:var(--text3);font-family:monospace;">P&L HOY</div>
+              <div id="gestor-pnl" style="font-size:22px;font-weight:800;">$0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cuentas EA con config de riesgo -->
+    <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:12px;">CUENTAS CONECTADAS — LIMITES DE RIESGO</div>
+    <div id="gestor-cuentas" style="display:grid;gap:12px;margin-bottom:18px;"></div>
+
+    <!-- Escala de perfiles -->
+    <div class="card">
+      <div class="card-title">Escala de perfiles</div>
+      <div style="margin-top:12px;display:grid;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--text2);">Score 0–5 → <strong style="color:var(--text);">Disciplinado</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--text2);">Score 6–10 → <strong style="color:var(--text);">Levemente impulsivo</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--text2);">Score 11–20 → <strong style="color:var(--text);">Indisciplinado</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--text2);">Score 21–35 → <strong style="color:var(--text);">Alto riesgo</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#ff00aa;flex-shrink:0;"></div>
+          <div style="font-size:13px;color:var(--text2);">Score 36+ → <strong style="color:var(--text);">Trading compulsivo</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:12px;">
+      <button onclick="loadGestorEA()" style="background:none;border:none;color:var(--green);font-size:12px;cursor:pointer;font-family:monospace;">↺ Actualizar</button>
+    </div>
+  </div>
+</div>
+      <div class="tab-panel" id="panel-broker">
+  <div class="section-title">Conectar Broker</div>
+
+  <!-- Step tabs — clickable -->
+  <style>
+    .broker-tab { flex:1; padding:11px 0; border:2px solid var(--border); border-radius:10px; font-size:12px; font-weight:700; font-family:monospace; cursor:pointer; background:transparent; color:var(--text2); transition:all 0.2s; }
+    .broker-tab.active { background:var(--green) !important; color:#000 !important; border-color:var(--green) !important; }
+  </style>
+  <div style="display:flex;gap:6px;margin-bottom:24px;">
+    <button id="bstep-1" onclick="brokerNextStep(1)" style="flex:1;padding:11px 0;border:2px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text2);transition:all 0.2s;">⬇ DESCARGA</button>
+    <button id="bstep-2" onclick="brokerNextStep(2)" style="flex:1;padding:11px 0;border:2px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text2);transition:all 0.2s;">⚙ INSTALA</button>
+    <button id="bstep-3" onclick="brokerNextStep(3)" style="flex:1;padding:11px 0;border:2px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;font-family:monospace;cursor:pointer;background:transparent;color:var(--text2);transition:all 0.2s;">✓ CONECTA</button>
+  </div>
+
+  <!-- Step 1: Download -->
+  <div id="broker-step-1">
+    <div class="card" style="margin-bottom:16px;text-align:center;padding:28px 20px;">
+      <div style="font-size:40px;margin-bottom:12px;">⚡</div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:8px;">Sincroniza MT4/MT5 con TradyncApp</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.7;max-width:400px;margin-left:auto;margin-right:auto;">
+        Descarga el Expert Advisor para tu plataforma. Se instala en 2 minutos y tus operaciones se registran solas.
+      </div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="downloadEA('mt5', this)" style="background:var(--green);color:#000;border:none;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
+          ↓ Descargar para MT5
+        </button>
+        <button onclick="downloadEA('mt4', this)" style="background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
+          ↓ Descargar para MT4
+        </button>
+      </div>
+    </div>
+    <div style="text-align:center;">
+      <button onclick="brokerNextStep(2)" style="background:none;border:none;color:var(--green);font-size:13px;cursor:pointer;font-family:monospace;">
+        Ya lo descargué → Ver cómo instalarlo →
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 2: Install -->
+  <div id="broker-step-2" style="display:none;">
+    <div class="card" style="margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:10px;">PASO 1 — COPIA EL ARCHIVO</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Copia el archivo a MetaTrader</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
+        1. Abre MetaTrader 5<br>
+        2. Menú <strong style="color:var(--text)">Archivo → Abrir carpeta de datos</strong><br>
+        3. Entra en <strong style="color:var(--green)">MQL5 → Experts</strong><br>
+        4. Copia <strong style="color:var(--green)">TradyncSync_MT5.mq5</strong> ahí<br>
+        5. En MT5 → Navigator → clic derecho → <strong style="color:var(--text)">Actualizar</strong><br>
+        6. Doble clic en el EA → MetaEditor → pulsa <strong style="color:var(--green)">F7</strong> para compilar
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:10px;">PASO 2 — ACTIVA WEBREQUESTS</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Permite la conexión (solo una vez)</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
+        1. MT5: <strong style="color:var(--text)">Herramientas → Opciones → Expert Advisors</strong><br>
+        2. Activa ✅ <strong style="color:var(--green)">"Permitir WebRequest para las siguientes URL"</strong><br>
+        3. Pulsa <strong style="color:var(--text)">+</strong> y añade:<br>
+        <code style="background:var(--bg4);padding:4px 10px;border-radius:6px;font-size:13px;display:inline-block;margin:6px 0;color:var(--green);">https://www.tradyncapp.com</code><br>
+        4. Pulsa <strong style="color:var(--text)">Aceptar</strong>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-family:monospace;margin-bottom:10px;">PASO 3 — ARRASTRA AL GRÁFICO</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Activa el EA</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;">
+        1. En Navigator → Expert Advisors → <strong style="color:var(--green)">TradyncSync_MT5</strong><br>
+        2. Arrástralo a cualquier gráfico<br>
+        3. Pestaña <strong style="color:var(--text)">"Common"</strong> → activa ✅ <strong style="color:var(--green)">"Allow WebRequests"</strong><br>
+        4. Pulsa <strong style="color:var(--text)">OK</strong> — ¡listo!
+      </div>
+    </div>
+    <button onclick="brokerNextStep(3)" style="width:100%;background:var(--green);color:#000;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">
+      Ya instalé el EA → Verificar conexión →
+    </button>
+  </div>
+
+  <!-- Step 3: Verify + Edit accounts -->
+  <div id="broker-step-3" style="display:none;">
+    <div class="card" style="margin-bottom:16px;text-align:center;padding:24px 20px;">
+      <div id="broker-status-icon" style="font-size:44px;margin-bottom:10px;">🔄</div>
+      <div id="broker-status-title" style="font-size:17px;font-weight:800;margin-bottom:6px;">Verificando...</div>
+      <div id="broker-status-desc" style="font-size:13px;color:var(--text2);line-height:1.6;max-width:360px;margin:0 auto 16px;">
+        Asegúrate de que el EA está activo y el botón "Algo Trading" está en verde en MT5.
+      </div>
+      <button onclick="checkBrokerConnection()" style="background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:10px 24px;border-radius:8px;font-size:13px;cursor:pointer;font-family:monospace;">
+        ↺ Actualizar
+      </button>
+    </div>
+
+    <!-- Accounts list with edit -->
+    <div id="broker-accounts-list" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;">CUENTAS CONECTADAS</div>
+      </div>
+      <div id="broker-accounts" style="display:grid;gap:10px;"></div>
+    </div>
+
+    <!-- Edit modal -->
+    <div id="broker-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:28px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+          <div style="font-size:17px;font-weight:800;">Editar cuenta</div>
+          <button onclick="closeBrokerEdit()" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:0 4px;">✕</button>
+        </div>
+
+        <input type="hidden" id="edit-account-id">
+
+        <!-- Nombre -->
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;">Nombre de la cuenta</label>
+          <input id="edit-account-name" type="text" placeholder="Ej: FTMO Challenge 10K"
+            style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;box-sizing:border-box;outline:none;">
+        </div>
+
+        <!-- Tipo -->
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;">Tipo de cuenta</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="edit-tipo-grid">
+            <button onclick="selectTipo('real')" id="tipo-real"
+              style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;">
+              💰 Capital Propio<br><span style="font-size:11px;font-weight:400;">Real</span>
+            </button>
+            <button onclick="selectTipo('demo')" id="tipo-demo"
+              style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;">
+              🧪 Capital Propio<br><span style="font-size:11px;font-weight:400;">Demo</span>
+            </button>
+            <button onclick="selectTipo('prop_firm')" id="tipo-prop_firm"
+              style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;">
+              🏆 Prop Firm<br><span style="font-size:11px;font-weight:400;">FTMO, MFF, etc.</span>
+            </button>
+            <button onclick="selectTipo('concurso')" id="tipo-concurso"
+              style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;text-align:center;">
+              🎯 Challenge<br><span style="font-size:11px;font-weight:400;">Fase de prueba</span>
+            </button>
+          </div>
+          <input type="hidden" id="edit-account-tipo" value="real">
+        </div>
+
+        <!-- Broker -->
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;">Broker / Empresa</label>
+          <input id="edit-account-broker" type="text" placeholder="Ej: FTMO, IC Markets, XM..."
+            style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;box-sizing:border-box;outline:none;">
+        </div>
+
+        <!-- Balance -->
+        <div style="margin-bottom:22px;">
+          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600;">Balance de la cuenta ($)</label>
+          <input id="edit-account-balance" type="number" placeholder="Ej: 10000"
+            style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;box-sizing:border-box;outline:none;">
+        </div>
+
+        <!-- Buttons -->
+        <div style="display:flex;gap:10px;">
+          <button onclick="closeBrokerEdit()" style="flex:1;background:var(--bg4);color:var(--text);border:1px solid var(--border);padding:12px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">Cancelar</button>
+          <button id="broker-save-btn" onclick="saveBrokerEdit()" style="flex:2;background:var(--green);color:#000;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="tab-panel" id="panel-logros">
       <div class="section-title">Logros y rachas</div>
 
       <!-- STREAKS ROW -->
@@ -2200,8 +2054,7 @@ if (typeof supabase === 'undefined') {
       <div id="next-badges-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;">
       </div>
     </div>
-
-    <div class="tab-panel" id="panel-planes">
+      <div class="tab-panel" id="panel-planes">
       <!-- SUBSCRIPTION MANAGEMENT (shown only for Pro users) -->
       <div id="subscription-management" style="display:none;">
       </div>
@@ -2506,57 +2359,182 @@ if (typeof supabase === 'undefined') {
         </div>
       </div>
     </div>
-
-  </main>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal">
-    <div class="modal-title">Nueva cuenta de trading</div>
-    <div class="form-field" style="margin-bottom:14px;">
-      <label class="form-label">Nombre de la cuenta</label>
-      <input class="form-input" type="text" id="m-nombre" placeholder="Ej: TopStep $150K, Cuenta propia...">
-    </div>
-    <div class="form-field" style="margin-bottom:14px;">
-      <label class="form-label">Tipo de cuenta</label>
-      <select class="form-select" id="m-tipo">
-        <option value="own">Capital propio</option>
-        <option value="prop">Cuenta fondeada (Prop Firm)</option>
-      </select>
-    </div>
-    <div class="form-field" style="margin-bottom:14px;">
-      <label class="form-label">Balance inicial ($)</label>
-      <input class="form-input" type="number" id="m-balance" placeholder="10000" step="100">
-    </div>
-    <div class="form-field" style="margin-bottom:14px;" id="m-broker-wrap">
-      <label class="form-label">Broker / Prop Firm</label>
-      <select class="form-select" id="m-broker">
-        <option>TopStep</option>
-        <option>FTMO</option>
-        <option>Tradovate</option>
-        <option>NinjaTrader</option>
-        <option>Interactive Brokers</option>
-        <option>Otro</option>
-      </select>
-    </div>
-    <div class="form-field" style="margin-bottom:4px;" id="m-fase-wrap">
-      <label class="form-label">Fase actual</label>
-      <select class="form-select" id="m-fase">
-        <option>Fase 1 - Evaluación</option>
-        <option>Fase 2 - Verificación</option>
-        <option>Funded - En vivo</option>
-      </select>
-    </div>
-    <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveAccount()">Guardar cuenta</button>
     </div>
   </div>
 </div>
 
+<!-- Modals -->
+<div id="modal-nueva-op" class="modal-overlay">
+  <div class="modal" style="max-width:560px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div class="modal-title">Nueva operación</div>
+      <button onclick="closeModal('modal-nueva-op')" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div id="modal-nueva-op-content"></div>
+  </div>
+</div>
+
+<div id="modal-nueva-cuenta" class="modal-overlay">
+  <div class="modal" style="max-width:440px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div class="modal-title">Nueva cuenta</div>
+      <button onclick="closeModal('modal-nueva-cuenta')" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div id="modal-nueva-cuenta-content"></div>
+  </div>
+</div>
+
+<div id="broker-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="font-size:16px;font-weight:700;">Editar cuenta</div>
+      <button onclick="closeBrokerEdit()" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <input type="hidden" id="edit-account-id">
+    <div style="margin-bottom:14px;"><label>Nombre</label><input id="edit-account-name" type="text" placeholder="Ej: FTMO Challenge 10K"></div>
+    <div style="margin-bottom:14px;">
+      <label>Tipo de cuenta</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;" id="edit-tipo-grid">
+        <button onclick="selectTipo('real')" id="tipo-real" style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:12px;cursor:pointer;">💰 Capital Propio<br><span style="font-size:10px">Real</span></button>
+        <button onclick="selectTipo('demo')" id="tipo-demo" style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:12px;cursor:pointer;">🧪 Capital Propio<br><span style="font-size:10px">Demo</span></button>
+        <button onclick="selectTipo('prop_firm')" id="tipo-prop_firm" style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:12px;cursor:pointer;">🏆 Prop Firm<br><span style="font-size:10px">FTMO, MFF...</span></button>
+        <button onclick="selectTipo('concurso')" id="tipo-concurso" style="padding:10px;border:2px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:12px;cursor:pointer;">🎯 Challenge<br><span style="font-size:10px">Fase de prueba</span></button>
+      </div>
+      <input type="hidden" id="edit-account-tipo" value="real">
+    </div>
+    <div style="margin-bottom:14px;"><label>Broker</label><input id="edit-account-broker" type="text" placeholder="Ej: FTMO, IC Markets..."></div>
+    <div style="margin-bottom:20px;"><label>Balance ($)</label><input id="edit-account-balance" type="number" placeholder="10000"></div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeBrokerEdit()" class="btn btn-secondary" style="flex:1;">Cancelar</button>
+      <button id="broker-save-btn" onclick="saveBrokerEdit()" class="btn btn-primary" style="flex:2;">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
+// Helper to bridge old layout functions to new layout
+function toggleSidebar() {
+  var s = document.getElementById('sidebar');
+  s.classList.toggle('collapsed');
+  s.classList.toggle('mobile-open');
+}
+function closeModal(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.remove('open');
+}
+function showNuevaOp() {
+  var panel = document.getElementById('panel-nueva');
+  if (panel) {
+    goTab('nueva', null);
+  }
+}
+function showNuevaCuenta() {
+  var el = document.getElementById('modal-nueva-cuenta');
+  if (el) el.classList.add('open');
+}
+// Map old goTab to new system
+var currentTab = 'dashboard';
+function goTab(id, el) {
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active-panel'); });
+  var panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active-panel');
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  var navEl = document.getElementById('nav-' + id) || el;
+  if (navEl) navEl.classList.add('active');
+  currentTab = id;
+  var titles = {
+    dashboard:'Dashboard',operaciones:'Operaciones',nueva:'Nueva Operación',
+    riesgo:'Control Riesgo',calendario:'Calendario',estadisticas:'Estadísticas',
+    cuentas:'Cuentas',premarket:'Pre-Market',habitos:'Hábitos',
+    insights:'Insights',ia:'Coach IA',diario:'Diario',psicologia:'Psicología',
+    'gestor-ea':'Gestor EA',broker:'Conectar Broker',logros:'Logros',planes:'Planes'
+  };
+  var titleEl = document.getElementById('topbar-title');
+  if (titleEl) titleEl.textContent = titles[id] || id;
+  // Close mobile sidebar
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  // Trigger tab-specific actions
+  if (id==='insights') setTimeout(function(){try{runInsights()}catch(e){}},50);
+  if (id==='gestor-ea') setTimeout(function(){try{loadGestorEA()}catch(e){}},200);
+  if (id==='broker') setTimeout(function(){try{brokerAutoStep()}catch(e){}},300);
+}
+function toggleTheme() {
+  document.body.classList.toggle('light-mode');
+  localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+}
+// Load saved theme
+if (localStorage.getItem('theme') === 'light') document.body.classList.add('light-mode');
+
+// Dashboard chart helper
+var dashChartInstance = null;
+function setDashChart(type, btn) {
+  document.querySelectorAll('.seg-btn').forEach(function(b){ b.classList.remove('active'); if(b!==btn) b.style.background='transparent'; });
+  if(btn){ btn.classList.add('active'); btn.style.background='var(--bg3)'; }
+}
+
+// Render dashboard recent ops
+function renderDashRecentOps(ops) {
+  var el = document.getElementById('dash-recent-ops');
+  if (!el || !ops || !ops.length) {
+    if(el) el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px;">Sin operaciones recientes</div>';
+    return;
+  }
+  el.innerHTML = ops.slice(0,5).map(function(op){
+    var pnl = parseFloat(op.resultado||0);
+    var dir = (op.direccion||'').toUpperCase();
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);">' +
+      '<span class="badge badge-' + (dir==='BUY'?'buy':'sell') + '">' + (dir||'—') + '</span>' +
+      '<span style="font-weight:600;font-size:12px;min-width:60px">' + (op.instrumento||'—') + '</span>' +
+      '<span style="font-size:11px;color:var(--text3);flex:1">' + (op.fecha?new Date(op.fecha).toLocaleDateString('es'):'') + '</span>' +
+      '<span style="font-weight:700;font-size:12px;color:' + (pnl>=0?'var(--green)':'var(--red)') + '">' + (pnl>=0?'+':'') + '$' + pnl.toFixed(2) + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+function renderDashSessions(ops) {
+  var el = document.getElementById('dash-sessions');
+  if (!el) return;
+  var sessions = {Asia:0,Londres:0,'Nueva York':0,Tarde:0};
+  ops.forEach(function(op){ if(op.sesion && sessions[op.sesion]!==undefined) sessions[op.sesion]++; });
+  var total = ops.length || 1;
+  var colors = {'Asia':'var(--blue)','Londres':'var(--green)','Nueva York':'var(--green3)','Tarde':'var(--amber)'};
+  el.innerHTML = Object.keys(sessions).map(function(s){
+    var pct = Math.round(sessions[s]/total*100);
+    return '<div class="hbar-row"><span class="hbar-label">' + s + '</span>' +
+      '<div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%;background:' + (colors[s]||'var(--green)') + '"></div></div>' +
+      '<span class="hbar-value">' + pct + '%</span></div>';
+  }).join('');
+}
+
+function renderDashByPair(ops) {
+  var el = document.getElementById('dash-by-pair');
+  if (!el) return;
+  var pairs = {};
+  ops.forEach(function(op){
+    var sym = op.instrumento || '—';
+    if (!pairs[sym]) pairs[sym] = 0;
+    pairs[sym] += parseFloat(op.resultado||0);
+  });
+  var sorted = Object.keys(pairs).sort(function(a,b){ return pairs[b]-pairs[a]; }).slice(0,5);
+  var maxAbs = Math.max.apply(null, sorted.map(function(s){ return Math.abs(pairs[s]); })) || 1;
+  el.innerHTML = sorted.map(function(sym){
+    var val = pairs[sym];
+    var pct = Math.round(Math.abs(val)/maxAbs*100);
+    var color = val>=0?'var(--green)':'var(--red)';
+    return '<div style="margin-bottom:10px;">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">' +
+        '<span style="font-size:12px;color:var(--text2)">' + sym + '</span>' +
+        '<span style="font-size:12px;font-weight:700;color:' + color + '">' + (val>=0?'+':'')+'$'+Math.abs(val).toFixed(2)+'</span>' +
+      '</div>' +
+      '<div class="mini-bar-track"><div class="mini-bar-fill" style="width:' + pct + '%;background:' + color + '"></div></div>' +
+    '</div>';
+  }).join('');
+}
+</script>
+<script>
+
 // ═══════════════════════════════════════════════════════════════
 // SUPABASE CONFIG + AUTH
 // ═══════════════════════════════════════════════════════════════
@@ -8630,418 +8608,7 @@ function renderPsychCharts() {
 }
 
 
+
 </script>
-
-
-
-<div class="modal-overlay" id="account-modal-overlay">
-  <div class="day-modal" style="width:640px;">
-    <div class="day-modal-header">
-      <div class="day-modal-title" id="account-modal-title">Cuenta</div>
-      <div class="day-modal-close" onclick="document.getElementById('account-modal-overlay').classList.remove('open')">✕</div>
-    </div>
-    <div class="day-modal-body" id="account-modal-body"></div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="day-modal-overlay">
-  <div class="day-modal">
-    <div class="day-modal-header">
-      <div class="day-modal-title" id="day-modal-title">Día de trading</div>
-      <div class="day-modal-close" onclick="closeDayModal()">✕</div>
-    </div>
-    <div class="day-modal-body" id="day-modal-body"></div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="edit-modal-overlay">
-  <div class="edit-modal">
-    <div class="edit-modal-header">
-      <div class="day-modal-title" id="edit-modal-title">Editar operación</div>
-      <div class="day-modal-close" onclick="closeEditModal()">✕</div>
-    </div>
-    <div class="edit-modal-body">
-      <input type="hidden" id="edit-page-id">
-      <div class="form-grid" style="margin-bottom:14px;">
-        <div class="form-field"><label class="form-label">Estado</label>
-          <select class="form-select" id="edit-estado" onchange="toggleEditResultado()">
-            <option value="Pendiente">🟡 Pendiente</option><option value="Finalizada">✅ Finalizada</option>
-          </select></div>
-        <div class="form-field" id="edit-resultado-wrap"><label class="form-label">Resultado ($)</label>
-          <input class="form-input" type="number" id="edit-resultado" placeholder="+150.00" step="0.01"></div>
-        <div class="form-field"><label class="form-label">Instrumento</label>
-          <select class="form-select" id="edit-instrumento">
-            <option>MES</option><option>MNQ</option><option>ES</option><option>NQ</option>
-            <option>GC (Oro)</option><option>CL (Crudo)</option><option>EUR/USD</option>
-            <option>GBP/USD</option><option>US30</option><option>Otro</option>
-          </select></div>
-        <div class="form-field"><label class="form-label">Dirección</label>
-          <select class="form-select" id="edit-direccion"><option>LONG</option><option>SHORT</option></select></div>
-        <div class="form-field"><label class="form-label">Precio entrada</label>
-          <input class="form-input" type="number" id="edit-entrada" step="0.01"></div>
-        <div class="form-field"><label class="form-label">Stop Loss</label>
-          <input class="form-input" type="number" id="edit-sl" step="0.01"></div>
-        <div class="form-field"><label class="form-label">Take Profit</label>
-          <input class="form-input" type="number" id="edit-tp" step="0.01"></div>
-        <div class="form-field"><label class="form-label">Contratos</label>
-          <input class="form-input" type="number" id="edit-contratos" min="1"></div>
-        <div class="form-field"><label class="form-label">Setup</label>
-          <select class="form-select" id="edit-setup">
-            <option>Breakout</option><option>Reversión</option><option>Tendencia</option>
-            <option>Soporte/Resistencia</option><option>Order Flow</option>
-            <option>SMC / ICT</option><option>Scalping</option><option>Otro</option>
-          </select></div>
-        <div class="form-field"><label class="form-label">Emoción</label>
-          <select class="form-select" id="edit-emocion">
-            <option>😌 Calmado</option><option>💪 Enfocado</option><option>😤 Ansioso</option>
-            <option>😰 Con miedo</option><option>🤑 Eufórico</option><option>😞 Frustrado</option>
-          </select></div>
-      </div>
-      <div style="height:1px;background:var(--border);margin:4px 0 16px;"></div>
-      <div class="section-title">Captura de cierre</div>
-      <div class="form-field" style="margin-bottom:14px;">
-        <div class="img-upload-zone" id="edit-zone-cierre" onclick="document.getElementById('edit-img-cierre').click()">
-          <input type="file" id="edit-img-cierre" accept="image/*" style="display:none" onchange="previewEditImg(this,'edit-zone-cierre','edit-preview-cierre')">
-          <div id="edit-preview-cierre"><div class="img-upload-icon">📉</div><div class="img-upload-label">Añadir captura de cierre</div></div>
-        </div>
-      </div>
-      <div class="form-field"><label class="form-label">Notas adicionales</label>
-        <textarea class="form-textarea" id="edit-notas" style="min-height:70px;"></textarea></div>
-    </div>
-    <div class="edit-modal-footer">
-      <span id="edit-save-status" style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;margin-right:auto;align-self:center;"></span>
-      <button class="btn" onclick="closeEditModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveEditedTrade()" id="edit-save-btn">Guardar cambios</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="img-preview-overlay" onclick="this.classList.remove('open')" style="cursor:zoom-out;">
-  <img id="img-preview-full" style="max-width:90vw;max-height:90vh;border-radius:12px;object-fit:contain;">
-</div>
-
-<button id="sidebar-show-btn" onclick="toggleSidebar()" title="Mostrar menú"
-  style="position:fixed;top:50%;left:0;transform:translateY(-50%);z-index:101;width:20px;height:56px;background:var(--bg2);border:1px solid var(--border2);border-left:none;border-radius:0 8px 8px 0;cursor:pointer;display:none;align-items:center;justify-content:center;color:var(--text2);font-size:14px;transition:all 0.2s;">›</button>
-
-<div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:10000;align-items:center;justify-content:center;">
-  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px 32px;width:340px;max-width:92vw;">
-    <div style="font-size:20px;margin-bottom:8px;">⚠️</div>
-    <div id="confirm-msg" style="font-size:15px;font-weight:600;margin-bottom:8px;color:var(--text);">¿Estás seguro?</div>
-    <div id="confirm-sub" style="font-size:13px;color:var(--text3);margin-bottom:24px;">Esta acción no se puede deshacer.</div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;">
-      <button id="confirm-cancel" style="padding:9px 20px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:13px;cursor:pointer;">Cancelar</button>
-      <button id="confirm-ok" style="padding:9px 20px;border-radius:8px;border:none;background:var(--red);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Eliminar</button>
-    </div>
-  </div>
-</div>
-
-
-
-<!-- MOBILE BOTTOM NAV -->
-<nav class="mobile-nav" id="mobile-nav">
-  <div class="mobile-nav-item active" id="mnav-dashboard" onclick="mobileGoTab('dashboard',this)">
-    <div class="mobile-nav-icon">📊</div>
-    <div class="mobile-nav-label">Dashboard</div>
-  </div>
-  <div class="mobile-nav-item" id="mnav-operaciones" onclick="mobileGoTab('operaciones',this)">
-    <div class="mobile-nav-icon">📋</div>
-    <div class="mobile-nav-label">Operaciones</div>
-  </div>
-  <div class="mobile-nav-item" id="mnav-nueva" onclick="openNuevaModal()">
-    <div class="mobile-nav-icon">
-      <div style="width:44px;height:44px;background:linear-gradient(135deg,#00d4a0,#4d9fff);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;color:#000;margin-top:-14px;box-shadow:0 4px 16px rgba(0,212,160,0.4);">+</div>
-    </div>
-    <div class="mobile-nav-label">Nueva</div>
-  </div>
-  <div class="mobile-nav-item" id="mnav-ia" onclick="mobileGoTab('ia',this)">
-    <div class="mobile-nav-icon">🤖</div>
-    <div class="mobile-nav-label">Coach IA</div>
-  </div>
-  <div class="mobile-nav-item" id="mnav-menu" onclick="openMobileMenu()">
-    <div class="mobile-nav-icon">☰</div>
-    <div class="mobile-nav-label">Menú</div>
-  </div>
-</nav>
-
-<!-- MOBILE MENU MODAL -->
-<div id="mobile-menu-overlay" onclick="closeMobileMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:9998;"></div>
-<div id="mobile-menu-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--border2);max-height:85vh;overflow:hidden;flex-direction:column;">
-  <!-- Handle -->
-  <div style="display:flex;justify-content:center;padding:12px 0 0;">
-    <div style="width:40px;height:4px;border-radius:2px;background:var(--border2);"></div>
-  </div>
-
-  <!-- Scrollable content -->
-  <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding:12px 14px max(20px,env(safe-area-inset-bottom));overscroll-behavior:contain;">
-
-    <!-- Section: Análisis -->
-    <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin:8px 4px 10px;">ANÁLISIS</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
-      <div class="mmenu-item" onclick="mobileGoTabMenu('insights')" style="border-color:rgba(0,212,160,0.3);background:rgba(0,212,160,0.07);">
-        <div class="mmenu-icon">💡</div>
-        <div class="mmenu-label" style="color:var(--green);">Insights</div>
-      </div>
-      <div class="mmenu-item" onclick="mobileGoTabMenu('broker')">
-        <div class="mmenu-icon">🔌</div>
-        <div class="mmenu-label">Broker</div>
-      </div>
-      <div class="mmenu-item" onclick="mobileGoTabMenu('gestor-ea')">
-        <div class="mmenu-icon">⚡</div>
-        <div class="mmenu-label">Gestor EA</div>
-      </div>
-      <div class="mmenu-item" onclick="mobileGoTabMenu('riesgo')">
-        <div class="mmenu-icon">🛡️</div>
-        <div class="mmenu-label">Riesgo</div>
-      </div>
-      <div class="mmenu-item" onclick="mobileGoTabMenu('estadisticas')">
-        <div class="mmenu-icon">📊</div>
-        <div class="mmenu-label">Estadísticas</div>
-      </div>
-      <div class="mmenu-item" onclick="mobileGoTabMenu('psicologia')">
-        <div class="mmenu-icon">🧠</div>
-        <div class="mmenu-label">Psicología</div>
-      </div>
-    </div>
-
-    <!-- Section: Planificación -->
-    <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin:0 4px 10px;">PLANIFICACIÓN</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
-      <div class="mmenu-item" onclick="mobileGoTabMenu('calendario')">
-        <div class="mmenu-icon">📅</div>
-        <div class="mmenu-label">Calendario</div>
-      </div>
-      <div class="mmenu-item" onclick="mobileGoTabMenu('premarket')">
-        <div class="mmenu-icon">🌅</div>
-        <div class="mmenu-label">Pre-Market</div>
-      </div>
-      <div class="mmenu-item" onclick="mobileGoTabMenu('cuentas')">
-        <div class="mmenu-icon">💼</div>
-        <div class="mmenu-label">Cuentas</div>
-      </div>
-    </div>
-
-    <!-- Section: Personal -->
-    <div style="font-size:10px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin:0 4px 10px;">PERSONAL</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
-      <div class="mmenu-item" onclick="mobileGoTabMenu('habitos')">
-        <div class="mmenu-icon">💪</div>
-        <div class="mmenu-label">Hábitos</div>
-      </div>
-      <div class="mmenu-item" onclick="mobileGoTabMenu('diario')">
-        <div class="mmenu-icon">📔</div>
-        <div class="mmenu-label">Diario</div>
-      </div>
-      <div class="mmenu-item" onclick="mobileGoTabMenu('logros')">
-        <div class="mmenu-icon">🏆</div>
-        <div class="mmenu-label">Logros</div>
-      </div>
-    </div>
-
-    <!-- Pro + Afiliados + Cerrar sesión -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-      <div class="mmenu-item" onclick="mobileGoTabMenu('planes')" style="border-color:rgba(0,212,160,0.35);background:rgba(0,212,160,0.08);">
-        <div class="mmenu-icon">⭐</div>
-        <div class="mmenu-label" style="color:var(--green);">Hazte Pro+</div>
-      </div>
-      <div class="mmenu-item" onclick="closeMobileMenu();window.location.href='afiliados.html'" style="border-color:rgba(77,159,255,0.25);background:rgba(77,159,255,0.07);">
-        <div class="mmenu-icon">🤝</div>
-        <div class="mmenu-label" style="color:var(--blue);">Afiliados</div>
-      </div>
-    </div>
-    <div style="margin-bottom:8px;">
-      <div class="mmenu-item" onclick="closeMobileMenu();document.getElementById('logout-btn')&&document.getElementById('logout-btn').click()" style="border-color:rgba(255,77,109,0.25);background:rgba(255,77,109,0.07);">
-        <div class="mmenu-icon">🚪</div>
-        <div class="mmenu-label" style="color:var(--red);">Cerrar sesión</div>
-      </div>
-    </div>
-    <button onclick="closeMobileMenu()" style="width:100%;padding:13px;border:1px solid var(--border2);border-radius:12px;background:var(--bg3);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;">✕ Cerrar</button>
-  </div>
-</div>
-
-<!-- NUEVA MODAL -->
-<div id="nueva-modal-overlay" onclick="closeNuevaModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:9998;"></div>
-<div id="nueva-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--border2);padding:24px 16px max(24px,env(safe-area-inset-bottom));">
-  <div style="display:flex;justify-content:center;margin-bottom:16px;">
-    <div style="width:40px;height:4px;border-radius:2px;background:var(--border2);"></div>
-  </div>
-  <div style="font-size:11px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:16px;text-align:center;">¿QUÉ QUIERES CREAR?</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-    <div onclick="closeNuevaModal();mobileGoTab('nueva',document.getElementById('mnav-nueva'))" style="background:linear-gradient(135deg,rgba(0,212,160,0.15),rgba(77,159,255,0.1));border:1px solid rgba(0,212,160,0.3);border-radius:16px;padding:24px 16px;text-align:center;cursor:pointer;">
-      <div style="font-size:36px;margin-bottom:10px;">📈</div>
-      <div style="font-size:14px;font-weight:700;color:var(--green);">Nueva operación</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:4px;">Registra un trade</div>
-    </div>
-    <div onclick="closeNuevaModal();openModal()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:16px;padding:24px 16px;text-align:center;cursor:pointer;">
-      <div style="font-size:36px;margin-bottom:10px;">💼</div>
-      <div style="font-size:14px;font-weight:700;color:var(--text);">Nueva cuenta</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:4px;">Añade una cuenta</div>
-    </div>
-  </div>
-  <button onclick="closeNuevaModal()" style="width:100%;padding:13px;border:1px solid var(--border2);border-radius:12px;background:var(--bg3);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
-</div>
-
-<script>
-var _nuevaModalOpen = false;
-
-function openNuevaModal() {
-  if (_nuevaModalOpen) {
-    closeNuevaModal();
-    return;
-  }
-  _nuevaModalOpen = true;
-  // Mark nueva button as active
-  var btn = document.getElementById('mnav-nueva');
-  if (btn) btn.classList.add('active');
-
-  document.getElementById('nueva-modal-overlay').style.display = 'block';
-  var m = document.getElementById('nueva-modal');
-  m.style.display = 'block';
-  m.style.transition = 'none';
-  m.style.transform = 'translateY(100%)';
-  m.offsetHeight; // force reflow
-  m.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
-  requestAnimationFrame(function(){ m.style.transform = 'translateY(0)'; });
-}
-
-function closeNuevaModal() {
-  _nuevaModalOpen = false;
-  // Remove active from nueva button
-  var btn = document.getElementById('mnav-nueva');
-  if (btn) btn.classList.remove('active');
-
-  var m = document.getElementById('nueva-modal');
-  m.style.transform = 'translateY(100%)';
-  setTimeout(function(){
-    m.style.display = 'none';
-    document.getElementById('nueva-modal-overlay').style.display = 'none';
-  }, 300);
-}
-
-function mobileGoTab(id, el) {
-  goTab(id, document.querySelector('.nav-item[onclick*="' + id + '"]'));
-  document.querySelectorAll('.mobile-nav-item').forEach(function(i){ i.classList.remove('active'); });
-  if (el) el.classList.add('active');
-}
-
-function mobileGoTabMenu(id) {
-  closeMobileMenu();
-  goTab(id, document.querySelector('.nav-item[onclick*="' + id + '"]'));
-  document.querySelectorAll('.mobile-nav-item').forEach(function(i){ i.classList.remove('active'); });
-  document.getElementById('mnav-menu').classList.add('active');
-}
-
-var _mobileMenuOpen = false;
-
-function openMobileMenu() {
-  if (_mobileMenuOpen) {
-    closeMobileMenu();
-    return;
-  }
-  _mobileMenuOpen = true;
-  var menuBtn = document.getElementById('mnav-menu');
-  if (menuBtn) menuBtn.classList.add('active');
-
-  var overlay = document.getElementById('mobile-menu-overlay');
-  var modal = document.getElementById('mobile-menu-modal');
-  overlay.style.display = 'block';
-  // Reset display and scroll before animating
-  modal.style.display = 'flex';
-  modal.style.transition = 'none';
-  modal.style.transform = 'translateY(100%)';
-  // Reset scroll inside
-  var inner = modal.querySelector('[style*="overflow-y"]');
-  if (inner) inner.scrollTop = 0;
-  // Force reflow then animate
-  modal.offsetHeight;
-  modal.style.transition = 'transform 0.32s cubic-bezier(0.4,0,0.2,1)';
-  requestAnimationFrame(function() {
-    modal.style.transform = 'translateY(0)';
-  });
-}
-
-function closeMobileMenu() {
-  _mobileMenuOpen = false;
-  var menuBtn = document.getElementById('mnav-menu');
-  if (menuBtn) menuBtn.classList.remove('active');
-
-  var modal = document.getElementById('mobile-menu-modal');
-  var overlay = document.getElementById('mobile-menu-overlay');
-  modal.style.transition = 'transform 0.28s cubic-bezier(0.4,0,0.2,1)';
-  modal.style.transform = 'translateY(100%)';
-  setTimeout(function() {
-    modal.style.display = 'none';
-    overlay.style.display = 'none';
-  }, 300);
-}
-</script>
-
-
-
-
-<script>
-// Register service worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js')
-      .then(function(reg) { console.log('SW registered ✓'); })
-      .catch(function(err) { console.log('SW error:', err); });
-  });
-}
-</script>
-
-<!-- VIEW TRADE MODAL -->
-<div id="view-trade-overlay" onclick="closeViewTrade()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:1000;"></div>
-<div id="view-trade-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1001;width:min(580px,96vw);max-height:90vh;overflow-y:auto;background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:28px;">
-  <!-- Header -->
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
-    <div>
-      <div id="vt-instrument" style="font-size:22px;font-weight:800;letter-spacing:-0.5px;"></div>
-      <div id="vt-date" style="font-size:11px;color:var(--text3);font-family:monospace;margin-top:2px;"></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <span id="vt-pnl" style="font-size:20px;font-weight:800;font-family:monospace;"></span>
-      <button onclick="closeViewTrade()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;cursor:pointer;color:var(--text2);font-size:14px;">✕</button>
-    </div>
-  </div>
-
-  <!-- Badges row -->
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;" id="vt-badges"></div>
-
-  <!-- Grid data -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;" id="vt-grid"></div>
-
-  <!-- Setup & Emotion -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;" id="vt-meta"></div>
-
-  <!-- Errors -->
-  <div id="vt-errors-section" style="display:none;margin-bottom:16px;">
-    <div style="font-size:9px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:8px;">ERRORES PSICOLÓGICOS</div>
-    <div id="vt-errors" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
-  </div>
-
-  <!-- Notes -->
-  <div id="vt-notes-section" style="display:none;margin-bottom:20px;">
-    <div style="font-size:9px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:8px;">NOTAS</div>
-    <div id="vt-notes" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px;color:var(--text2);line-height:1.6;"></div>
-  </div>
-
-  <!-- Images -->
-  <div id="vt-images-section" style="display:none;margin-bottom:20px;">
-    <div style="font-size:9px;color:var(--text3);letter-spacing:2px;font-family:monospace;margin-bottom:10px;">CAPTURAS DEL GRÁFICO</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="vt-images-grid"></div>
-  </div>
-
-  <!-- Actions -->
-  <div style="display:flex;gap:8px;">
-    <button id="vt-edit-btn" style="flex:1;padding:10px;border:1px solid var(--border2);border-radius:10px;background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">✏️ Editar operación</button>
-  </div>
-</div>
-
-<!-- FULLSCREEN IMAGE VIEWER -->
-<div id="img-fullscreen-overlay" onclick="closeFullscreenImg()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:2000;display:none;align-items:center;justify-content:center;cursor:zoom-out;">
-  <img id="img-fullscreen-img" src="" style="max-width:95vw;max-height:92vh;object-fit:contain;border-radius:8px;">
-  <button onclick="closeFullscreenImg()" style="position:fixed;top:20px;right:20px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:8px 14px;color:#fff;font-size:14px;cursor:pointer;z-index:2001;">✕ Cerrar</button>
-  <div id="img-fullscreen-label" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);font-size:12px;color:rgba(255,255,255,0.4);font-family:monospace;letter-spacing:1px;"></div>
-</div>
-
 </body>
+</html>
