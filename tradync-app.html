@@ -3880,9 +3880,9 @@ function renderCalendar() {
       indicators += '<span style="font-size:10px;margin-left:2px;" title="' + (emo.emocion||'') + '">' + (emo.emoji || '📝') + '</span>';
     }
 
-    const clickHandler = 'onclick="openDayDetail('' + dateStr + '')"';
+    const clickHandler = 'onclick="openDayDetail(\'' + dateStr + '\')"';
 
-    html += '<div ' + clickHandler + ' style="min-height:90px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:' + cellBg + ';' + borderLeft + todayStyle + 'padding:8px;cursor:pointer;transition:background 0.15s;position:relative;" onmouseover="this.style.filter='brightness(1.05)'" onmouseout="this.style.filter=''">' +
+    html += '<div ' + clickHandler + ' style="min-height:90px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:' + cellBg + ';' + borderLeft + todayStyle + 'padding:8px;cursor:pointer;transition:background 0.15s;position:relative;">' +
       '<div style="display:flex;align-items:flex-start;justify-content:space-between;">' +
         '<div style="' + dayNumStyle + '">' + d + '</div>' +
         '<div style="display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end;">' + indicators + '</div>' +
