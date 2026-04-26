@@ -1815,17 +1815,17 @@
           <div style="text-align:center;font-size:10px;font-weight:600;color:var(--text3);">S</div>
           <div style="text-align:center;font-size:10px;font-weight:600;color:var(--text3);">D</div>
         </div>
-        <div id="pm-cal-header" style="display:none;"></div>
+        <div id="pm-cal-header" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;"></div>
         <div id="pm-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;"></div>
-        <div style="display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);">
-            <div style="width:10px;height:10px;border-radius:3px;background:var(--green);opacity:0.8;"></div>Plan completo
+        <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:monospace;">
+            <div style="width:8px;height:8px;border-radius:2px;background:var(--green);opacity:0.8;"></div>Plan completo
           </div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);">
-            <div style="width:10px;height:10px;border-radius:3px;background:var(--amber);opacity:0.8;"></div>Parcial
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:monospace;">
+            <div style="width:8px;height:8px;border-radius:2px;background:var(--amber);opacity:0.8;"></div>Parcial
           </div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);">
-            <div style="width:10px;height:10px;border-radius:3px;background:var(--bg4);"></div>Sin plan
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);font-family:monospace;">
+            <div style="width:8px;height:8px;border-radius:2px;background:var(--bg3);border:1px solid var(--border);"></div>Sin plan
           </div>
         </div>
       </div>
@@ -4207,41 +4207,91 @@ function changePmMonth(dir) {
 }
 
 function renderPmCalendar() {
-  const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const labelEl = document.getElementById('pm-cal-month-label');
+  var months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var labelEl = document.getElementById('pm-cal-month-label');
   if (labelEl) labelEl.textContent = months[pmCalMonth] + ' ' + pmCalYear;
-  const grid = document.getElementById('pm-cal-grid');
-  const header = document.getElementById('pm-cal-header');
+
+  var grid   = document.getElementById('pm-cal-grid');
+  var header = document.getElementById('pm-cal-header');
   if (!grid) return;
-  const days = ['L','M','X','J','V','S','D'];
-  header.innerHTML = days.map(d => `<div style="font-size:9px;color:var(--text3);text-align:center;font-family:'DM Mono',monospace;padding-bottom:4px;">${d}</div>`).join('');
-  const firstDay = new Date(pmCalYear, pmCalMonth, 1).getDay();
-  const offset = firstDay === 0 ? 6 : firstDay - 1;
-  const daysInMonth = new Date(pmCalYear, pmCalMonth + 1, 0).getDate();
-  const today = new Date();
-  let html = '';
-  for (let i = 0; i < offset; i++) html += '<div class="pm-cal-day empty"></div>';
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = pmCalYear + '-' + String(pmCalMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-    const plan = JSON.parse(localStorage.getItem(lsKey('tj_plan_' + dateStr)) || 'null');
-    const cl = JSON.parse(localStorage.getItem(lsKey('tj_checklist_' + dateStr)) || '{}');
-    const clDone = Object.values(cl).filter(Boolean).length;
-    const isToday = today.getDate()===d && today.getMonth()===pmCalMonth && today.getFullYear()===pmCalYear;
-    let cls = 'pm-cal-day';
-    let pct = '';
-    if (plan) {
-      const pctVal = Math.round(clDone / CHECKLIST_ITEMS.length * 100);
-      if (pctVal >= 100) cls += ' complete';
-      else if (pctVal >= 50) cls += ' partial';
-      else cls += ' planned';
-      pct = `<div class="pm-cal-pct">${pctVal}%</div>`;
-      cls += ' has-plan';
-    }
-    if (isToday) cls += ' today';
-    const click = plan ? `onclick="openPmDayDetail('${dateStr}')"` : '';
-    html += `<div class="${cls}" ${click}><span>${d}</span>${pct}</div>`;
+
+  // Day headers — same style as habit calendar
+  var days = ['L','M','X','J','V','S','D'];
+  if (header) header.innerHTML = days.map(function(d) {
+    return '<div style="font-size:9px;color:var(--text3);text-align:center;font-family:monospace;padding-bottom:4px;">' + d + '</div>';
+  }).join('');
+
+  var firstDay   = new Date(pmCalYear, pmCalMonth, 1).getDay();
+  var offset     = firstDay === 0 ? 6 : firstDay - 1;
+  var daysInMonth = new Date(pmCalYear, pmCalMonth + 1, 0).getDate();
+  var today      = new Date();
+
+  grid.innerHTML = '';
+
+  // Empty cells
+  for (var i = 0; i < offset; i++) {
+    var empty = document.createElement('div');
+    empty.style.aspectRatio = '1';
+    grid.appendChild(empty);
   }
-  grid.innerHTML = html;
+
+  // Day cells — identical style to habit calendar
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dateStr  = pmCalYear + '-' + String(pmCalMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    var plan     = null;
+    var clDone   = 0;
+    try { plan = JSON.parse(localStorage.getItem(lsKey('tj_plan_' + dateStr)) || 'null'); } catch(e){}
+    try {
+      var cl = JSON.parse(localStorage.getItem(lsKey('tj_checklist_' + dateStr)) || '{}');
+      clDone = Object.values(cl).filter(Boolean).length;
+    } catch(e){}
+
+    var isToday  = today.getDate()===d && today.getMonth()===pmCalMonth && today.getFullYear()===pmCalYear;
+    var total    = CHECKLIST_ITEMS.length || 1;
+    var pct      = plan ? Math.round(clDone / total * 100) : -1;
+    var hasData  = plan !== null;
+
+    var div = document.createElement('div');
+    div.style.cssText = 'aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:transform 0.1s;';
+
+    if (hasData) {
+      if (pct >= 100) {
+        div.style.background = 'var(--green-bg)';
+        div.style.border     = '1px solid ' + (isToday ? 'var(--green)' : 'rgba(0,184,122,0.3)');
+      } else if (pct >= 50) {
+        div.style.background = 'var(--amber-bg)';
+        div.style.border     = '1px solid ' + (isToday ? 'var(--green)' : 'rgba(245,158,11,0.3)');
+      } else {
+        div.style.background = 'var(--blue-bg)';
+        div.style.border     = '1px solid ' + (isToday ? 'var(--green)' : 'rgba(59,130,246,0.2)');
+      }
+      div.style.cursor = 'pointer';
+      div.addEventListener('mouseover', function(){ this.style.transform = 'scale(1.08)'; });
+      div.addEventListener('mouseout',  function(){ this.style.transform = 'scale(1)'; });
+      (function(ds) {
+        div.addEventListener('click', function() { try { openPmDayDetail(ds); } catch(e){} });
+      })(dateStr);
+    } else {
+      div.style.background = 'var(--bg3)';
+      div.style.border     = '1px solid ' + (isToday ? 'var(--green)' : 'var(--border)');
+    }
+
+    // Day number
+    var numSpan = document.createElement('span');
+    numSpan.style.cssText = 'font-size:10px;font-family:monospace;font-weight:' + (hasData ? '700' : '400') + ';color:' + (isToday ? 'var(--green)' : hasData ? 'var(--text2)' : 'var(--text3)') + ';';
+    numSpan.textContent = d;
+    div.appendChild(numSpan);
+
+    // Percentage label
+    if (hasData && pct >= 0) {
+      var pctSpan = document.createElement('span');
+      pctSpan.style.cssText = 'font-size:8px;font-family:monospace;opacity:0.9;';
+      pctSpan.textContent = pct + '%';
+      div.appendChild(pctSpan);
+    }
+
+    grid.appendChild(div);
+  }
 }
 
 function openPmDayDetail(dateStr) {
