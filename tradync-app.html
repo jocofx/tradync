@@ -113,7 +113,7 @@
        SIDEBAR — Premium 2026
     ═══════════════════════════════════════════ */
     .sidebar {
-      width: 232px;
+      width: 220px;
       background: var(--bg2);
       border-right: 1px solid var(--border);
       display: flex;
@@ -121,16 +121,59 @@
       flex-shrink: 0;
       overflow-y: auto;
       overflow-x: hidden;
-      transition: width 0.25s cubic-bezier(.4,0,.2,1);
+      transition: width 0.22s cubic-bezier(.4,0,.2,1);
       z-index: 100;
+      position: relative;
     }
-    .sidebar.collapsed { width: 56px; }
+    .sidebar.collapsed { width: 54px; }
     .sidebar.collapsed .nav-label,
     .sidebar.collapsed .nav-section-label,
     .sidebar.collapsed .logo-text,
     .sidebar.collapsed .search-bar,
     .sidebar.collapsed .sidebar-user-info,
-    .sidebar.collapsed .nav-badge { display: none; }
+    .sidebar.collapsed .nav-badge,
+    .sidebar.collapsed .collapse-label { display: none; }
+
+    /* Collapsed nav items — center icons */
+    .sidebar.collapsed .nav-item {
+      padding: 8px 0;
+      justify-content: center;
+      margin: 1px 5px;
+      border-radius: 8px;
+      position: relative;
+    }
+    /* Tooltip on hover when collapsed */
+    .sidebar.collapsed .nav-item:hover::after {
+      content: attr(data-label);
+      position: absolute;
+      left: calc(100% + 10px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--bg4);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      z-index: 9999;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    /* Collapsed logo area */
+    .sidebar.collapsed .sidebar-logo {
+      padding: 12px 0;
+      justify-content: center;
+    }
+    /* Collapsed footer */
+    .sidebar.collapsed .sidebar-footer {
+      padding: 8px 5px;
+    }
+    .sidebar.collapsed .sidebar-user {
+      justify-content: center;
+      padding: 8px 0;
+    }
 
     .sidebar-logo {
       display: flex;
@@ -765,6 +808,7 @@
       .grid-2-1, .grid-1-2 { grid-template-columns: 1fr; }
       .grid-3 { grid-template-columns: 1fr 1fr; }
     }
+
 </style>
 </head>
 <body>
@@ -775,14 +819,14 @@
   ═══════════════════════════════════════ -->
   <div class="sidebar" id="sidebar">
     <!-- Logo -->
-    <div class="sidebar-logo">
-      <div class="logo-icon">
+    <div class="sidebar-logo" style="display:flex;align-items:center;gap:10px;padding:14px 12px 12px;border-bottom:1px solid var(--border);">
+      <div class="logo-icon" style="flex-shrink:0;cursor:pointer;" onclick="goTab('dashboard',document.getElementById('nav-dashboard'))">
         <svg viewBox="0 0 16 16" fill="none">
           <path d="M8 2L14 5.5V10.5L8 14L2 10.5V5.5L8 2Z" fill="white" opacity="0.9"/>
           <path d="M8 5L11 6.8V9.8L8 11.5L5 9.8V6.8L8 5Z" fill="white" opacity="0.5"/>
         </svg>
       </div>
-      <div class="logo-text">
+      <div class="logo-text" style="flex:1;min-width:0;">
         <div class="logo-name">TradyncApp</div>
         <div class="logo-sub">Trading Journal</div>
       </div>
@@ -803,73 +847,73 @@
 
     <!-- Nav -->
     <div class="nav-section-label">Principal</div>
-    <div class="nav-item active" id="nav-dashboard" onclick="goTab('dashboard', this)">
+    <div class="nav-item active" id="nav-dashboard" data-label="Dashboard" onclick="goTab('dashboard', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2V2zm7 0h5v5H9V2zm-7 7h5v5H2V9zm7 0h5v5H9V9z"/></svg>
       <span class="nav-label">Dashboard</span>
     </div>
-    <div class="nav-item" id="nav-operaciones" onclick="goTab('operaciones', this)">
+    <div class="nav-item" id="nav-operaciones" data-label="Operaciones" onclick="goTab('operaciones', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>
       <span class="nav-label">Operaciones</span>
     </div>
-    <div class="nav-item" id="nav-calendario" onclick="goTab('calendario', this)">
+    <div class="nav-item" id="nav-calendario" data-label="Calendario" onclick="goTab('calendario', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5z"/></svg>
       <span class="nav-label">Calendario</span>
     </div>
-    <div class="nav-item" id="nav-estadisticas" onclick="goTab('estadisticas', this)">
+    <div class="nav-item" id="nav-estadisticas" data-label="Estadísticas" onclick="goTab('estadisticas', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/></svg>
       <span class="nav-label">Estadísticas</span>
     </div>
 
     <div class="nav-section-label">Gestión</div>
-    <div class="nav-item" id="nav-riesgo" onclick="goTab('riesgo', this)">
+    <div class="nav-item" id="nav-riesgo" data-label="Control Riesgo" onclick="goTab('riesgo', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319z"/></svg>
       <span class="nav-label">Control Riesgo</span>
     </div>
-    <div class="nav-item" id="nav-cuentas" onclick="goTab('cuentas', this)">
+    <div class="nav-item" id="nav-cuentas" data-label="Cuentas" onclick="goTab('cuentas', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>
       <span class="nav-label">Cuentas</span>
     </div>
-    <div class="nav-item" id="nav-premarket" onclick="goTab('premarket', this)">
+    <div class="nav-item" id="nav-premarket" data-label="Pre-Market" onclick="goTab('premarket', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
       <span class="nav-label">Pre-Market</span>
     </div>
-    <div class="nav-item" id="nav-habitos" onclick="goTab('habitos', this)">
+    <div class="nav-item" id="nav-habitos" data-label="Hábitos" onclick="goTab('habitos', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/></svg>
       <span class="nav-label">Hábitos</span>
     </div>
 
     <div class="nav-section-label">Análisis</div>
-    <div class="nav-item" id="nav-insights" onclick="goTab('insights', this)">
+    <div class="nav-item" id="nav-insights" data-label="Insights" onclick="goTab('insights', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2H2a2 2 0 0 1-2-2V2z"/></svg>
       <span class="nav-label">Insights</span>
     </div>
-    <div class="nav-item" id="nav-ia" onclick="goTab('ia', this)">
+    <div class="nav-item" id="nav-ia" data-label="Coach IA" onclick="goTab('ia', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>
       <span class="nav-label">Coach IA</span>
     </div>
-    <div class="nav-item" id="nav-diario" onclick="goTab('diario', this)">
+    <div class="nav-item" id="nav-diario" data-label="Diario" onclick="goTab('diario', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M5 1a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H5zm1 4h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1 0-1zm0 2h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1 0-1zm0 2h2a.5.5 0 0 1 0 1H6a.5.5 0 0 1 0-1z"/></svg>
       <span class="nav-label">Diario</span>
     </div>
-    <div class="nav-item" id="nav-psicologia" onclick="goTab('psicologia', this)">
+    <div class="nav-item" id="nav-psicologia" data-label="Psicología" onclick="goTab('psicologia', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a5 5 0 0 0-5 5v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a6 6 0 1 1 12 0v6a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h1V6a5 5 0 0 0-5-5z"/></svg>
       <span class="nav-label">Psicología</span>
     </div>
-    <div class="nav-item" id="nav-gestor-ea" onclick="goTab('gestor-ea', this)">
+    <div class="nav-item" id="nav-gestor-ea" data-label="Gestor EA" onclick="goTab('gestor-ea', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5z"/><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1z" opacity=".3"/></svg>
       <span class="nav-label">Gestor EA</span>
     </div>
 
     <div class="nav-section-label">Cuenta</div>
-    <div class="nav-item" id="nav-broker" onclick="goTab('broker', this)">
+    <div class="nav-item" id="nav-broker" data-label="Conectar Broker" onclick="goTab('broker', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2V2zm0 7h5v5H2V9zm7-7h5v5H9V2zm0 7h5v5H9V9z" opacity=".3"/><path d="M1 1h6v6H1V1zm1 1v4h4V2H2zm7-1h6v6H9V1zm1 1v4h4V2h-4zM1 9h6v6H1V9zm1 1v4h4v-4H2zm7-1h6v6H9V9zm1 1v4h4v-4h-4z"/></svg>
       <span class="nav-label">Conectar Broker</span>
     </div>
-    <div class="nav-item" id="nav-logros" onclick="goTab('logros', this)">
+    <div class="nav-item" id="nav-logros" data-label="Logros" onclick="goTab('logros', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5c0 .538-.012 1.05-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.537.255L13.3 15.1a.5.5 0 0 1-.3.9H3a.5.5 0 0 1-.3-.9l1.838-1.379c.16-.12.343-.207.537-.255L6.5 13.11v-2.173c-.955-.234-2.043-1.146-2.833-3.012a3 3 0 1 1-1.132-5.89A33.076 33.076 0 0 1 2.5.5z"/></svg>
       <span class="nav-label">Logros</span>
     </div>
-    <div class="nav-item" id="nav-afiliados" onclick="goTab('planes', this)">
+    <div class="nav-item" id="nav-afiliados" data-label="Afiliados" onclick="goTab('planes', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"/><path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg>
       <span class="nav-label">Afiliados</span>
     </div>
@@ -897,8 +941,10 @@
 
     <!-- TOPBAR -->
     <div class="topbar">
-      <button class="hamburger-btn" onclick="toggleSidebar()">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--text2)"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <button id="sidebar-toggle-topbar" onclick="toggleSidebar()" title="Menú" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;color:var(--text2);" onmouseover="this.style.background='var(--bg4)';this.style.color='var(--text)'" onmouseout="this.style.background='var(--bg3)';this.style.color='var(--text2)'">
+        <svg id="sidebar-toggle-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="10" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>
+        </svg>
       </button>
       <div class="topbar-title" id="topbar-title">Dashboard</div>
       <div id="topbar-quote" style="flex:1;text-align:center;font-size:11px;color:var(--text3);font-style:italic;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 20px;display:none;">
@@ -2844,9 +2890,23 @@
 <script>
 // Helper to bridge old layout functions to new layout
 function toggleSidebar() {
-  var s = document.getElementById('sidebar');
-  s.classList.toggle('collapsed');
-  s.classList.toggle('mobile-open');
+  var sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  var isCollapsed = sidebar.classList.toggle('collapsed');
+  localStorage.setItem('tj_sidebar', isCollapsed ? 'collapsed' : 'open');
+  _updateSidebarToggleIcon(isCollapsed);
+}
+
+function _updateSidebarToggleIcon(isCollapsed) {
+  var icon = document.getElementById('sidebar-toggle-icon');
+  if (!icon) return;
+  // Collapsed → show "expand" icon (lines pointing right)
+  // Expanded  → show "menu" icon (standard hamburger)
+  if (isCollapsed) {
+    icon.innerHTML = '<line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>';
+  } else {
+    icon.innerHTML = '<line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="10" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>';
+  }
 }
 function closeModal(id) {
   var el = document.getElementById(id);
@@ -5681,52 +5741,11 @@ function toggleTheme() {
 
 
 function toggleSidebar() {
-  var sidebar = document.querySelector('.sidebar');
-  var main = document.querySelector('.main');
-  var showBtn = document.getElementById('sidebar-show-btn');
-  var toggleBtn = document.getElementById('sidebar-toggle-btn');
+  var sidebar = document.getElementById('sidebar') || document.querySelector('.sidebar');
   if (!sidebar) return;
-
-  var isMobile = window.innerWidth <= 768;
-
-  if (isMobile) {
-    // Mobile: use open/close with overlay
-    var isOpen = sidebar.classList.contains('open');
-    if (isOpen) {
-      sidebar.classList.remove('open');
-      var ov = document.getElementById('sidebar-mobile-overlay');
-      if (ov) ov.remove();
-      if (showBtn) showBtn.style.display = 'flex';
-    } else {
-      sidebar.classList.add('open');
-      if (showBtn) showBtn.style.display = 'none';
-      var ov2 = document.createElement('div');
-      ov2.id = 'sidebar-mobile-overlay';
-      ov2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:199;';
-      ov2.onclick = toggleSidebar;
-      document.body.appendChild(ov2);
-    }
-  } else {
-    // Desktop: hide/show sidebar, adjust main margin
-    var isHidden = sidebar.classList.contains('hidden');
-    if (isHidden) {
-      // Show sidebar
-      sidebar.classList.remove('hidden');
-      sidebar.style.transform = '';
-      if (main) main.style.marginLeft = '220px';
-      if (showBtn) showBtn.style.display = 'none';
-      if (toggleBtn) { toggleBtn.textContent = '\u2039'; toggleBtn.title = 'Ocultar menú'; }
-      localStorage.setItem('tj_sidebar', 'visible');
-    } else {
-      // Hide sidebar
-      sidebar.classList.add('hidden');
-      sidebar.style.transform = 'translateX(-220px)';
-      if (main) main.style.marginLeft = '0';
-      if (showBtn) showBtn.style.display = 'flex';
-      if (toggleBtn) { toggleBtn.textContent = '\u203a'; toggleBtn.title = 'Mostrar menú'; }
-      localStorage.setItem('tj_sidebar', 'hidden');
-    }
-  }
+  var isCollapsed = sidebar.classList.toggle('collapsed');
+  localStorage.setItem('tj_sidebar', isCollapsed ? 'collapsed' : 'open');
+  _updateSidebarToggleIcon(isCollapsed);
 }
 
 // ─── DÍA DETALLE ──────────────────────────────────────────────────
@@ -9510,16 +9529,14 @@ window.addEventListener('load', async () => {
   }
 
   // Sidebar state restore
-  if (localStorage.getItem('tj_sidebar') === 'hidden') {
-    const sb2 = document.querySelector('.sidebar');
-    const mn = document.querySelector('.main');
-    if (sb2) sb2.classList.add('hidden');
-    if (mn) { mn.style.marginLeft = '0'; mn.style.maxWidth = '100vw'; }
-    const showBtn = document.getElementById('sidebar-show-btn');
-    if (showBtn) showBtn.style.display = 'flex';
-    const toggleBtn = document.getElementById('sidebar-toggle-btn');
-    if (toggleBtn) toggleBtn.style.display = 'none';
-  }
+  (function() {
+    var saved = localStorage.getItem('tj_sidebar');
+    var sidebar = document.getElementById('sidebar');
+    if (sidebar && saved === 'collapsed') {
+      sidebar.classList.add('collapsed');
+      setTimeout(function() { _updateSidebarToggleIcon(true); }, 50);
+    }
+  })();
 
   // Risk inputs
   const riskIds = ['cfg-maxloss','cfg-maxops','cfg-objetivo','cfg-riskpct'];
