@@ -2988,7 +2988,13 @@ let imgAperturaBase64 = null;
 let imgCierreBase64 = null;
 let editImgCierreBase64 = null;
 let riskSettings = JSON.parse(localStorage.getItem('tj_risk') || '{"maxLoss":200,"maxOps":5,"riskPct":1}');
-function saveRiskSettings() { localStorage.setItem('tj_risk', JSON.stringify(riskSettings)); }
+function saveRiskSettings() {
+  localStorage.setItem('tj_risk', JSON.stringify(riskSettings));
+  // Also persist to Supabase so it syncs across devices
+  if (currentUser) {
+    saveConfigToNotion('riskSettings', riskSettings).catch(e => console.warn('risk sync:', e));
+  }
+}
 
 function requireAuth() {
   if (!currentUser) { toast('Inicia sesión para usar el journal', 'error'); return false; }
@@ -3018,14 +3024,50 @@ async function loadTrades() {
 }
 
 function parseSupabaseRow(row) {
+  // Normalize direction — EA sends 'buy'/'sell', manual sends 'LONG'/'SHORT'/'BUY'/'SELL'
+  var rawDir = (row.direccion || '').toString().toUpperCase().trim();
+  var direccion = rawDir;
+  if (rawDir === 'BUY')  direccion = 'BUY';
+  if (rawDir === 'SELL') direccion = 'SELL';
+  if (rawDir === 'LONG') direccion = 'BUY';
+  if (rawDir === 'SHORT') direccion = 'SELL';
+
+  // Normalize resultado — EA sends float, could be null for open positions
+  var resultado = null;
+  if (row.resultado !== null && row.resultado !== undefined && row.resultado !== '') {
+    var r = parseFloat(row.resultado);
+    resultado = isNaN(r) ? null : r;
+  }
+
+  // Determine estado — if resultado exists and estado not set, it's Finalizada
+  var estado = row.estado || (resultado !== null ? 'Finalizada' : 'Pendiente');
+
   return {
-    id: row.id, pageId: row.id, fecha: row.fecha,
-    instrumento: row.instrumento||'—', tipo: row.tipo||'—', direccion: row.direccion||'—',
-    entrada: row.entrada, sl: row.sl, tp: row.tp, rr: row.rr, contratos: row.contratos,
-    resultado: row.resultado, setup: row.setup||'—', emocion: row.emocion||'—',
-    sesion: row.sesion||'—', disciplina: row.disciplina, impulsos: row.impulsos,
-    errores: row.errores||'', notas: row.notas||'', estado: row.estado||'Finalizada',
-    cuenta: row.cuenta||'', imgApertura: row.img_apertura||null, imgCierre: row.img_cierre||null,
+    id: row.id,
+    pageId: row.id,
+    fecha: row.fecha,
+    instrumento: (row.instrumento || '—').toString().toUpperCase(),
+    tipo: row.tipo || '—',
+    direccion: direccion || '—',
+    entrada: row.entrada ? parseFloat(row.entrada) : null,
+    sl: row.sl ? parseFloat(row.sl) : null,
+    tp: row.tp ? parseFloat(row.tp) : null,
+    rr: row.rr ? parseFloat(row.rr) : null,
+    contratos: row.contratos ? parseFloat(row.contratos) : null,
+    resultado: resultado,
+    setup: row.setup || '—',
+    emocion: row.emocion || '—',
+    sesion: row.sesion || '—',
+    disciplina: row.disciplina,
+    impulsos: row.impulsos,
+    errores: row.errores || '',
+    notas: row.notas || '',
+    estado: estado,
+    cuenta: row.cuenta || '',
+    imgApertura: row.img_apertura || null,
+    imgCierre: row.img_cierre || null,
+    mt_ticket: row.mt_ticket || null,
+    fecha_cierre: row.fecha_cierre || null,
   };
 }
 
@@ -4218,8 +4260,37 @@ function initChecklist() {
 
 function toggleCheck(i) {
   checklistState[i] = !checklistState[i];
-  localStorage.setItem(lsKey('tj_checklist_' + new Date().toISOString().slice(0,10)), JSON.stringify(checklistState));
+  const today = new Date().toISOString().slice(0,10);
+  localStorage.setItem(lsKey('tj_checklist_' + today), JSON.stringify(checklistState));
   initChecklist();
+  saveChecklistToSupabase(today, checklistState).catch(e => console.warn('checklist sync:', e));
+}
+
+async function saveChecklistToSupabase(dateStr, state) {
+  if (!requireAuth()) return;
+  const items = CHECKLIST_ITEMS.map((text, i) => ({ text, checked: !!state[i] }));
+  await sb.from('configuracion').upsert({
+    user_id: currentUser.id,
+    clave: 'checklist_daily_' + dateStr,
+    valor: { state, items, date: dateStr, updated_at: new Date().toISOString() },
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'user_id,clave' });
+}
+
+async function loadChecklistFromSupabase(dateStr) {
+  if (!requireAuth()) return;
+  const { data } = await sb.from('configuracion')
+    .select('valor')
+    .eq('user_id', currentUser.id)
+    .eq('clave', 'checklist_daily_' + dateStr)
+    .single()
+    .catch(() => ({ data: null }));
+  if (!data || !data.valor) return;
+  const saved = data.valor;
+  if (saved.state) {
+    checklistState = saved.state;
+    localStorage.setItem(lsKey('tj_checklist_' + dateStr), JSON.stringify(checklistState));
+  }
 }
 
 function resetChecklist() {
@@ -4248,6 +4319,8 @@ function changePmMonth(dir) {
 }
 
 function renderPmCalendar() {
+  // Ensure we load this month's data from Supabase if not in localStorage
+  if (currentUser) loadPmMonthFromSupabase(pmCalYear, pmCalMonth).catch(() => {});
   var months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var labelEl = document.getElementById('pm-cal-month-label');
   if (labelEl) labelEl.textContent = months[pmCalMonth] + ' ' + pmCalYear;
@@ -4381,12 +4454,15 @@ function savePlan() {
   const s = document.getElementById('plan-saved');
   s.textContent = '¡Guardando...';
   renderPmCalendar();
+  // Save checklist state alongside plan
+  saveChecklistToSupabase(today, checklistState).catch(() => {});
+  
   savePlanToNotion(today, plan).then(() => {
-    s.textContent = '¡Guardado en Notion!';
-    setTimeout(() => s.textContent = '', 2500);
+    if (s) { s.textContent = '¡Guardado ✓'; s.style.color = 'var(--green)'; }
+    setTimeout(() => { if(s) s.textContent = ''; }, 2500);
   }).catch(() => {
-    s.textContent = '¡Guardado localmente!';
-    setTimeout(() => s.textContent = '', 2500);
+    if (s) { s.textContent = '¡Guardado localmente'; s.style.color = 'var(--amber)'; }
+    setTimeout(() => { if(s) s.textContent = ''; }, 2500);
   });
 }
 
@@ -4525,6 +4601,7 @@ function changeHabitMonth(dir) {
 }
 
 function renderHabitCalendar() {
+  if (currentUser) loadHabitsMonthFromSupabase(habitCalYear, habitCalMonth).catch(() => {});
   var months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var labelEl = document.getElementById('habit-cal-month') || document.getElementById('habit-cal-month-label');
   if (labelEl) labelEl.textContent = months[habitCalMonth] + ' ' + habitCalYear;
@@ -9347,6 +9424,76 @@ async function checkEAModalConnection() {
     if (title) title.textContent = 'Error verificando';
     console.error('checkEAModalConnection error:', e);
   }
+}
+
+
+// Load all plans + checklist states for a month from Supabase
+async function loadPmMonthFromSupabase(year, month) {
+  if (!requireAuth()) return;
+  const startDate = year + '-' + String(month+1).padStart(2,'0') + '-01';
+  const endDate   = year + '-' + String(month+1).padStart(2,'0') + '-31';
+  
+  // Load plans
+  const { data: plans } = await sb.from('planes')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .gte('fecha', startDate)
+    .lte('fecha', endDate)
+    .catch(() => ({ data: [] }));
+  
+  if (plans && plans.length) {
+    plans.forEach(p => {
+      const key = lsKey('tj_plan_' + p.fecha);
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, JSON.stringify({
+          sesgo: p.sesgo, niveles: p.niveles, no: p.no_hacer,
+          notas: p.notas, maxops: p.max_operaciones, date: p.fecha
+        }));
+      }
+    });
+  }
+
+  // Load checklist states for this month
+  const { data: configs } = await sb.from('configuracion')
+    .select('clave,valor')
+    .eq('user_id', currentUser.id)
+    .like('clave', 'checklist_daily_' + year + '-' + String(month+1).padStart(2,'0') + '%')
+    .catch(() => ({ data: [] }));
+
+  if (configs && configs.length) {
+    configs.forEach(c => {
+      const dateStr = c.clave.replace('checklist_daily_', '');
+      const key = lsKey('tj_checklist_' + dateStr);
+      if (!localStorage.getItem(key) && c.valor && c.valor.state) {
+        localStorage.setItem(key, JSON.stringify(c.valor.state));
+      }
+    });
+  }
+}
+
+// Load habits for a full month from Supabase (for habit calendar)
+async function loadHabitsMonthFromSupabase(year, month) {
+  if (!requireAuth()) return;
+  const startDate = year + '-' + String(month+1).padStart(2,'0') + '-01';
+  const endDate   = year + '-' + String(month+1).padStart(2,'0') + '-31';
+  const { data } = await sb.from('habitos')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .gte('fecha', startDate)
+    .lte('fecha', endDate)
+    .catch(() => ({ data: [] }));
+  if (!data) return;
+  data.forEach(row => {
+    const habits = { sueno: row.sueno||0, ejercicio: row.ejercicio||0, meditacion: row.meditacion||0, alcohol: row.alcohol||0, ...(row.habitos_extra||{}) };
+    const key = lsKey('tj_habits_' + row.fecha);
+    if (!localStorage.getItem(key)) {
+      localStorage.setItem(key, JSON.stringify(habits));
+    }
+    if (row.encuesta) {
+      const sKey = lsKey('tj_survey_' + row.fecha);
+      if (!localStorage.getItem(sKey)) localStorage.setItem(sKey, JSON.stringify(row.encuesta));
+    }
+  });
 }
 
 window.addEventListener('load', async () => {
