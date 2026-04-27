@@ -133,6 +133,13 @@
     .sidebar.collapsed .sidebar-user-info,
     .sidebar.collapsed .nav-badge,
     .sidebar.collapsed .collapse-label { display: none; }
+    /* When collapsed, show only the donut in the widget */
+    .sidebar.collapsed #sidebar-profile-widget {
+      padding: 8px 4px;
+      margin: 6px 5px 2px;
+      justify-content: center;
+    }
+    .sidebar.collapsed #sidebar-profile-widget > div { gap: 0; }
 
     /* Collapsed nav items — center icons */
     .sidebar.collapsed .nav-item {
@@ -832,15 +839,25 @@
       </div>
     </div>
 
-    <!-- Search -->
-    <div class="sidebar-search">
-      <div class="search-bar" onclick="document.dispatchEvent(new KeyboardEvent('keydown',{key:'k',metaKey:true}))">
-        <svg viewBox="0 0 16 16" fill="currentColor" style="color:var(--text3)">
-          <path d="M6.5 1a5.5 5.5 0 1 0 3.45 9.79l2.88 2.88a.75.75 0 1 0 1.06-1.06L11.01 9.73A5.5 5.5 0 0 0 6.5 1zm-4 5.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/>
-        </svg>
-        <span>Buscar...</span>
-        <div class="search-kbd">
-          <span class="kbd">⌘</span><span class="kbd">K</span>
+    <!-- Trader Profile Widget -->
+    <div id="sidebar-profile-widget" onclick="goTab('insights',document.getElementById('nav-insights'))" style="margin:10px 8px 4px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--green)';this.style.background='var(--green-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg3)'">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <!-- Donut chart -->
+        <div style="position:relative;width:44px;height:44px;flex-shrink:0;">
+          <canvas id="sidebar-score-chart" width="44" height="44"></canvas>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+            <span id="sidebar-score-val" style="font-size:11px;font-weight:800;color:var(--green);font-family:monospace;">—</span>
+          </div>
+        </div>
+        <!-- Info -->
+        <div style="flex:1;min-width:0;" class="nav-label">
+          <div id="sidebar-trader-type" style="font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Perfil trader</div>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:3px;">
+            <div style="flex:1;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;">
+              <div id="sidebar-score-bar" style="height:100%;background:var(--green);border-radius:2px;width:0%;transition:width 0.6s;"></div>
+            </div>
+          </div>
+          <div id="sidebar-score-sub" style="font-size:10px;color:var(--text3);margin-top:2px;font-family:monospace;">Ver Insights →</div>
         </div>
       </div>
     </div>
@@ -9515,6 +9532,70 @@ async function loadHabitsMonthFromSupabase(year, month) {
   });
 }
 
+
+// ── SIDEBAR PROFILE WIDGET ──────────────────────────────────────
+function renderSidebarProfileWidget() {
+  if (typeof allTrades === 'undefined' || !allTrades.length) return;
+
+  var trades = allTrades.filter(function(t) {
+    return t.estado === 'Finalizada' || t.estado === 'Cerrada';
+  });
+  if (trades.length < 3) return;
+
+  // Quick score calculation
+  var wins   = trades.filter(function(t){ return (t.resultado||0) > 0; });
+  var losses = trades.filter(function(t){ return (t.resultado||0) < 0; });
+  var wr     = trades.length ? Math.round(wins.length / trades.length * 100) : 0;
+  var grossW = wins.reduce(function(s,t){ return s + (t.resultado||0); }, 0);
+  var grossL = Math.abs(losses.reduce(function(s,t){ return s + (t.resultado||0); }, 0));
+  var pf     = grossL > 0 ? grossW / grossL : (grossW > 0 ? 3 : 0);
+
+  var score = 0;
+  score += Math.min(30, wr * 0.5);
+  score += Math.min(25, pf * 10);
+  score += Math.min(30, (1 - Math.min(1, losses.length / Math.max(1, trades.length) * 2)) * 30);
+  score += Math.min(15, 15);
+  score = Math.min(99, Math.round(score));
+
+  var color  = score >= 70 ? '#00b87a' : score >= 50 ? '#3b82f6' : score >= 30 ? '#f59e0b' : '#f43f5e';
+  var type   = score >= 70 ? 'Disciplinado' : score >= 50 ? 'En Desarrollo' : score >= 30 ? 'Impulsivo' : 'Iniciando';
+
+  // Update text
+  var valEl  = document.getElementById('sidebar-score-val');
+  var typeEl = document.getElementById('sidebar-trader-type');
+  var barEl  = document.getElementById('sidebar-score-bar');
+  var subEl  = document.getElementById('sidebar-score-sub');
+  if (valEl)  { valEl.textContent = score; valEl.style.color = color; }
+  if (typeEl) { typeEl.textContent = type; typeEl.style.color = color; }
+  if (barEl)  { barEl.style.width = score + '%'; barEl.style.background = color; }
+  if (subEl)  { subEl.textContent = trades.length + ' ops · WR ' + wr + '%'; }
+
+  // Donut chart
+  var canvas = document.getElementById('sidebar-score-chart');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if (window._sidebarScoreChart) { window._sidebarScoreChart.destroy(); }
+
+  var isDark = !document.body.classList.contains('light-mode');
+  var trackColor = isDark ? '#222228' : '#e8e8ed';
+
+  window._sidebarScoreChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [score, 100 - score],
+        backgroundColor: [color, trackColor],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      cutout: '72%',
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      animation: { duration: 700 }
+    }
+  });
+}
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
@@ -9602,6 +9683,7 @@ window.addEventListener('load', async () => {
     // Sync new dashboard display
     setTimeout(function() {
       try { syncDashboardMetrics(); } catch(e) { console.warn('dash sync:', e); }
+      try { renderSidebarProfileWidget(); } catch(e) {}
     }, 300);
   }
 
