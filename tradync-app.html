@@ -843,18 +843,19 @@
       border-radius: 12px;
       cursor: pointer;
       transition: background 0.15s, border-color 0.15s;
-      overflow: hidden;
+      overflow: visible;
       position: relative;
+      flex-shrink: 0;
     }
     .sidebar-profile-widget:hover {
       background: var(--green-bg);
       border-color: rgba(0,184,122,0.35);
     }
-    /* Donut container — always visible, always centered */
+    /* Donut container */
     .spw-donut {
       position: relative;
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
@@ -862,17 +863,20 @@
     }
     .spw-donut canvas {
       position: absolute;
-      inset: 0;
+      top: 0; left: 0;
+      width: 44px !important;
+      height: 44px !important;
     }
     .spw-score-val {
       position: relative;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 800;
       color: var(--green);
       font-family: monospace;
       z-index: 1;
+      line-height: 1;
     }
-    /* Info section — hidden when sidebar is collapsed */
+    /* Info section */
     .spw-info {
       flex: 1;
       min-width: 0;
@@ -885,8 +889,9 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      line-height: 1.3;
     }
-    .spw-bar-wrap { margin-top: 4px; }
+    .spw-bar-wrap { margin-top: 5px; }
     .spw-bar-track {
       height: 3px;
       background: var(--bg4);
@@ -903,19 +908,22 @@
     .spw-sub {
       font-size: 10px;
       color: var(--text3);
-      margin-top: 3px;
+      margin-top: 4px;
       font-family: monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* ── COLLAPSED STATE ── */
     .sidebar.collapsed .sidebar-profile-widget {
       margin: 6px 5px 4px;
-      padding: 7px 0;
+      padding: 8px 5px;
       justify-content: center;
       border-radius: 9px;
       gap: 0;
+      overflow: visible;
     }
-    /* Tooltip for widget when collapsed */
     .sidebar.collapsed .sidebar-profile-widget:hover::after {
       content: 'Ver Insights';
       position: absolute;
@@ -961,7 +969,7 @@
     <div id="sidebar-profile-widget" class="sidebar-profile-widget" onclick="goTab('insights',document.getElementById('nav-insights'))" data-label="Insights">
       <!-- Donut always visible -->
       <div class="spw-donut">
-        <canvas id="sidebar-score-chart" width="40" height="40"></canvas>
+        <canvas id="sidebar-score-chart" width="44" height="44"></canvas>
         <span id="sidebar-score-val" class="spw-score-val">—</span>
       </div>
       <!-- Text — hidden when collapsed via CSS -->
@@ -9723,6 +9731,12 @@ function renderSidebarProfileWidget() {
   var isDark = !document.body.classList.contains('light-mode');
   var trackColor = isDark ? '#222228' : '#e8e8ed';
 
+  // Set canvas size explicitly
+  canvas.width = 44;
+  canvas.height = 44;
+  canvas.style.width = '44px';
+  canvas.style.height = '44px';
+  
   window._sidebarScoreChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
@@ -9733,9 +9747,11 @@ function renderSidebarProfileWidget() {
       }]
     },
     options: {
-      cutout: '72%',
+      cutout: '70%',
       plugins: { legend: { display: false }, tooltip: { enabled: false } },
-      animation: { duration: 700 }
+      animation: { duration: 600 },
+      responsive: false,
+      maintainAspectRatio: false
     }
   });
 }
