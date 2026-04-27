@@ -1770,107 +1770,195 @@
   </div>
 </div>
       <div class="tab-panel" id="panel-estadisticas">
-      <div class="section-title">Análisis avanzado</div>
 
-      <!-- ACCOUNT COMPARATOR FILTER -->
-      <div class="card" style="padding:14px 18px;margin-bottom:18px;">
-        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-          <div style="font-size:11px;color:var(--text3);font-family:monospace;letter-spacing:1px;">COMPARAR CUENTAS:</div>
-          <select id="stats-account-a" class="form-select" style="width:160px;padding:7px 10px;font-size:12px;" onchange="renderAllStats()">
-            <option value="">Todas las cuentas</option>
-          </select>
-          <div style="font-size:12px;color:var(--text3);">vs</div>
-          <select id="stats-account-b" class="form-select" style="width:160px;padding:7px 10px;font-size:12px;" onchange="renderAllStats()">
-            <option value="">— Sin comparar —</option>
-          </select>
-          <select id="stats-period" class="form-select" style="width:140px;padding:7px 10px;font-size:12px;" onchange="renderAllStats()">
-            <option value="all">Todo el historial</option>
-            <option value="week">Esta semana</option>
-            <option value="month">Este mes</option>
-            <option value="3month">Últimos 3 meses</option>
-            <option value="year">Este año</option>
-          </select>
-          <button class="btn" style="font-size:12px;padding:7px 14px;" onclick="resetStatsFilters()">↺ Reset</button>
+  <!-- HEADER -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1 style="font-size:20px;font-weight:800;letter-spacing:-0.4px;">Estadísticas</h1>
+      <div id="stats-ops-count" style="font-size:12px;color:var(--text3);margin-top:3px;">— operaciones analizadas</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <!-- Cuenta filter -->
+      <select id="stats-account-a" onchange="renderStatsPanel()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--text);outline:none;">
+        <option value="">Todas las cuentas</option>
+      </select>
+      <!-- Period filter -->
+      <div style="display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:2px;gap:1px;">
+        <button onclick="setStatsPeriod('day',this)"    class="stats-period-btn" style="padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:var(--text3);">Día</button>
+        <button onclick="setStatsPeriod('week',this)"   class="stats-period-btn" style="padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:var(--text3);">Semana</button>
+        <button onclick="setStatsPeriod('month',this)"  class="stats-period-btn" style="padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;background:var(--bg2);color:var(--text);">Mes</button>
+        <button onclick="setStatsPeriod('3month',this)" class="stats-period-btn" style="padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:var(--text3);">3M</button>
+        <button onclick="setStatsPeriod('year',this)"   class="stats-period-btn" style="padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:var(--text3);">Año</button>
+        <button onclick="setStatsPeriod('all',this)"    class="stats-period-btn" style="padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:var(--text3);">Todo</button>
+      </div>
+      <span id="stats-analysis-badge" style="font-size:10px;color:var(--green);letter-spacing:1.5px;font-family:monospace;font-weight:600;background:var(--green-bg);padding:4px 10px;border-radius:20px;">● ANÁLISIS COMPLETO</span>
+    </div>
+  </div>
+
+  <!-- ROW 1: 4 métricas principales -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;">
+    <!-- P&L Neto -->
+    <div class="card" style="padding:20px 18px;background:linear-gradient(135deg,rgba(0,184,122,0.06),transparent);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="width:28px;height:28px;border-radius:7px;background:var(--green-bg);display:flex;align-items:center;justify-content:center;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--green)" stroke-width="1.5"><polyline points="1 11 5 7 9 9 15 3"/></svg>
         </div>
       </div>
-
-      <!-- ROW 1: P&L curves + Win/Loss donut -->
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px;">
-        <div class="card">
-          <div class="card-title">Curva de equity comparada <span class="card-title-badge" id="stats-equity-badge"></span></div>
-          <div style="position:relative;height:180px;"><canvas id="stats-equity-chart"></canvas></div>
-        </div>
-        <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
-          <div class="card-title" style="width:100%;">Win / Loss</div>
-          <div style="position:relative;height:140px;width:140px;"><canvas id="stats-winloss-chart"></canvas></div>
-          <div id="stats-winloss-legend" style="display:flex;gap:12px;margin-top:8px;"></div>
+      <div id="st-pnl" style="font-size:26px;font-weight:800;color:var(--green);letter-spacing:-1px;font-family:monospace;">+$0.00</div>
+      <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;font-weight:600;">P&L Neto</div>
+      <div id="st-pnl-sub" style="font-size:11px;color:var(--text3);margin-top:2px;">0 operaciones</div>
+    </div>
+    <!-- Win Rate -->
+    <div class="card" style="padding:20px 18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="width:28px;height:28px;border-radius:7px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--blue)" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M5 8l2 2 4-4"/></svg>
         </div>
       </div>
-
-      <!-- ROW 2: Weekday + Session charts -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
-        <div class="card">
-          <div class="card-title">Rendimiento por día de la semana</div>
-          <div style="position:relative;height:180px;"><canvas id="stats-weekday-chart"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Rendimiento por sesión</div>
-          <div style="position:relative;height:180px;"><canvas id="stats-session-chart"></canvas></div>
-        </div>
-      </div>
-
-      <!-- ROW 3: Hour + Setup charts -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
-        <div class="card">
-          <div class="card-title">Mejor hora del día</div>
-          <div style="position:relative;height:180px;"><canvas id="stats-hour-chart"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title">P&L por instrumento</div>
-          <div style="position:relative;height:180px;"><canvas id="stats-instr-chart"></canvas></div>
+      <div id="st-wr" style="font-size:26px;font-weight:800;color:var(--blue);letter-spacing:-1px;font-family:monospace;">0%</div>
+      <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;font-weight:600;">Win Rate</div>
+      <div id="st-wr-sub" style="font-size:11px;color:var(--text3);margin-top:2px;">0W / 0L</div>
+    </div>
+    <!-- Profit Factor -->
+    <div class="card" style="padding:20px 18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="width:28px;height:28px;border-radius:7px;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--amber)" stroke-width="1.5"><rect x="2" y="8" width="3" height="6"/><rect x="6" y="5" width="3" height="9"/><rect x="10" y="2" width="3" height="12"/></svg>
         </div>
       </div>
-
-      <!-- ROW 4: Period comparison + Monthly -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
-        <div class="card">
-          <div class="card-title">Esta semana vs semana anterior</div>
-          <div id="compare-weekly"></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Este mes vs mes anterior</div>
-          <div id="compare-monthly"></div>
+      <div id="st-pf" style="font-size:26px;font-weight:800;color:var(--amber);letter-spacing:-1px;font-family:monospace;">0.00</div>
+      <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;font-weight:600;">Profit Factor</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">Ganancias / Pérdidas</div>
+    </div>
+    <!-- Mejor Trade -->
+    <div class="card" style="padding:20px 18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="width:28px;height:28px;border-radius:7px;background:var(--green-bg);display:flex;align-items:center;justify-content:center;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--green)" stroke-width="1.5"><path d="M8 1l2 4 5 .7-3.5 3.4.8 5L8 12l-4.3 2.1.8-5L1 5.7 6 5z"/></svg>
         </div>
       </div>
+      <div id="st-best" style="font-size:26px;font-weight:800;color:var(--green);letter-spacing:-1px;font-family:monospace;">+$0.00</div>
+      <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;font-weight:600;">Mejor Trade</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">máximo ganado</div>
+    </div>
+  </div>
 
-      <!-- ROW 5: Monthly bars + Projection -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
-        <div class="card">
-          <div class="card-title">Comparativa mensual</div>
-          <div style="display:flex;align-items:flex-end;gap:6px;height:120px;margin-bottom:8px;" id="month-compare-bars"></div>
-          <div style="display:flex;gap:6px;" id="month-compare-labels"></div>
+  <!-- ROW 2: 4 métricas secundarias -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+    <!-- Peor Trade -->
+    <div class="card" style="padding:20px 18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="width:28px;height:28px;border-radius:7px;background:var(--red-bg);display:flex;align-items:center;justify-content:center;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--red)" stroke-width="1.5"><polyline points="1 4 5 8 9 6 15 12"/></svg>
         </div>
-        <div class="card">
-          <div class="card-title">Proyección de crecimiento <span class="card-title-badge">Basada en historial</span></div>
-          <div style="display:grid;grid-template-columns:160px 1fr;gap:14px;align-items:start;">
-            <div>
-              <div class="form-field" style="margin-bottom:10px;">
-                <label class="form-label">Capital ($)</label>
-                <input class="form-input" type="number" id="proj-capital" placeholder="10000" oninput="renderProjection()">
-              </div>
-              <div class="form-field" style="margin-bottom:10px;">
-                <label class="form-label">Meses</label>
-                <input class="form-input" type="number" id="proj-meses" value="12" min="1" max="36" oninput="renderProjection()">
-              </div>
-              <div id="proj-summary"></div>
-            </div>
-            <svg class="proj-svg" id="proj-svg" viewBox="0 0 400 160" preserveAspectRatio="none">
-              <text x="200" y="85" text-anchor="middle" fill="#555870" font-size="11" font-family="monospace">Introduce tu capital</text>
-            </svg>
-          </div>
+      </div>
+      <div id="st-worst" style="font-size:26px;font-weight:800;color:var(--red);letter-spacing:-1px;font-family:monospace;">-$0.00</div>
+      <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;font-weight:600;">Peor Trade</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">máxima pérdida</div>
+    </div>
+    <!-- Promedio Win -->
+    <div class="card" style="padding:20px 18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="width:28px;height:28px;border-radius:7px;background:var(--green-bg);display:flex;align-items:center;justify-content:center;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--green)" stroke-width="1.5"><path d="M8 1v14M4 5l4-4 4 4"/></svg>
         </div>
+      </div>
+      <div id="st-avg-win" style="font-size:26px;font-weight:800;color:var(--green);letter-spacing:-1px;font-family:monospace;">+$0.00</div>
+      <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;font-weight:600;">Promedio Win</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">por operación ganada</div>
+    </div>
+    <!-- Promedio Loss -->
+    <div class="card" style="padding:20px 18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="width:28px;height:28px;border-radius:7px;background:var(--red-bg);display:flex;align-items:center;justify-content:center;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--red)" stroke-width="1.5"><path d="M8 1v14M4 11l4 4 4-4"/></svg>
+        </div>
+      </div>
+      <div id="st-avg-loss" style="font-size:26px;font-weight:800;color:var(--red);letter-spacing:-1px;font-family:monospace;">-$0.00</div>
+      <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;font-weight:600;">Promedio Loss</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">por operación perdida</div>
+    </div>
+    <!-- Expectancy -->
+    <div class="card" style="padding:20px 18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="width:28px;height:28px;border-radius:7px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--blue)" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+        </div>
+      </div>
+      <div id="st-exp" style="font-size:26px;font-weight:800;color:var(--blue);letter-spacing:-1px;font-family:monospace;">$0.00</div>
+      <div style="font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;font-weight:600;">Expectancy</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">ganancia media esperada</div>
+    </div>
+  </div>
+
+  <!-- ROW 3: Curva de Equity + Drawdown -->
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;">
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:13px;font-weight:700;">Curva de Equity</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">P&L acumulado en el tiempo</div>
+        </div>
+        <span id="stats-equity-badge" style="font-size:11px;color:var(--text3);font-family:monospace;"></span>
+      </div>
+      <div style="padding:14px;height:200px;position:relative;"><canvas id="stats-equity-chart"></canvas></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+        <div style="font-size:13px;font-weight:700;">Drawdown</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">% de caída desde máximo</div>
+      </div>
+      <div style="padding:14px;height:200px;position:relative;"><canvas id="stats-dd-chart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ROW 4: Por instrumento + Por sesión + Win/Loss donut -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 180px;gap:14px;margin-bottom:14px;">
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Por instrumento</div>
+      </div>
+      <div id="st-by-instr" style="padding:6px 0;max-height:220px;overflow-y:auto;"></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Por sesión</div>
+      </div>
+      <div id="st-by-session" style="padding:6px 0;max-height:220px;overflow-y:auto;"></div>
+    </div>
+    <div class="card" style="padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;text-align:center;">Wins / Losses</div>
+      <div style="position:relative;width:100px;height:100px;">
+        <canvas id="stats-donut-chart" width="100" height="100"></canvas>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div id="st-wr-donut" style="font-size:14px;font-weight:800;color:var(--text);font-family:monospace;">0%</div>
+          <div style="font-size:9px;color:var(--text3);">WR</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;font-size:11px;">
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:var(--green);"></div><span id="st-wins-count" style="color:var(--text2);">0W</span></div>
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:var(--red);"></div><span id="st-losses-count" style="color:var(--text2);">0L</span></div>
       </div>
     </div>
+  </div>
+
+  <!-- ROW 5: Por día semana + RR medio -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">P&L por día de semana</div>
+      </div>
+      <div style="padding:14px;height:160px;position:relative;"><canvas id="stats-weekday-chart"></canvas></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Estadísticas adicionales</div>
+      </div>
+      <div id="st-extra" style="padding:12px 18px;display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+
+</div>
       <div class="tab-panel" id="panel-cuentas">
 
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
@@ -3113,6 +3201,7 @@ function goTab(id, el) {
   // Trigger tab-specific actions
   if (id==='insights') setTimeout(function(){try{runInsights()}catch(e){}},50);
   if (id==='afiliados') setTimeout(function(){try{loadAffiliateData()}catch(e){}},100);
+  if (id==='estadisticas') setTimeout(function(){try{renderStatsPanel()}catch(e){}},100);
   if (id==='gestor-ea') setTimeout(function(){try{loadGestorEA()}catch(e){}},200);
   if (id==='broker') setTimeout(function(){try{brokerAutoStep()}catch(e){}},300);
 }
@@ -9758,6 +9847,263 @@ function renderSidebarProfileWidget() {
 
 
 
+
+// ── STATS PANEL — nuevo diseño ──────────────────────────────────
+var _statsPeriod = 'month';
+var _statsChartEq = null, _statsChartDD = null, _statsChartDonut = null, _statsChartWD = null;
+
+function setStatsPeriod(period, btn) {
+  _statsPeriod = period;
+  document.querySelectorAll('.stats-period-btn').forEach(function(b) {
+    b.style.background = 'transparent'; b.style.color = 'var(--text3)';
+  });
+  if (btn) { btn.style.background = 'var(--bg2)'; btn.style.color = 'var(--text)'; }
+  renderStatsPanel();
+}
+
+function getStatsTrades(account, period) {
+  var now = new Date();
+  return allTrades.filter(function(t) {
+    if (t.resultado === null || t.resultado === undefined) return false;
+    if (account && t.cuenta !== account) return false;
+    if (!period || period === 'all') return true;
+    var d = new Date(t.fecha);
+    if (period === 'day') {
+      return d.toDateString() === now.toDateString();
+    } else if (period === 'week') {
+      var weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7);
+      return d >= weekAgo;
+    } else if (period === 'month') {
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    } else if (period === '3month') {
+      var threeMonthAgo = new Date(now); threeMonthAgo.setMonth(now.getMonth() - 3);
+      return d >= threeMonthAgo;
+    } else if (period === 'year') {
+      return d.getFullYear() === now.getFullYear();
+    }
+    return true;
+  });
+}
+
+function renderStatsPanel() {
+  var account = (document.getElementById('stats-account-a') || {}).value || '';
+  var trades = getStatsTrades(account, _statsPeriod);
+  var th = typeof getChartTheme === 'function' ? getChartTheme() : { grid:'rgba(255,255,255,0.05)', tick:'#50505e' };
+
+  // ── COUNT ──────────────────────────────────────────────────
+  var opsEl = document.getElementById('stats-ops-count');
+  if (opsEl) opsEl.textContent = trades.length + ' operaciones analizadas';
+
+  if (!trades.length) {
+    ['st-pnl','st-wr','st-pf','st-best','st-worst','st-avg-win','st-avg-loss','st-exp','st-wr-donut','st-wins-count','st-losses-count']
+      .forEach(function(id){ var e=document.getElementById(id); if(e) e.textContent='—'; });
+    return;
+  }
+
+  // ── CALC ───────────────────────────────────────────────────
+  var wins   = trades.filter(function(t){ return (t.resultado||0) > 0; });
+  var losses = trades.filter(function(t){ return (t.resultado||0) < 0; });
+  var pnl    = trades.reduce(function(s,t){ return s+(t.resultado||0); }, 0);
+  var wr     = trades.length ? (wins.length/trades.length*100) : 0;
+  var grossW = wins.reduce(function(s,t){ return s+(t.resultado||0); }, 0);
+  var grossL = Math.abs(losses.reduce(function(s,t){ return s+(t.resultado||0); }, 0));
+  var pf     = grossL > 0 ? grossW/grossL : (grossW > 0 ? 9.99 : 0);
+  var best   = wins.length   ? Math.max.apply(null, wins.map(function(t){ return t.resultado||0; }))   : 0;
+  var worst  = losses.length ? Math.min.apply(null, losses.map(function(t){ return t.resultado||0; })) : 0;
+  var avgW   = wins.length   ? grossW/wins.length   : 0;
+  var avgL   = losses.length ? grossL/losses.length : 0;
+  var exp    = (wr/100)*avgW - ((1-wr/100)*avgL);
+
+  function fmt(n, forceSign) {
+    var s = '$' + Math.abs(n).toFixed(2);
+    if (forceSign || n < 0) s = (n >= 0 ? '+' : '-') + s;
+    return s;
+  }
+
+  function setEl(id, val, color) {
+    var e = document.getElementById(id);
+    if (!e) return;
+    e.textContent = val;
+    if (color) e.style.color = color;
+  }
+
+  setEl('st-pnl',    fmt(pnl, true), pnl >= 0 ? 'var(--green)' : 'var(--red)');
+  setEl('st-pnl-sub', trades.length + ' operaciones');
+  setEl('st-wr',     wr.toFixed(1) + '%', 'var(--blue)');
+  setEl('st-wr-sub', wins.length + 'W / ' + losses.length + 'L');
+  setEl('st-pf',     pf.toFixed(2), pf >= 1.5 ? 'var(--green)' : pf >= 1 ? 'var(--amber)' : 'var(--red)');
+  setEl('st-best',   '+$' + best.toFixed(2), 'var(--green)');
+  setEl('st-worst',  '-$' + Math.abs(worst).toFixed(2), 'var(--red)');
+  setEl('st-avg-win',  '+$' + avgW.toFixed(2), 'var(--green)');
+  setEl('st-avg-loss', '-$' + avgL.toFixed(2), 'var(--red)');
+  setEl('st-exp',    (exp >= 0 ? '+' : '') + '$' + exp.toFixed(2), exp >= 0 ? 'var(--blue)' : 'var(--red)');
+  setEl('st-wr-donut',  wr.toFixed(0) + '%');
+  setEl('st-wins-count',   wins.length + 'W');
+  setEl('st-losses-count', losses.length + 'L');
+
+  // ── EQUITY CHART ───────────────────────────────────────────
+  var sorted = trades.slice().sort(function(a,b){ return new Date(a.fecha)-new Date(b.fecha); });
+  var cum = 0;
+  var eqPts = sorted.map(function(t){ cum+=(t.resultado||0); return parseFloat(cum.toFixed(2)); });
+  var eqLabels = sorted.map(function(t){ return t.fecha ? new Date(t.fecha).toLocaleDateString('es',{day:'2-digit',month:'short'}) : ''; });
+  var badge = document.getElementById('stats-equity-badge');
+  if (badge) badge.textContent = trades.length + ' ops';
+  _destroyChart('_statsChartEq');
+  var ctxEq = document.getElementById('stats-equity-chart');
+  if (ctxEq && eqPts.length) {
+    var eqColor = pnl >= 0 ? '#00b87a' : '#f43f5e';
+    window._statsChartEq = new Chart(ctxEq, { type:'line',
+      data:{ labels:eqLabels, datasets:[{ data:eqPts, borderColor:eqColor,
+        backgroundColor: pnl >= 0 ? 'rgba(0,184,122,0.08)' : 'rgba(244,63,94,0.08)',
+        borderWidth:2, pointRadius:0, tension:0.4, fill:true }] },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(c){ return ' $'+c.raw.toFixed(2); } } } },
+        scales:{ x:{ grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},maxTicksLimit:8} },
+                 y:{ grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},callback:function(v){return '$'+v;}} } } }
+    });
+  }
+
+  // ── DRAWDOWN CHART ─────────────────────────────────────────
+  _destroyChart('_statsChartDD');
+  var ctxDD = document.getElementById('stats-dd-chart');
+  if (ctxDD && eqPts.length) {
+    var peak = 0;
+    var ddPts = eqPts.map(function(v){ peak=Math.max(peak,v); return peak>0 ? parseFloat(((v-peak)/peak*100).toFixed(2)) : 0; });
+    window._statsChartDD = new Chart(ctxDD, { type:'line',
+      data:{ labels:eqLabels, datasets:[{ data:ddPts, borderColor:'#f43f5e',
+        backgroundColor:'rgba(244,63,94,0.08)', borderWidth:2, pointRadius:0, tension:0.4, fill:true }] },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{ x:{ grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},maxTicksLimit:8} },
+                 y:{ grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},callback:function(v){return v+'%';}} } } }
+    });
+  }
+
+  // ── DONUT ──────────────────────────────────────────────────
+  _destroyChart('_statsChartDonut');
+  var ctxD = document.getElementById('stats-donut-chart');
+  if (ctxD) {
+    var isDark = !document.body.classList.contains('light-mode');
+    window._statsChartDonut = new Chart(ctxD, { type:'doughnut',
+      data:{ datasets:[{ data:[wins.length, losses.length||0.001],
+        backgroundColor:['#00b87a','#f43f5e'], borderWidth:0 }] },
+      options:{ cutout:'72%', responsive:false, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{enabled:false} } }
+    });
+  }
+
+  // ── BY INSTRUMENT ──────────────────────────────────────────
+  var instrMap = {};
+  trades.forEach(function(t){
+    var sym = t.instrumento || '—';
+    if (!instrMap[sym]) instrMap[sym] = { pnl:0, wins:0, total:0 };
+    instrMap[sym].pnl += (t.resultado||0);
+    instrMap[sym].total++;
+    if ((t.resultado||0) > 0) instrMap[sym].wins++;
+  });
+  var instrSorted = Object.keys(instrMap).sort(function(a,b){ return Math.abs(instrMap[b].pnl)-Math.abs(instrMap[a].pnl); }).slice(0,8);
+  var maxAbsInstr = Math.max.apply(null, instrSorted.map(function(s){ return Math.abs(instrMap[s].pnl); })) || 1;
+  var instrEl = document.getElementById('st-by-instr');
+  if (instrEl) instrEl.innerHTML = instrSorted.map(function(sym){
+    var d = instrMap[sym];
+    var pct = Math.round(Math.abs(d.pnl)/maxAbsInstr*100);
+    var wr2 = d.total ? Math.round(d.wins/d.total*100) : 0;
+    var c = d.pnl>=0?'var(--green)':'var(--red)';
+    return '<div style="padding:7px 18px;">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">' +
+        '<span style="font-size:12px;font-weight:600;color:var(--text);">'+sym+'</span>' +
+        '<div style="display:flex;gap:10px;">' +
+          '<span style="font-size:11px;color:var(--text3);">'+wr2+'% WR</span>' +
+          '<span style="font-size:12px;font-weight:700;color:'+c+';">'+(d.pnl>=0?'+':'')+' $'+d.pnl.toFixed(0)+'</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;">' +
+        '<div style="height:100%;width:'+pct+'%;background:'+c+';border-radius:2px;"></div>' +
+      '</div></div>';
+  }).join('');
+
+  // ── BY SESSION ─────────────────────────────────────────────
+  var sessMap = {};
+  trades.forEach(function(t){
+    var s2 = t.sesion || 'Sin sesión';
+    if (!sessMap[s2]) sessMap[s2] = { pnl:0, wins:0, total:0 };
+    sessMap[s2].pnl += (t.resultado||0);
+    sessMap[s2].total++;
+    if ((t.resultado||0) > 0) sessMap[s2].wins++;
+  });
+  var sessEl = document.getElementById('st-by-session');
+  var maxAbsSess = Math.max.apply(null, Object.values(sessMap).map(function(d){ return Math.abs(d.pnl); })) || 1;
+  if (sessEl) sessEl.innerHTML = Object.keys(sessMap).map(function(ses){
+    var d = sessMap[ses];
+    var pct = Math.round(Math.abs(d.pnl)/maxAbsSess*100);
+    var wr2 = d.total ? Math.round(d.wins/d.total*100) : 0;
+    var c = d.pnl>=0?'var(--green)':'var(--red)';
+    return '<div style="padding:7px 18px;">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">' +
+        '<span style="font-size:12px;font-weight:600;color:var(--text);">'+ses+'</span>' +
+        '<div style="display:flex;gap:10px;">' +
+          '<span style="font-size:11px;color:var(--text3);">'+wr2+'% WR</span>' +
+          '<span style="font-size:12px;font-weight:700;color:'+c+';">'+(d.pnl>=0?'+':'')+' $'+d.pnl.toFixed(0)+'</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;">' +
+        '<div style="height:100%;width:'+pct+'%;background:'+c+';border-radius:2px;"></div>' +
+      '</div></div>';
+  }).join('');
+
+  // ── WEEKDAY CHART ──────────────────────────────────────────
+  _destroyChart('_statsChartWD');
+  var wdMap = {L:0,M:0,X:0,J:0,V:0,S:0,D:0};
+  var wdKeys = ['D','L','M','X','J','V','S'];
+  var wdLabels = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  trades.forEach(function(t){
+    if(!t.fecha) return;
+    var wd = new Date(t.fecha).getDay();
+    var k = wdKeys[wd];
+    if(k) wdMap[k] += (t.resultado||0);
+  });
+  var wdData = ['L','M','X','J','V','S','D'].map(function(k){ return parseFloat(wdMap[k].toFixed(2)); });
+  var ctxWD = document.getElementById('stats-weekday-chart');
+  if (ctxWD) {
+    window._statsChartWD = new Chart(ctxWD, { type:'bar',
+      data:{ labels:wdLabels, datasets:[{ data:wdData,
+        backgroundColor: wdData.map(function(v){ return v>=0?'rgba(0,184,122,0.7)':'rgba(244,63,94,0.7)'; }),
+        borderRadius:4, borderWidth:0 }] },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{ x:{ grid:{display:false}, ticks:{color:th.tick,font:{size:10}} },
+                 y:{ grid:{color:th.grid}, ticks:{color:th.tick,font:{size:10},callback:function(v){return '$'+v;}} } } }
+    });
+  }
+
+  // ── EXTRA STATS ────────────────────────────────────────────
+  var rrTrades = trades.filter(function(t){ return t.rr && t.rr > 0; });
+  var avgRR = rrTrades.length ? (rrTrades.reduce(function(s,t){ return s+(t.rr||0); },0)/rrTrades.length) : 0;
+  var maxDD  = Math.min.apply(null, eqPts) || 0;
+  var extraEl = document.getElementById('st-extra');
+  if (extraEl) {
+    var extras = [
+      ['RR Promedio', avgRR > 0 ? avgRR.toFixed(2)+':1' : '—', 'var(--blue)'],
+      ['Máx. Drawdown', maxDD < 0 ? '-$'+Math.abs(maxDD).toFixed(2) : '$0', 'var(--red)'],
+      ['Ops por día', trades.length ? (trades.length / Math.max(1, Math.ceil((new Date()-new Date(sorted[0].fecha))/(86400000)||1))).toFixed(1) : '—', 'var(--text)'],
+      ['Racha ganadora', (function(){ var best2=0,cur=0; sorted.forEach(function(t){ cur=(t.resultado||0)>0?cur+1:0; best2=Math.max(best2,cur); }); return best2; })() + ' ops', 'var(--green)'],
+      ['Racha perdedora', (function(){ var worst2=0,cur=0; sorted.forEach(function(t){ cur=(t.resultado||0)<0?cur+1:0; worst2=Math.max(worst2,cur); }); return worst2; })() + ' ops', 'var(--red)'],
+    ];
+    extraEl.innerHTML = extras.map(function(r){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">' +
+        '<span style="font-size:12px;color:var(--text2);">'+r[0]+'</span>' +
+        '<span style="font-size:13px;font-weight:700;color:'+r[2]+';">'+r[1]+'</span>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+function _destroyChart(key) {
+  if (window[key]) { try { window[key].destroy(); } catch(e){} window[key] = null; }
+}
+
+function renderAllStats() { renderStatsPanel(); }
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
@@ -9835,6 +10181,16 @@ window.addEventListener('load', async () => {
       loadConfigFromNotion().catch(()=>{}),
     ]);
     try { initHabits(); } catch(e) {}
+    // Populate stats account filter
+    setTimeout(function() {
+      try {
+        var sel = document.getElementById('stats-account-a');
+        if (sel && accounts && accounts.length) {
+          sel.innerHTML = '<option value="">Todas las cuentas</option>' +
+            accounts.map(function(a){ return '<option value="'+a.nombre+'">'+a.nombre+'</option>'; }).join('');
+        }
+      } catch(e) {}
+    }, 500);
     loadDiaryFromNotion().catch(()=>{});
     loadAllHabitsFromSupabase().catch(()=>{});
     await loadUserPlan();
