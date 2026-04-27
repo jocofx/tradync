@@ -1042,7 +1042,7 @@
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5c0 .538-.012 1.05-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.537.255L13.3 15.1a.5.5 0 0 1-.3.9H3a.5.5 0 0 1-.3-.9l1.838-1.379c.16-.12.343-.207.537-.255L6.5 13.11v-2.173c-.955-.234-2.043-1.146-2.833-3.012a3 3 0 1 1-1.132-5.89A33.076 33.076 0 0 1 2.5.5z"/></svg>
       <span class="nav-label">Logros</span>
     </div>
-    <div class="nav-item" id="nav-afiliados" data-label="Afiliados" onclick="goTab('planes', this)">
+    <div class="nav-item" id="nav-afiliados" data-label="Afiliados" onclick="goTab('afiliados', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"/><path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg>
       <span class="nav-label">Afiliados</span>
     </div>
@@ -3016,6 +3016,35 @@
   </div>
 </div>
 
+      <div class="tab-panel" id="panel-afiliados">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:40px 20px;">
+
+    <!-- Icon -->
+    <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,rgba(0,184,122,0.15),rgba(77,159,255,0.1));border:1px solid rgba(0,184,122,0.25);display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:24px;">🤝</div>
+
+    <!-- Title -->
+    <h1 style="font-size:24px;font-weight:800;letter-spacing:-0.4px;margin-bottom:10px;">Programa de Afiliados</h1>
+    <p style="font-size:14px;color:var(--text2);max-width:420px;line-height:1.7;margin-bottom:8px;">Gana el <strong style="color:var(--green);">20% mensual recurrente</strong> por cada trader que refieras a TradyncApp.</p>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:32px;font-family:monospace;">1,80€ por referido · sin límite · sin caducidad</p>
+
+    <!-- Stats pills -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:36px;">
+      <div style="background:var(--green-bg);border:1px solid rgba(0,184,122,0.2);border-radius:20px;padding:8px 18px;font-size:13px;font-weight:700;color:var(--green);">20% comisión</div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:8px 18px;font-size:13px;font-weight:600;color:var(--text2);">∞ referidos</div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:8px 18px;font-size:13px;font-weight:600;color:var(--text2);">9€/mes base</div>
+    </div>
+
+    <!-- CTA button -->
+    <a href="afiliados.html" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;text-decoration:none;padding:14px 32px;border-radius:12px;font-size:15px;font-weight:700;transition:all 0.15s;margin-bottom:14px;" onmouseover="this.style.background='var(--green2)';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='var(--green)';this.style.transform='none'">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/><path d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/></svg>
+      Ir al panel de afiliados
+    </a>
+
+    <p style="font-size:11px;color:var(--text3);">Se abre en una nueva pestaña · Necesitas estar logueado</p>
+  </div>
+</div>
+
+
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
@@ -3075,6 +3104,7 @@ function goTab(id, el) {
   document.getElementById('sidebar').classList.remove('mobile-open');
   // Trigger tab-specific actions
   if (id==='insights') setTimeout(function(){try{runInsights()}catch(e){}},50);
+  if (id==='afiliados') setTimeout(function(){try{loadAffiliateData()}catch(e){}},100);
   if (id==='gestor-ea') setTimeout(function(){try{loadGestorEA()}catch(e){}},200);
   if (id==='broker') setTimeout(function(){try{brokerAutoStep()}catch(e){}},300);
 }
@@ -9709,6 +9739,8 @@ function renderSidebarProfileWidget() {
     }
   });
 }
+
+
 
 window.addEventListener('load', async () => {
   // Set date field
