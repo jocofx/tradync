@@ -133,13 +133,7 @@
     .sidebar.collapsed .sidebar-user-info,
     .sidebar.collapsed .nav-badge,
     .sidebar.collapsed .collapse-label { display: none; }
-    /* When collapsed, show only the donut in the widget */
-    .sidebar.collapsed #sidebar-profile-widget {
-      padding: 8px 4px;
-      margin: 6px 5px 2px;
-      justify-content: center;
-    }
-    .sidebar.collapsed #sidebar-profile-widget > div { gap: 0; }
+
 
     /* Collapsed nav items — center icons */
     .sidebar.collapsed .nav-item {
@@ -816,6 +810,110 @@
       .grid-3 { grid-template-columns: 1fr 1fr; }
     }
 
+
+    /* ── Sidebar Profile Widget ── */
+    .sidebar-profile-widget {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 8px 4px;
+      padding: 10px 12px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      overflow: hidden;
+      position: relative;
+    }
+    .sidebar-profile-widget:hover {
+      background: var(--green-bg);
+      border-color: rgba(0,184,122,0.35);
+    }
+    /* Donut container — always visible, always centered */
+    .spw-donut {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .spw-donut canvas {
+      position: absolute;
+      inset: 0;
+    }
+    .spw-score-val {
+      position: relative;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--green);
+      font-family: monospace;
+      z-index: 1;
+    }
+    /* Info section — hidden when sidebar is collapsed */
+    .spw-info {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .spw-type {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .spw-bar-wrap { margin-top: 4px; }
+    .spw-bar-track {
+      height: 3px;
+      background: var(--bg4);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .spw-bar-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.6s ease;
+    }
+    .spw-sub {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 3px;
+      font-family: monospace;
+    }
+
+    /* ── COLLAPSED STATE ── */
+    .sidebar.collapsed .sidebar-profile-widget {
+      margin: 6px 5px 4px;
+      padding: 7px 0;
+      justify-content: center;
+      border-radius: 9px;
+      gap: 0;
+    }
+    /* Tooltip for widget when collapsed */
+    .sidebar.collapsed .sidebar-profile-widget:hover::after {
+      content: 'Ver Insights';
+      position: absolute;
+      left: calc(100% + 10px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--bg4);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      z-index: 9999;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
 </style>
 </head>
 <body>
@@ -840,25 +938,19 @@
     </div>
 
     <!-- Trader Profile Widget -->
-    <div id="sidebar-profile-widget" onclick="goTab('insights',document.getElementById('nav-insights'))" style="margin:10px 8px 4px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--green)';this.style.background='var(--green-bg)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg3)'">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <!-- Donut chart -->
-        <div style="position:relative;width:44px;height:44px;flex-shrink:0;">
-          <canvas id="sidebar-score-chart" width="44" height="44"></canvas>
-          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-            <span id="sidebar-score-val" style="font-size:11px;font-weight:800;color:var(--green);font-family:monospace;">—</span>
-          </div>
+    <div id="sidebar-profile-widget" class="sidebar-profile-widget" onclick="goTab('insights',document.getElementById('nav-insights'))" data-label="Insights">
+      <!-- Donut always visible -->
+      <div class="spw-donut">
+        <canvas id="sidebar-score-chart" width="40" height="40"></canvas>
+        <span id="sidebar-score-val" class="spw-score-val">—</span>
+      </div>
+      <!-- Text — hidden when collapsed via CSS -->
+      <div class="spw-info nav-label">
+        <div id="sidebar-trader-type" class="spw-type">Perfil trader</div>
+        <div class="spw-bar-wrap">
+          <div class="spw-bar-track"><div id="sidebar-score-bar" class="spw-bar-fill"></div></div>
         </div>
-        <!-- Info -->
-        <div style="flex:1;min-width:0;" class="nav-label">
-          <div id="sidebar-trader-type" style="font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Perfil trader</div>
-          <div style="display:flex;align-items:center;gap:4px;margin-top:3px;">
-            <div style="flex:1;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;">
-              <div id="sidebar-score-bar" style="height:100%;background:var(--green);border-radius:2px;width:0%;transition:width 0.6s;"></div>
-            </div>
-          </div>
-          <div id="sidebar-score-sub" style="font-size:10px;color:var(--text3);margin-top:2px;font-family:monospace;">Ver Insights →</div>
-        </div>
+        <div id="sidebar-score-sub" class="spw-sub">Ver Insights →</div>
       </div>
     </div>
 
