@@ -173,7 +173,27 @@
     }
     .sidebar.collapsed .sidebar-user {
       justify-content: center;
-      padding: 8px 0;
+      padding: 8px 5px;
+      margin: 1px 5px;
+      position: relative;
+    }
+    .sidebar.collapsed .sidebar-user:hover::after {
+      content: 'Mi cuenta · Plan Pro';
+      position: absolute;
+      left: calc(100% + 10px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--bg4);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      z-index: 9999;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
     .sidebar-logo {
@@ -1029,16 +1049,18 @@
 
     <!-- Footer -->
     <div class="sidebar-footer">
-      <div class="nav-item" onclick="goTab('planes', null)" style="margin-bottom:4px;">
-        <svg viewBox="0 0 16 16" fill="currentColor" width="15" height="15"><path d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5c0 .538-.012 1.05-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.537.255L13.3 15.1a.5.5 0 0 1-.3.9H3a.5.5 0 0 1-.3-.9l1.838-1.379c.16-.12.343-.207.537-.255L6.5 13.11v-2.173c-.955-.234-2.043-1.146-2.833-3.012a3 3 0 1 1-1.132-5.89A33.076 33.076 0 0 1 2.5.5z"/></svg>
-        <span class="nav-label" style="color:var(--amber);font-weight:600;">Plan Pro ★</span>
-      </div>
-      <div class="sidebar-user" id="sidebar-user-btn">
+      <!-- User button — click opens plan/account panel -->
+      <div class="sidebar-user" id="sidebar-user-btn" onclick="goTab('planes', null)" data-label="Mi cuenta">
         <div class="user-avatar" id="user-avatar-initials">JC</div>
         <div class="sidebar-user-info">
           <div class="u-name" id="sidebar-user-name">Usuario</div>
-          <div class="u-plan">Plan Pro</div>
+          <div class="u-plan" id="sidebar-user-plan">
+            <span style="color:var(--amber);">★</span> Plan Pro
+          </div>
         </div>
+        <svg class="nav-label" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="color:var(--text3);flex-shrink:0;margin-left:auto;opacity:0.6;">
+          <path d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+        </svg>
       </div>
     </div>
   </div>
