@@ -10597,7 +10597,7 @@ function renderInversionesTable() {
     ) : '<span style="font-size:10px;color:var(--text3);">—</span>';
 
     return [
-      '<tr class="cap-tr" onclick="openInversionDetail(''+String(e.id)+'')" style="cursor:pointer;">',
+      '<tr class="cap-tr" data-invid="'+String(e.id)+'" style="cursor:pointer;">',
         '<td style="padding:10px 18px;font-size:12px;border-bottom:1px solid var(--border);">'+emoji+' <strong>'+tipoLabel+'</strong></td>',
         '<td style="padding:10px 18px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);">'+(e.proveedor||'—')+(e.tamano?' <span style="color:var(--text3);">'+e.tamano+'</span>':'')+'</td>',
         '<td style="padding:10px 18px;font-size:12px;color:var(--text3);border-bottom:1px solid var(--border);font-family:monospace;">'+(e.fecha||'—').slice(0,10)+'</td>',
@@ -10605,7 +10605,7 @@ function renderInversionesTable() {
         '<td style="padding:10px 18px;font-size:13px;font-weight:800;text-align:right;border-bottom:1px solid var(--border);color:'+importeColor+';">'+(isRetiro?'+':'-')+'$'+parseFloat(e.coste||0).toFixed(2)+'</td>',
         '<td style="padding:10px 18px;text-align:right;border-bottom:1px solid var(--border);">'+netoCell+'</td>',
         '<td style="padding:10px 18px;text-align:center;border-bottom:1px solid var(--border);">',
-          '<button onclick="event.stopPropagation();deleteCapEntry(''+String(e.id)+'')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:5px;">✕</button>',
+          '<button class="cap-del-inv" data-id="'+String(e.id)+'" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:5px;">✕</button>',
         '</td>',
       '</tr>'
     ].join('');
@@ -10662,18 +10662,18 @@ function renderGananciasTable() {
     var emoji   = tipoEmoji[g.tipo] || '📦';
     var tipoLabel = (g.tipo||'otro').charAt(0).toUpperCase()+(g.tipo||'otro').slice(1);
     return [
-      '<tr class="cap-tr" style="cursor:pointer;" onclick="openGananciaDetail(''+String(g.id)+'')">',
+      '<tr class="cap-tr" data-ganid="'+String(g.id)+'" style="cursor:pointer;">',
         '<td style="padding:10px 18px;border-bottom:1px solid var(--border);font-family:monospace;font-size:12px;color:var(--text3);">'+(g.fecha||'—').slice(0,10)+'</td>',
         '<td style="padding:10px 18px;border-bottom:1px solid var(--border);">',
           '<span style="font-size:10px;font-weight:700;background:var(--green-bg);color:var(--green);padding:2px 8px;border-radius:20px;">'+emoji+' '+tipoLabel+'</span>',
         '</td>',
         '<td style="padding:10px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:800;color:var(--green);font-family:monospace;">+$'+parseFloat(g.cantidad||0).toFixed(2)+'</td>',
         '<td style="padding:10px 18px;border-bottom:1px solid var(--border);">',
-          '<span style="font-size:12px;color:var(--blue);text-decoration:underline;cursor:pointer;" onclick="event.stopPropagation();openInversionDetail(''+String(g.inversion_id)+'')">'+invName+'</span>',
+          '<span style="font-size:12px;color:var(--blue);text-decoration:underline;cursor:pointer;" class="cap-open-inv" data-id="'+ String(g.inversion_id) +'">'+invName+'</span>',
         '</td>',
         '<td style="padding:10px 18px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text3);">'+(g.notas||'—')+'</td>',
         '<td style="padding:10px 18px;border-bottom:1px solid var(--border);text-align:center;">',
-          '<button onclick="event.stopPropagation();deleteGanancia(''+String(g.id)+'')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:5px;">✕</button>',
+          '<button class="cap-del-gan" data-id="'+String(g.id)+'" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:5px;">✕</button>',
         '</td>',
       '</tr>'
     ].join('');
@@ -10992,7 +10992,7 @@ function openInversionDetail(id) {
   // Ganancias list
   var ganRows = stats.ganancias.map(function(g) {
     var tipoEmoji2 = {payout:'💸',parcial:'📊',scaling:'📈',reembolso:'🔄',otro:'📦'};
-    return '<div onclick="closeInversionDetail();openGananciaDetail(''+String(g.id)+'')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border-radius:8px;cursor:pointer;transition:background 0.1s;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg3)'">' +
+    return '<div class="cap-open-gan" data-id="'+String(g.id)+'" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border-radius:8px;cursor:pointer;transition:background 0.1s;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg3)'">' +
       '<span style="font-size:18px;">'+(tipoEmoji2[g.tipo]||'📦')+'</span>' +
       '<div style="flex:1;">' +
         '<div style="font-size:13px;font-weight:600;color:var(--text);">+$'+parseFloat(g.cantidad||0).toFixed(2)+'</div>' +
@@ -11032,13 +11032,24 @@ function openInversionDetail(id) {
       ganRows,
     '</div>',
     // Add ganancia button
-    '<button onclick="closeInversionDetail();openGananciaModalForInv(''+String(id)+'')" class="btn btn-primary" style="width:100%;margin-top:16px;justify-content:center;">',
+    '<button class="btn btn-primary cap-add-gan-for-inv" data-id="'+String(id)+'" style="width:100%;margin-top:16px;justify-content:center;">',
       '<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1v14M4 5l4-4 4 4"/></svg>',
       ' Registrar ganancia para esta inversión',
     '</button>',
   ].join('');
 
-  document.getElementById('inversion-detail-overlay').style.display = 'flex';
+  // Attach events after render
+  var overlay = document.getElementById('inversion-detail-overlay');
+  var body2 = document.getElementById('inv-detail-body');
+  if (body2) {
+    body2.querySelectorAll('.cap-open-gan').forEach(function(el2){
+      el2.addEventListener('click', function(){ closeInversionDetail(); openGananciaDetail(this.dataset.id); });
+    });
+    body2.querySelectorAll('.cap-add-gan-for-inv').forEach(function(el2){
+      el2.addEventListener('click', function(){ closeInversionDetail(); openGananciaModalForInv(this.dataset.id); });
+    });
+  }
+  overlay.style.display = 'flex';
 }
 
 function closeInversionDetail() {
@@ -11086,7 +11097,7 @@ function openGananciaDetail(id) {
     // Linked investment
     '<div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">Inversión asociada</div>',
     inv ? (
-      '<div onclick="closeGananciaDetail();openInversionDetail(''+String(inv.id)+'')" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg3);border-radius:10px;cursor:pointer;border:1px solid var(--border);transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">'+
+      '<div class="cap-open-from-gan" data-id="'+String(inv.id)+'" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg3);border-radius:10px;cursor:pointer;border:1px solid var(--border);transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">'+
         '<span style="font-size:22px;">'+(inv.tipo==='challenge'?'🎯':inv.tipo==='fondeada'?'🏆':'💰')+'</span>'+
         '<div style="flex:1;">'+
           '<div style="font-size:13px;font-weight:700;color:var(--text);">'+invName+'</div>'+
@@ -11097,6 +11108,14 @@ function openGananciaDetail(id) {
     ) : '<div style="color:var(--text3);font-size:12px;padding:12px;background:var(--bg3);border-radius:8px;">'+invName+'</div>',
   ].join('');
 
+  var body3 = document.getElementById('gan-detail-body');
+  if (body3) {
+    body3.querySelectorAll('.cap-open-from-gan').forEach(function(el2){
+      el2.addEventListener('mouseover', function(){ this.style.borderColor='var(--blue)'; });
+      el2.addEventListener('mouseout',  function(){ this.style.borderColor='var(--border)'; });
+      el2.addEventListener('click', function(){ closeGananciaDetail(); openInversionDetail(this.dataset.id); });
+    });
+  }
   document.getElementById('ganancia-detail-overlay').style.display = 'flex';
 }
 
