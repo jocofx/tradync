@@ -10570,7 +10570,7 @@ function renderCapitalTable() {
   var el = document.getElementById('cap-table-body');
   if (!el) return;
 
-  var filtered = capitalEntries.filter(function(e){
+  var filtered = capitalEntries.filter(function(e) {
     if (filterTipo   && e.tipo   !== filterTipo)   return false;
     if (filterEstado && e.estado !== filterEstado) return false;
     return true;
@@ -10582,42 +10582,58 @@ function renderCapitalTable() {
   }
 
   var estadoColors = { activa:'var(--green)', aprobada:'var(--blue)', fallida:'var(--red)', retirada:'var(--amber)' };
-  var estadoBg    = { activa:'var(--green-bg)', aprobada:'var(--blue-bg)', fallida:'var(--red-bg)', retirada:'var(--amber-bg)' };
-  var tipoEmoji   = { challenge:'🎯', fondeada:'🏆', reset:'🔄', capital_propio:'💰', retiro:'📈', otro:'📦' };
+  var estadoBg     = { activa:'var(--green-bg)', aprobada:'var(--blue-bg)', fallida:'var(--red-bg)', retirada:'var(--amber-bg)' };
+  var tipoEmoji    = { challenge:'🎯', fondeada:'🏆', reset:'🔄', capital_propio:'💰', retiro:'📈', otro:'📦' };
 
-  el.innerHTML = '<table style="width:100%;border-collapse:collapse;">' +
-    '<thead><tr>' +
-      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Tipo</th>' +
-      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Proveedor</th>' +
-      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Tamaño</th>' +
-      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Fecha</th>' +
-      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Estado</th>' +
-      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:right;font-weight:600;border-bottom:1px solid var(--border);">Importe</th>' +
-      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:center;font-weight:600;border-bottom:1px solid var(--border);">Acción</th>' +
-    '</tr></thead><tbody>' +
-    filtered.map(function(e){
-      var isRetiro = e.tipo === 'retiro';
-      var estadoClr = estadoColors[e.estado] || 'var(--text2)';
-      var estadoBgClr = estadoBg[e.estado] || 'var(--bg3)';
-      var emoji = tipoEmoji[e.tipo] || '📦';
-      var tipoLabel = (e.tipo||'').replace('_',' ').replace(/\w/g,function(c){ return c.toUpperCase(); });
-      return '<tr style="transition:background 0.1s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">'+
-        '<td style="padding:10px 18px;font-size:12px;border-bottom:1px solid var(--border);">'+emoji+' <span style="font-weight:600;color:var(--text);">'+tipoLabel+'</span></td>'+
-        '<td style="padding:10px 18px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);">'+(e.proveedor||'—')+'</td>'+
-        '<td style="padding:10px 18px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);">'+(e.tamano||'—')+'</td>'+
-        '<td style="padding:10px 18px;font-size:12px;color:var(--text3);border-bottom:1px solid var(--border);font-family:monospace;">'+(e.fecha?e.fecha.slice(0,10):'—')+'</td>'+
-        '<td style="padding:10px 18px;border-bottom:1px solid var(--border);">'+
-          '<span style="font-size:10px;font-weight:700;background:'+estadoBgClr+';color:'+estadoClr+';padding:3px 10px;border-radius:20px;">'+((e.estado||'').toUpperCase())+'</span>'+
-        '</td>'+
-        '<td style="padding:10px 18px;font-size:13px;font-weight:800;text-align:right;border-bottom:1px solid var(--border);color:'+(isRetiro?'var(--green)':'var(--red)')+';">'+
-          (isRetiro?'+':'-')+'$'+parseFloat(e.coste||0).toFixed(2)+
-        '</td>'+
-        '<td style="padding:10px 18px;text-align:center;border-bottom:1px solid var(--border);">'+
-          '<button onclick="deleteCapEntry(''+e.id+'')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:4px 8px;border-radius:5px;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">✕</button>'+
-        '</td>'+
-      '</tr>';
-    }).join('') + '</tbody></table>';
+  var rows = filtered.map(function(e) {
+    var isRetiro   = e.tipo === 'retiro';
+    var estadoClr  = estadoColors[e.estado] || 'var(--text2)';
+    var estadoBgClr= estadoBg[e.estado]    || 'var(--bg3)';
+    var emoji      = tipoEmoji[e.tipo]     || '📦';
+    var tipoLabel  = (e.tipo || '').replace(/_/g, ' ').split(' ').map(function(w) {
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    }).join(' ');
+    var importeColor = isRetiro ? 'var(--green)' : 'var(--red)';
+    var importeSign  = isRetiro ? '+' : '-';
+    return [
+      '<tr class="cap-tr" data-id="' + e.id + '">',
+        '<td style="padding:10px 18px;font-size:12px;border-bottom:1px solid var(--border);">' + emoji + ' <strong>' + tipoLabel + '</strong></td>',
+        '<td style="padding:10px 18px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);">' + (e.proveedor || '—') + '</td>',
+        '<td style="padding:10px 18px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);">' + (e.tamano || '—') + '</td>',
+        '<td style="padding:10px 18px;font-size:12px;color:var(--text3);border-bottom:1px solid var(--border);font-family:monospace;">' + (e.fecha ? e.fecha.slice(0,10) : '—') + '</td>',
+        '<td style="padding:10px 18px;border-bottom:1px solid var(--border);">',
+          '<span style="font-size:10px;font-weight:700;background:' + estadoBgClr + ';color:' + estadoClr + ';padding:3px 10px;border-radius:20px;">' + ((e.estado || '').toUpperCase()) + '</span>',
+        '</td>',
+        '<td style="padding:10px 18px;font-size:13px;font-weight:800;text-align:right;border-bottom:1px solid var(--border);color:' + importeColor + ';">' + importeSign + '$' + parseFloat(e.coste || 0).toFixed(2) + '</td>',
+        '<td style="padding:10px 18px;text-align:center;border-bottom:1px solid var(--border);">',
+          '<button onclick="deleteCapEntry(' + JSON.stringify(String(e.id)) + ')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:5px;">✕</button>',
+        '</td>',
+      '</tr>'
+    ].join('');
+  }).join('');
+
+  el.innerHTML = [
+    '<table style="width:100%;border-collapse:collapse;">',
+    '<thead><tr>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Tipo</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Proveedor</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Tamaño</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Fecha</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Estado</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:right;font-weight:600;border-bottom:1px solid var(--border);">Importe</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:center;font-weight:600;border-bottom:1px solid var(--border);">Acción</th>',
+    '</tr></thead>',
+    '<tbody>' + rows + '</tbody>',
+    '</table>'
+  ].join('');
+
+  // Hover effect via JS events
+  el.querySelectorAll('.cap-tr').forEach(function(tr) {
+    tr.addEventListener('mouseover', function() { this.style.background = 'var(--bg3)'; });
+    tr.addEventListener('mouseout',  function() { this.style.background = ''; });
+  });
 }
+
 
 // ── DELETE ─────────────────────────────────────────────────
 async function deleteCapEntry(id) {
