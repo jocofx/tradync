@@ -3151,10 +3151,16 @@
       <h1 style="font-size:20px;font-weight:800;letter-spacing:-0.4px;">Capital Tracker</h1>
       <div style="font-size:12px;color:var(--text3);margin-top:3px;">Rentabilidad real de tu trading como negocio</div>
     </div>
-    <button onclick="openCapitalModal()" class="btn btn-primary" style="gap:6px;">
-      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg>
-      Registrar inversión
-    </button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="openGananciaModal()" class="btn btn-secondary" style="gap:6px;">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1v14M4 5l4-4 4 4"/></svg>
+        Registrar ganancia
+      </button>
+      <button onclick="openCapitalModal()" class="btn btn-primary" style="gap:6px;">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg>
+        Registrar inversión
+      </button>
+    </div>
   </div>
 
   <!-- RESUMEN PRINCIPAL — La pregunta clave -->
@@ -3342,10 +3348,11 @@ function goTab(id, el) {
   if (id==='estadisticas') setTimeout(function(){try{renderStatsPanel()}catch(e){}},100);
   if (id==='capital') {
     setTimeout(function(){
-      loadCapitalEntries().then(function(){
+      Promise.all([
+        loadCapitalEntries().catch(function(){}),
+        loadCapitalGanancias().catch(function(){})
+      ]).then(function(){
         try { renderCapitalPanel(); } catch(e) { console.warn('renderCapitalPanel:', e); }
-      }).catch(function(e){
-        try { renderCapitalPanel(); } catch(e2) {}
       });
     }, 50);
   }
@@ -10411,12 +10418,17 @@ function renderCapitalPanel() {
   var banner = document.getElementById('capital-summary-banner');
   var bannerText = document.getElementById('capital-banner-text');
   if (banner && entries.length) {
-    var isPos = neto >= 0;
+    // Include ganancias in total recovered
+  var totalGananciasReg = capitalGanancias.reduce(function(s,g){ return s+(parseFloat(g.cantidad)||0); }, 0);
+  var totalRecTotal = totalRec + totalGananciasReg;
+  neto = totalRecTotal + pnlTrades - totalInv;
+  roi  = totalInv > 0 ? (neto/totalInv*100) : 0;
+  var isPos = neto >= 0;
     banner.style.background = isPos ? 'rgba(0,184,122,0.06)' : 'rgba(244,63,94,0.06)';
     banner.style.borderColor = isPos ? 'rgba(0,184,122,0.2)' : 'rgba(244,63,94,0.2)';
     if (bannerText) bannerText.textContent = isPos
-      ? 'Has invertido $'+totalInv.toFixed(0)+' y recuperado $'+totalRec.toFixed(0)+' → resultado neto: +$'+neto.toFixed(0)
-      : 'Has invertido $'+totalInv.toFixed(0)+' y recuperado $'+totalRec.toFixed(0)+' → resultado neto: -$'+Math.abs(neto).toFixed(0);
+      ? 'Invertido $'+totalInv.toFixed(0)+' · Ganancias $'+totalRecTotal.toFixed(0)+' → resultado neto: +$'+neto.toFixed(0)
+      : 'Invertido $'+totalInv.toFixed(0)+' · Ganancias $'+totalRecTotal.toFixed(0)+' → resultado neto: -$'+Math.abs(neto).toFixed(0);
     if (bannerText) bannerText.style.color = isPos ? 'var(--green)' : 'var(--red)';
   }
   setEl('capital-roi-val', entries.length ? (roi>=0?'+':'')+roi.toFixed(1)+'%' : '—', roi>=0?'var(--green)':'var(--red)');
@@ -10513,10 +10525,16 @@ function renderCapitalPanel() {
 
 // ── TABLE ──────────────────────────────────────────────────
 function renderCapitalTable() {
-  var filterTipo   = (document.getElementById('cap-filter-tipo') || {}).value || '';
-  var filterEstado = (document.getElementById('cap-filter-estado') || {}).value || '';
   var el = document.getElementById('cap-table-body');
   if (!el) return;
+
+  // Route to correct view
+  if (_capView === 'rentabilidad') { renderRentabilidadView(el); return; }
+  if (_capView === 'ganancias')    { renderGananciasView(el);    return; }
+
+  // Default: inversiones view
+  var filterTipo   = (document.getElementById('cap-filter-tipo') || {}).value || '';
+  var filterEstado = (document.getElementById('cap-filter-estado') || {}).value || '';
 
   var filtered = capitalEntries.filter(function(e) {
     if (filterTipo   && e.tipo   !== filterTipo)   return false;
@@ -10589,6 +10607,309 @@ async function deleteCapEntry(id) {
   capitalEntries = capitalEntries.filter(function(e){ return String(e.id) !== String(id); });
   try { await sb.from('capital_tracker').delete().eq('id', id).eq('user_id', currentUser.id); } catch(e){}
   renderCapitalPanel();
+}
+
+
+// ═══════════════════════════════════════════════════════
+// CAPITAL TRACKER — GANANCIAS
+// ═══════════════════════════════════════════════════════
+var capitalGanancias = [];
+var _capView = 'inversiones';
+
+// ── MODAL GANANCIA ─────────────────────────────────────
+function openGananciaModal() {
+  var m = document.getElementById('ganancia-modal-overlay');
+  if (!m) return;
+
+  // Populate investment selector
+  var sel = document.getElementById('gan-inversion-id');
+  if (sel) {
+    var opts = '<option value="">— Selecciona una inversión —</option>';
+    capitalEntries.filter(function(e){ return e.tipo !== 'retiro'; }).forEach(function(e) {
+      var label = (e.proveedor || e.tipo || '—') + (e.tamano ? ' ' + e.tamano : '') + ' — $' + parseFloat(e.coste||0).toFixed(0) + ' (' + (e.fecha||'').slice(0,10) + ')';
+      opts += '<option value="' + e.id + '">' + label + '</option>';
+    });
+    sel.innerHTML = opts;
+  }
+
+  // Reset form
+  var fecha = document.getElementById('gan-fecha');
+  if (fecha) fecha.value = new Date().toISOString().slice(0,10);
+  var cant = document.getElementById('gan-cantidad');
+  if (cant) cant.value = '';
+  var notas = document.getElementById('gan-notas');
+  if (notas) notas.value = '';
+  document.getElementById('gan-tipo-val').value = 'payout';
+  document.querySelectorAll('.gan-tipo-btn').forEach(function(b, i) {
+    if (i === 0) {
+      b.style.borderColor = 'var(--green)';
+      b.style.background = 'var(--green-bg)';
+      b.style.color = 'var(--green)';
+    } else {
+      b.style.borderColor = 'var(--border2)';
+      b.style.background = 'transparent';
+      b.style.color = 'var(--text2)';
+    }
+  });
+  var msg = document.getElementById('gan-modal-msg');
+  if (msg) msg.textContent = '';
+
+  m.style.display = 'flex';
+}
+
+function closeGananciaModal() {
+  var m = document.getElementById('ganancia-modal-overlay');
+  if (m) m.style.display = 'none';
+}
+
+function handleGanModalOutside(e) {
+  var inner = document.getElementById('ganancia-modal-inner');
+  if (inner && !inner.contains(e.target)) closeGananciaModal();
+}
+
+function selectGanTipo(tipo, btn) {
+  document.getElementById('gan-tipo-val').value = tipo;
+  document.querySelectorAll('.gan-tipo-btn').forEach(function(b) {
+    b.style.borderColor = 'var(--border2)';
+    b.style.background = 'transparent';
+    b.style.color = 'var(--text2)';
+  });
+  if (btn) {
+    btn.style.borderColor = 'var(--green)';
+    btn.style.background = 'var(--green-bg)';
+    btn.style.color = 'var(--green)';
+  }
+}
+
+// ── SAVE GANANCIA ──────────────────────────────────────
+async function saveGanancia() {
+  if (!requireAuth()) return;
+  var invId   = document.getElementById('gan-inversion-id').value;
+  var cantidad= parseFloat(document.getElementById('gan-cantidad').value) || 0;
+  var fecha   = document.getElementById('gan-fecha').value || new Date().toISOString().slice(0,10);
+  var tipo    = document.getElementById('gan-tipo-val').value || 'payout';
+  var notas   = document.getElementById('gan-notas').value.trim() || null;
+  var msg     = document.getElementById('gan-modal-msg');
+
+  if (!invId)    { if(msg){msg.style.color='var(--red)';msg.textContent='Selecciona una inversión';} return; }
+  if (!cantidad) { if(msg){msg.style.color='var(--red)';msg.textContent='Introduce la cantidad';} return; }
+
+  var btn = document.getElementById('gan-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+
+  var entry = {
+    user_id:      currentUser.id,
+    inversion_id: invId,
+    cantidad:     cantidad,
+    fecha:        fecha,
+    tipo:         tipo,
+    notas:        notas
+  };
+
+  try {
+    var result = await sb.from('capital_ganancias').insert(entry);
+    if (result.error) throw result.error;
+    if(msg){ msg.style.color='var(--green)'; msg.textContent='¡Ganancia registrada ✓'; }
+    await loadCapitalGanancias();
+    renderCapitalPanel();
+    setTimeout(function(){ closeGananciaModal(); }, 700);
+  } catch(e) {
+    console.warn('saveGanancia error:', e.message);
+    // Fallback local
+    capitalGanancias.unshift(Object.assign({ id: Date.now(), created_at: new Date().toISOString() }, entry));
+    renderCapitalPanel();
+    setTimeout(function(){ closeGananciaModal(); }, 700);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Guardar ganancia'; }
+  }
+}
+
+// ── LOAD GANANCIAS ─────────────────────────────────────
+async function loadCapitalGanancias() {
+  if (!currentUser) return;
+  try {
+    var result = await sb.from('capital_ganancias')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('fecha', { ascending: false });
+    if (result.error) { console.warn('capital_ganancias load error:', result.error.message); return; }
+    if (result.data) { capitalGanancias = result.data; }
+  } catch(e) {
+    console.warn('loadCapitalGanancias exception:', e.message);
+  }
+}
+
+// ── VIEW TOGGLE ────────────────────────────────────────
+function setCapView(view, btn) {
+  _capView = view;
+  ['inv','rent','gan'].forEach(function(v) {
+    var b = document.getElementById('cap-view-' + v);
+    if (!b) return;
+    b.style.borderColor = 'var(--border2)';
+    b.style.background = 'transparent';
+    b.style.color = 'var(--text2)';
+  });
+  var activeId = view === 'inversiones' ? 'cap-view-inv' : view === 'rentabilidad' ? 'cap-view-rent' : 'cap-view-gan';
+  var activeBtn = document.getElementById(activeId);
+  if (activeBtn) {
+    activeBtn.style.borderColor = 'var(--green)';
+    activeBtn.style.background = 'var(--green-bg)';
+    activeBtn.style.color = 'var(--green)';
+  }
+  renderCapitalTable();
+}
+
+// ── COMPUTE PER-INVESTMENT ─────────────────────────────
+function getInvStats(invId) {
+  var gans = capitalGanancias.filter(function(g) { return String(g.inversion_id) === String(invId); });
+  var totalGanado = gans.reduce(function(s,g){ return s + (parseFloat(g.cantidad)||0); }, 0);
+  return { ganancias: gans, totalGanado: totalGanado };
+}
+
+// ── DELETE GANANCIA ────────────────────────────────────
+async function deleteGanancia(id) {
+  if (!confirm('¿Eliminar esta ganancia?')) return;
+  capitalGanancias = capitalGanancias.filter(function(g){ return String(g.id) !== String(id); });
+  try { await sb.from('capital_ganancias').delete().eq('id', id).eq('user_id', currentUser.id); } catch(e){}
+  renderCapitalPanel();
+}
+
+
+// ── RENTABILIDAD VIEW ──────────────────────────────────
+function renderRentabilidadView(el) {
+  var inversiones = capitalEntries.filter(function(e){ return e.tipo !== 'retiro'; });
+  if (!inversiones.length) {
+    el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);font-size:12px;">Sin inversiones registradas</div>';
+    return;
+  }
+
+  var rows = inversiones.map(function(inv) {
+    var stats    = getInvStats(inv.id);
+    var coste    = parseFloat(inv.coste||0);
+    var ganado   = stats.totalGanado;
+    var neto     = ganado - coste;
+    var roi      = coste > 0 ? (neto/coste*100) : 0;
+    var isPos    = neto >= 0;
+    var tipoEmoji= {challenge:'🎯',fondeada:'🏆',reset:'🔄',capital_propio:'💰',otro:'📦'};
+    var emoji    = tipoEmoji[inv.tipo] || '📦';
+    var label    = (inv.proveedor || inv.tipo || '—') + (inv.tamano ? ' ' + inv.tamano : '');
+    var estadoBadge = isPos
+      ? '<span style="font-size:9px;font-weight:700;background:var(--green-bg);color:var(--green);padding:2px 8px;border-radius:20px;">✓ Rentable</span>'
+      : '<span style="font-size:9px;font-weight:700;background:var(--red-bg);color:var(--red);padding:2px 8px;border-radius:20px;">✕ Pérdida</span>';
+
+    // Progress bar: ganado vs coste
+    var pct = coste > 0 ? Math.min(100, Math.round(ganado/coste*100)) : 0;
+
+    return [
+      '<tr>',
+        '<td style="padding:12px 18px;border-bottom:1px solid var(--border);">',
+          '<div style="font-weight:700;font-size:13px;color:var(--text);">' + emoji + ' ' + label + '</div>',
+          '<div style="font-size:10px;color:var(--text3);margin-top:2px;">' + (inv.fecha||'').slice(0,10) + ' · ' + stats.ganancias.length + ' pago' + (stats.ganancias.length!==1?'s':'') + '</div>',
+        '</td>',
+        '<td style="padding:12px 18px;text-align:right;border-bottom:1px solid var(--border);">',
+          '<div style="font-size:13px;font-weight:700;color:var(--red);">-$' + coste.toFixed(2) + '</div>',
+          '<div style="font-size:10px;color:var(--text3);">coste</div>',
+        '</td>',
+        '<td style="padding:12px 18px;text-align:right;border-bottom:1px solid var(--border);">',
+          '<div style="font-size:13px;font-weight:700;color:var(--green);">+$' + ganado.toFixed(2) + '</div>',
+          '<div style="height:4px;background:var(--bg4);border-radius:2px;margin-top:4px;overflow:hidden;width:60px;margin-left:auto;">',
+            '<div style="height:100%;width:' + pct + '%;background:var(--green);border-radius:2px;"></div>',
+          '</div>',
+        '</td>',
+        '<td style="padding:12px 18px;text-align:right;border-bottom:1px solid var(--border);">',
+          '<div style="font-size:15px;font-weight:800;color:' + (isPos?'var(--green)':'var(--red)') + ';">' + (isPos?'+':'-') + '$' + Math.abs(neto).toFixed(2) + '</div>',
+          '<div style="font-size:10px;color:var(--text3);margin-top:1px;">ROI ' + (roi>=0?'+':'') + roi.toFixed(0) + '%</div>',
+        '</td>',
+        '<td style="padding:12px 18px;text-align:center;border-bottom:1px solid var(--border);">' + estadoBadge + '</td>',
+        '<td style="padding:12px 18px;text-align:center;border-bottom:1px solid var(--border);">',
+          '<button onclick="openGananciaModalForInv(' + JSON.stringify(String(inv.id)) + ')" style="background:var(--green-bg);border:1px solid rgba(0,184,122,0.3);color:var(--green);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">+ Ganancia</button>',
+        '</td>',
+      '</tr>'
+    ].join('');
+  }).join('');
+
+  el.innerHTML = [
+    '<table style="width:100%;border-collapse:collapse;">',
+    '<thead><tr>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Inversión</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:right;font-weight:600;border-bottom:1px solid var(--border);">Coste</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:right;font-weight:600;border-bottom:1px solid var(--border);">Total ganado</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:right;font-weight:600;border-bottom:1px solid var(--border);">Beneficio neto</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:center;font-weight:600;border-bottom:1px solid var(--border);">Estado</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:center;font-weight:600;border-bottom:1px solid var(--border);">Acción</th>',
+    '</tr></thead>',
+    '<tbody>' + rows + '</tbody>',
+    '</table>'
+  ].join('');
+}
+
+// ── GANANCIAS VIEW ─────────────────────────────────────
+function renderGananciasView(el) {
+  if (!capitalGanancias.length) {
+    el.innerHTML = [
+      '<div style="padding:40px;text-align:center;color:var(--text3);">',
+        '<div style="font-size:32px;margin-bottom:12px;">📈</div>',
+        '<div style="font-weight:600;font-size:14px;margin-bottom:6px;">Sin ganancias registradas</div>',
+        '<div style="font-size:12px;margin-bottom:16px;">Vincula un payout o beneficio a una inversión</div>',
+        '<button onclick="openGananciaModal()" class="btn btn-primary">+ Registrar ganancia</button>',
+      '</div>'
+    ].join('');
+    return;
+  }
+
+  // Build lookup for investment names
+  var invMap = {};
+  capitalEntries.forEach(function(e) {
+    var label = (e.proveedor || e.tipo || '—') + (e.tamano ? ' ' + e.tamano : '');
+    invMap[String(e.id)] = label;
+  });
+
+  var tipoEmoji = { payout:'💸', parcial:'📊', scaling:'📈', reembolso:'🔄', otro:'📦' };
+
+  var rows = capitalGanancias.map(function(g) {
+    var invName = invMap[String(g.inversion_id)] || 'Inversión eliminada';
+    var emoji   = tipoEmoji[g.tipo] || '📦';
+    return [
+      '<tr class="cap-tr">',
+        '<td style="padding:10px 18px;font-size:12px;border-bottom:1px solid var(--border);">' + emoji + ' <strong>' + (g.tipo||'—').charAt(0).toUpperCase() + (g.tipo||'').slice(1) + '</strong></td>',
+        '<td style="padding:10px 18px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);">' + invName + '</td>',
+        '<td style="padding:10px 18px;font-size:12px;color:var(--text3);border-bottom:1px solid var(--border);font-family:monospace;">' + (g.fecha||'—').slice(0,10) + '</td>',
+        '<td style="padding:10px 18px;font-size:13px;font-weight:800;text-align:right;border-bottom:1px solid var(--border);color:var(--green);">+$' + parseFloat(g.cantidad||0).toFixed(2) + '</td>',
+        '<td style="padding:10px 18px;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border);">' + (g.notas||'—') + '</td>',
+        '<td style="padding:10px 18px;text-align:center;border-bottom:1px solid var(--border);">',
+          '<button onclick="deleteGanancia(' + JSON.stringify(String(g.id)) + ')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:5px;">✕</button>',
+        '</td>',
+      '</tr>'
+    ].join('');
+  }).join('');
+
+  el.innerHTML = [
+    '<table style="width:100%;border-collapse:collapse;">',
+    '<thead><tr>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Tipo</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Inversión</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Fecha</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:right;font-weight:600;border-bottom:1px solid var(--border);">Cantidad</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Notas</th>',
+    '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:center;font-weight:600;border-bottom:1px solid var(--border);">Acción</th>',
+    '</tr></thead>',
+    '<tbody>' + rows + '</tbody>',
+    '</table>'
+  ].join('');
+
+  el.querySelectorAll('.cap-tr').forEach(function(tr) {
+    tr.addEventListener('mouseover', function() { this.style.background = 'var(--bg3)'; });
+    tr.addEventListener('mouseout',  function() { this.style.background = ''; });
+  });
+}
+
+// Open ganancia modal pre-selecting an investment
+function openGananciaModalForInv(invId) {
+  openGananciaModal();
+  setTimeout(function() {
+    var sel = document.getElementById('gan-inversion-id');
+    if (sel) sel.value = invId;
+  }, 50);
 }
 
 window.addEventListener('load', async () => {
@@ -10691,9 +11012,12 @@ window.addEventListener('load', async () => {
       try { renderSidebarProfileWidget(); } catch(e) {}
     }, 300);
     // Load capital tracker
-    loadCapitalEntries().then(function() {
+    Promise.all([
+      loadCapitalEntries().catch(function(){}),
+      loadCapitalGanancias().catch(function(){})
+    ]).then(function() {
       try { renderCapitalPanel(); } catch(e) {}
-    }).catch(function(){});
+    });
   }
 
   // Start quote carousel
@@ -11574,6 +11898,66 @@ function renderPsychCharts() {
       <div id="cap-modal-msg" style="text-align:center;font-size:12px;margin-top:8px;"></div>
     </div>
   </div>
+
+
+<!-- GANANCIA MODAL -->
+<div id="ganancia-modal-overlay" onclick="handleGanModalOutside(event)" style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
+  <div id="ganancia-modal-inner" style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.5);margin:auto;">
+    <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:17px;font-weight:800;color:var(--green);">↑ Registrar ganancia</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;">Vincula esta ganancia a una inversión existente</div>
+      </div>
+      <button onclick="closeGananciaModal()" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">✕</button>
+    </div>
+    <div style="padding:20px 24px;">
+
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Inversión vinculada <span style="color:var(--red);">*</span></label>
+        <select id="gan-inversion-id" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;">
+          <option value="">— Selecciona una inversión —</option>
+        </select>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Cantidad ($) <span style="color:var(--red);">*</span></label>
+          <input type="number" id="gan-cantidad" placeholder="500.00" step="0.01" min="0.01" style="border-color:rgba(0,184,122,0.3);">
+        </div>
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="date" id="gan-fecha">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Tipo de ganancia</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+          <button onclick="selectGanTipo('payout',this)" class="gan-tipo-btn" style="padding:6px 14px;border-radius:20px;border:1px solid var(--green);background:var(--green-bg);color:var(--green);font-size:11px;font-weight:600;cursor:pointer;">💸 Payout</button>
+          <button onclick="selectGanTipo('parcial',this)" class="gan-tipo-btn" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;">📊 Parcial</button>
+          <button onclick="selectGanTipo('scaling',this)" class="gan-tipo-btn" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;">📈 Scaling</button>
+          <button onclick="selectGanTipo('reembolso',this)" class="gan-tipo-btn" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;">🔄 Reembolso</button>
+          <button onclick="selectGanTipo('otro',this)" class="gan-tipo-btn" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;">📦 Otro</button>
+        </div>
+        <input type="hidden" id="gan-tipo-val" value="payout">
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>Notas (opcional)</label>
+        <textarea id="gan-notas" rows="2" style="resize:none;" placeholder="Payout de FTMO tras pasar fase 2..."></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button onclick="closeGananciaModal()" class="btn btn-secondary" style="flex:1;">Cancelar</button>
+        <button onclick="saveGanancia()" class="btn btn-primary" style="flex:2;background:linear-gradient(135deg,var(--green),var(--blue));" id="gan-save-btn">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1v14M4 5l4-4 4 4"/></svg>
+          Guardar ganancia
+        </button>
+      </div>
+      <div id="gan-modal-msg" style="text-align:center;font-size:12px;margin-top:8px;"></div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
