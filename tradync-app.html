@@ -1020,6 +1020,11 @@
     </div>
 
     <div class="nav-section-label">Análisis</div>
+    <div class="nav-item" id="nav-capital" data-label="Capital Tracker" onclick="goTab('capital', this)">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z"/></svg>
+      <span class="nav-label">Capital Tracker</span>
+      <span class="nav-badge" id="capital-badge" style="display:none">NEW</span>
+    </div>
     <div class="nav-item" id="nav-insights" data-label="Insights" onclick="goTab('insights', this)">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2H2a2 2 0 0 1-2-2V2z"/></svg>
       <span class="nav-label">Insights</span>
@@ -3141,6 +3146,212 @@
 </div>
 
 
+<div class="tab-panel" id="panel-capital">
+
+  <!-- HEADER -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1 style="font-size:20px;font-weight:800;letter-spacing:-0.4px;">Capital Tracker</h1>
+      <div style="font-size:12px;color:var(--text3);margin-top:3px;">Rentabilidad real de tu trading como negocio</div>
+    </div>
+    <button onclick="openCapitalModal()" class="btn btn-primary" style="gap:6px;">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg>
+      Registrar inversión
+    </button>
+  </div>
+
+  <!-- RESUMEN PRINCIPAL — La pregunta clave -->
+  <div id="capital-summary-banner" style="border-radius:14px;padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;border:1px solid var(--border);">
+    <div style="font-size:32px;">📊</div>
+    <div style="flex:1;min-width:200px;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:4px;">Resultado neto real</div>
+      <div id="capital-banner-text" style="font-size:18px;font-weight:700;color:var(--text);">Registra tu primera inversión para ver tu rentabilidad real</div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;">
+      <div id="capital-roi-val" style="font-size:28px;font-weight:800;font-family:monospace;color:var(--text3);">—</div>
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;">ROI Total</div>
+    </div>
+  </div>
+
+  <!-- 6 MÉTRICAS -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+    <div class="metric-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+        <div><div class="metric-label">Total Invertido</div><div id="cap-total-inv" class="metric-value" style="color:var(--red);">$0</div></div>
+        <div class="metric-icon" style="background:var(--red-bg);"><svg viewBox="0 0 16 16" fill="none" stroke="var(--red)" stroke-width="1.5"><path d="M8 1v14M4 11l4 4 4-4"/></svg></div>
+      </div>
+      <div id="cap-total-inv-sub" class="metric-delta">0 inversiones registradas</div>
+    </div>
+    <div class="metric-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+        <div><div class="metric-label">Total Recuperado</div><div id="cap-total-rec" class="metric-value" style="color:var(--green);">$0</div></div>
+        <div class="metric-icon" style="background:var(--green-bg);"><svg viewBox="0 0 16 16" fill="none" stroke="var(--green)" stroke-width="1.5"><path d="M8 1v14M4 5l4-4 4 4"/></svg></div>
+      </div>
+      <div id="cap-total-rec-sub" class="metric-delta">beneficios retirados</div>
+    </div>
+    <div class="metric-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+        <div><div class="metric-label">Beneficio Neto Real</div><div id="cap-neto" class="metric-value">$0</div></div>
+        <div class="metric-icon" style="background:var(--blue-bg);"><svg viewBox="0 0 16 16" fill="none" stroke="var(--blue)" stroke-width="1.5"><polyline points="1 11 5 7 9 9 15 3"/></svg></div>
+      </div>
+      <div id="cap-neto-sub" class="metric-delta">P&L trades - inversiones</div>
+    </div>
+    <div class="metric-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+        <div><div class="metric-label">Cuentas compradas</div><div id="cap-total-accounts" class="metric-value" style="color:var(--amber);">0</div></div>
+        <div class="metric-icon" style="background:var(--amber-bg);"><svg viewBox="0 0 16 16" fill="none" stroke="var(--amber)" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M8 7v2M6 9h4"/></svg></div>
+      </div>
+      <div id="cap-accounts-sub" class="metric-delta">challenges + fondeadas</div>
+    </div>
+    <div class="metric-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+        <div><div class="metric-label">Ratio Aprobación</div><div id="cap-approval-rate" class="metric-value" style="color:var(--blue);">—</div></div>
+        <div class="metric-icon" style="background:var(--blue-bg);"><svg viewBox="0 0 16 16" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg></div>
+      </div>
+      <div id="cap-approval-sub" class="metric-delta">aprobadas vs fallidas</div>
+    </div>
+    <div class="metric-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+        <div><div class="metric-label">Coste Medio/Cuenta</div><div id="cap-avg-cost" class="metric-value" style="color:var(--amber);">$0</div></div>
+        <div class="metric-icon" style="background:var(--amber-bg);"><svg viewBox="0 0 16 16" fill="none" stroke="var(--amber)" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg></div>
+      </div>
+      <div class="metric-delta">por challenge/cuenta</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;">
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:13px;font-weight:700;">Inversión acumulada vs Recuperado</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">Evolución mensual</div>
+        </div>
+      </div>
+      <div style="padding:14px;height:180px;position:relative;"><canvas id="cap-chart-evolution"></canvas></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+        <div style="font-size:13px;font-weight:700;">Por tipo de inversión</div>
+      </div>
+      <div style="padding:14px;height:180px;position:relative;"><canvas id="cap-chart-types"></canvas></div>
+    </div>
+  </div>
+
+  <!-- INSIGHTS AUTOMÁTICOS -->
+  <div id="cap-insights-section" style="margin-bottom:14px;display:none;">
+    <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">💡 Insights detectados</div>
+    <div id="cap-insights-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+
+  <!-- HISTORIAL TABLE -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Historial de inversiones</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <select id="cap-filter-tipo" onchange="renderCapitalTable()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:5px 10px;font-size:11px;color:var(--text);outline:none;">
+          <option value="">Todos los tipos</option>
+          <option value="challenge">Challenge</option>
+          <option value="fondeada">Cuenta fondeada</option>
+          <option value="reset">Reset</option>
+          <option value="capital_propio">Capital propio</option>
+          <option value="retiro">Retiro/Beneficio</option>
+          <option value="otro">Otro</option>
+        </select>
+        <select id="cap-filter-estado" onchange="renderCapitalTable()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:5px 10px;font-size:11px;color:var(--text);outline:none;">
+          <option value="">Todos los estados</option>
+          <option value="activa">Activa</option>
+          <option value="aprobada">Aprobada</option>
+          <option value="fallida">Fallida</option>
+          <option value="retirada">Retirada</option>
+        </select>
+      </div>
+    </div>
+    <div id="cap-table-body">
+      <div style="padding:40px;text-align:center;color:var(--text3);">
+        <div style="font-size:32px;margin-bottom:12px;">💰</div>
+        <div style="font-weight:600;font-size:14px;margin-bottom:6px;">Sin inversiones registradas</div>
+        <div style="font-size:12px;margin-bottom:16px;">Empieza registrando tu primer challenge o capital invertido</div>
+        <button onclick="openCapitalModal()" class="btn btn-primary">+ Registrar inversión</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CAPITAL MODAL -->
+<div id="capital-modal-overlay" onclick="handleCapModalOutside(event)" style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
+  <div id="capital-modal-inner" style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.5);margin:auto;">
+    <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:17px;font-weight:800;">Registrar inversión</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;">Challenge, retiro, capital propio...</div>
+      </div>
+      <button onclick="closeCapitalModal()" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='none'">✕</button>
+    </div>
+    <div style="padding:20px 24px;">
+
+      <!-- Tipo (pill selector) -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:11px;color:var(--text2);font-weight:500;display:block;margin-bottom:8px;">Tipo de inversión</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="cap-tipo-grid">
+          <button onclick="selectCapTipo('challenge',this)" class="cap-tipo-btn" style="padding:10px 8px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all 0.15s;">🎯 Challenge</button>
+          <button onclick="selectCapTipo('fondeada',this)" class="cap-tipo-btn" style="padding:10px 8px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all 0.15s;">🏆 Cuenta fondeada</button>
+          <button onclick="selectCapTipo('reset',this)" class="cap-tipo-btn" style="padding:10px 8px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all 0.15s;">🔄 Reset</button>
+          <button onclick="selectCapTipo('capital_propio',this)" class="cap-tipo-btn" style="padding:10px 8px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all 0.15s;">💰 Capital propio</button>
+          <button onclick="selectCapTipo('retiro',this)" class="cap-tipo-btn" style="padding:10px 8px;border-radius:8px;border:2px solid var(--green-bg);background:var(--green-bg);color:var(--green);font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all 0.15s;border:2px solid rgba(0,184,122,0.3);">📈 Retiro/Beneficio</button>
+          <button onclick="selectCapTipo('otro',this)" class="cap-tipo-btn" style="padding:10px 8px;border-radius:8px;border:2px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all 0.15s;">📦 Otro</button>
+        </div>
+        <input type="hidden" id="cap-tipo-val" value="">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Proveedor / Empresa</label>
+          <input type="text" id="cap-proveedor" placeholder="FTMO, TopStep, Binance...">
+        </div>
+        <div class="form-group">
+          <label>Tamaño de cuenta</label>
+          <input type="text" id="cap-tamano" placeholder="50K, 100K...">
+        </div>
+        <div class="form-group">
+          <label>Coste / Importe ($)</label>
+          <input type="number" id="cap-coste" placeholder="149.00" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="date" id="cap-fecha">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:4px;">
+        <label>Estado inicial</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+          <button onclick="selectCapEstado('activa',this)" class="cap-estado-btn" style="padding:6px 14px;border-radius:20px;border:1px solid var(--green);background:var(--green-bg);color:var(--green);font-size:11px;font-weight:600;cursor:pointer;">● Activa</button>
+          <button onclick="selectCapEstado('aprobada',this)" class="cap-estado-btn" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;">✓ Aprobada</button>
+          <button onclick="selectCapEstado('fallida',this)" class="cap-estado-btn" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;">✕ Fallida</button>
+          <button onclick="selectCapEstado('retirada',this)" class="cap-estado-btn" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;">↑ Retirada</button>
+        </div>
+        <input type="hidden" id="cap-estado-val" value="activa">
+      </div>
+
+      <div class="form-group" style="margin-top:12px;">
+        <label>Notas (opcional)</label>
+        <textarea id="cap-notas" rows="2" style="resize:none;" placeholder="Contexto, motivo, observaciones..."></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button onclick="closeCapitalModal()" class="btn btn-secondary" style="flex:1;">Cancelar</button>
+        <button onclick="saveCapitalEntry()" class="btn btn-primary" style="flex:2;" id="cap-save-btn">
+          Guardar inversión
+        </button>
+      </div>
+      <div id="cap-modal-msg" style="text-align:center;font-size:12px;margin-top:8px;"></div>
+    </div>
+  </div>
+</div>
+
+
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
@@ -3202,6 +3413,7 @@ function goTab(id, el) {
   if (id==='insights') setTimeout(function(){try{runInsights()}catch(e){}},50);
   if (id==='afiliados') setTimeout(function(){try{loadAffiliateData()}catch(e){}},100);
   if (id==='estadisticas') setTimeout(function(){try{renderStatsPanel()}catch(e){}},100);
+  if (id==='capital') setTimeout(function(){try{renderCapitalPanel()}catch(e){}},100);
   if (id==='gestor-ea') setTimeout(function(){try{loadGestorEA()}catch(e){}},200);
   if (id==='broker') setTimeout(function(){try{brokerAutoStep()}catch(e){}},300);
 }
@@ -10104,6 +10316,317 @@ function _destroyChart(key) {
 
 function renderAllStats() { renderStatsPanel(); }
 
+
+// ═══════════════════════════════════════════════════════════
+// CAPITAL TRACKER
+// ═══════════════════════════════════════════════════════════
+var capitalEntries = [];
+var _capChartEv = null, _capChartTypes = null;
+
+// ── MODAL ──────────────────────────────────────────────────
+function openCapitalModal() {
+  var m = document.getElementById('capital-modal-overlay');
+  if (!m) return;
+  // Reset form
+  ['cap-proveedor','cap-tamano','cap-notas'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
+  var coste = document.getElementById('cap-coste'); if(coste) coste.value='';
+  var fecha = document.getElementById('cap-fecha'); if(fecha) fecha.value=new Date().toISOString().slice(0,10);
+  document.getElementById('cap-tipo-val').value='';
+  document.getElementById('cap-estado-val').value='activa';
+  document.querySelectorAll('.cap-tipo-btn').forEach(function(b){ b.style.borderColor='var(--border)'; b.style.background='var(--bg3)'; b.style.color='var(--text2)'; });
+  document.querySelectorAll('.cap-estado-btn').forEach(function(b){ b.style.borderColor='var(--border2)'; b.style.background='transparent'; b.style.color='var(--text2)'; });
+  var activeBtn = document.querySelector('.cap-estado-btn');
+  if(activeBtn){ activeBtn.style.borderColor='var(--green)'; activeBtn.style.background='var(--green-bg)'; activeBtn.style.color='var(--green)'; }
+  var msg = document.getElementById('cap-modal-msg'); if(msg) msg.textContent='';
+  m.style.display = 'flex';
+}
+
+function closeCapitalModal() {
+  var m = document.getElementById('capital-modal-overlay');
+  if (m) m.style.display = 'none';
+}
+
+function handleCapModalOutside(e) {
+  var inner = document.getElementById('capital-modal-inner');
+  if (inner && !inner.contains(e.target)) closeCapitalModal();
+}
+
+function selectCapTipo(tipo, btn) {
+  document.getElementById('cap-tipo-val').value = tipo;
+  document.querySelectorAll('.cap-tipo-btn').forEach(function(b){
+    b.style.borderColor='var(--border)'; b.style.background='var(--bg3)'; b.style.color='var(--text2)';
+  });
+  if(btn){ btn.style.borderColor='var(--green)'; btn.style.background='var(--green-bg)'; btn.style.color='var(--green)'; }
+  // Auto-set estado for retiro
+  if(tipo==='retiro') selectCapEstado('retirada', document.querySelectorAll('.cap-estado-btn')[3]);
+}
+
+function selectCapEstado(estado, btn) {
+  document.getElementById('cap-estado-val').value = estado;
+  var colors = { activa:'var(--green)', aprobada:'var(--blue)', fallida:'var(--red)', retirada:'var(--amber)' };
+  var bgs = { activa:'var(--green-bg)', aprobada:'var(--blue-bg)', fallida:'var(--red-bg)', retirada:'var(--amber-bg)' };
+  document.querySelectorAll('.cap-estado-btn').forEach(function(b){
+    b.style.borderColor='var(--border2)'; b.style.background='transparent'; b.style.color='var(--text2)';
+  });
+  if(btn){
+    btn.style.borderColor=colors[estado]||'var(--green)';
+    btn.style.background=bgs[estado]||'var(--green-bg)';
+    btn.style.color=colors[estado]||'var(--green)';
+  }
+}
+
+// ── SAVE ───────────────────────────────────────────────────
+async function saveCapitalEntry() {
+  if (!requireAuth()) return;
+  var tipo   = document.getElementById('cap-tipo-val').value;
+  var coste  = parseFloat(document.getElementById('cap-coste').value) || 0;
+  var estado = document.getElementById('cap-estado-val').value || 'activa';
+  var fecha  = document.getElementById('cap-fecha').value || new Date().toISOString().slice(0,10);
+  var msg    = document.getElementById('cap-modal-msg');
+
+  if (!tipo) { if(msg){msg.style.color='var(--red)';msg.textContent='Selecciona el tipo de inversión';} return; }
+  if (!coste) { if(msg){msg.style.color='var(--red)';msg.textContent='Introduce el importe';} return; }
+
+  var btn = document.getElementById('cap-save-btn');
+  if(btn){ btn.disabled=true; btn.textContent='Guardando...'; }
+
+  var entry = {
+    user_id:    currentUser.id,
+    tipo:       tipo,
+    proveedor:  document.getElementById('cap-proveedor').value.trim() || null,
+    tamano:     document.getElementById('cap-tamano').value.trim() || null,
+    coste:      coste,
+    estado:     estado,
+    fecha:      fecha,
+    notas:      document.getElementById('cap-notas').value.trim() || null,
+  };
+
+  try {
+    var { error } = await sb.from('capital_tracker').insert(entry);
+    if (error) throw error;
+    if(msg){ msg.style.color='var(--green)'; msg.textContent='¡Guardado ✓'; }
+    await loadCapitalEntries();
+    renderCapitalPanel();
+    setTimeout(function(){ closeCapitalModal(); }, 800);
+  } catch(e) {
+    if(msg){ msg.style.color='var(--red)'; msg.textContent='Error: '+e.message; }
+    // Save locally if table doesn't exist yet
+    capitalEntries.push(Object.assign({id:Date.now(), created_at:new Date().toISOString()}, entry));
+    renderCapitalPanel();
+    setTimeout(function(){ closeCapitalModal(); }, 800);
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='Guardar inversión'; }
+  }
+}
+
+// ── LOAD ───────────────────────────────────────────────────
+async function loadCapitalEntries() {
+  if (!currentUser) return;
+  try {
+    var { data, error } = await sb.from('capital_tracker')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('fecha', { ascending: false });
+    if (!error && data) capitalEntries = data;
+  } catch(e) {
+    console.warn('capital_tracker table not found — using local data');
+  }
+}
+
+// ── RENDER PANEL ───────────────────────────────────────────
+function renderCapitalPanel() {
+  var entries = capitalEntries;
+
+  // ── CALCS ──────────────────────────────────────────────
+  var inversiones = entries.filter(function(e){ return e.tipo !== 'retiro'; });
+  var retiros     = entries.filter(function(e){ return e.tipo === 'retiro'; });
+  var totalInv    = inversiones.reduce(function(s,e){ return s+(parseFloat(e.coste)||0); }, 0);
+  var totalRec    = retiros.reduce(function(s,e){ return s+(parseFloat(e.coste)||0); }, 0);
+  var pnlTrades   = allTrades ? allTrades.reduce(function(s,t){ return s+(t.resultado||0); }, 0) : 0;
+  var neto        = totalRec + pnlTrades - totalInv;
+  var roi         = totalInv > 0 ? (neto/totalInv*100) : 0;
+
+  var challenges  = entries.filter(function(e){ return e.tipo==='challenge'||e.tipo==='fondeada'||e.tipo==='reset'; });
+  var aprobadas   = challenges.filter(function(e){ return e.estado==='aprobada'; }).length;
+  var fallidas    = challenges.filter(function(e){ return e.estado==='fallida'; }).length;
+  var approvalRate= challenges.length > 0 ? Math.round(aprobadas/challenges.length*100) : null;
+  var avgCost     = challenges.length > 0 ? totalInv/challenges.length : 0;
+
+  function setEl(id, val, color) {
+    var e = document.getElementById(id);
+    if (!e) return;
+    e.textContent = val;
+    if (color) e.style.color = color;
+  }
+
+  // Banner
+  var banner = document.getElementById('capital-summary-banner');
+  var bannerText = document.getElementById('capital-banner-text');
+  if (banner && entries.length) {
+    var isPos = neto >= 0;
+    banner.style.background = isPos ? 'rgba(0,184,122,0.06)' : 'rgba(244,63,94,0.06)';
+    banner.style.borderColor = isPos ? 'rgba(0,184,122,0.2)' : 'rgba(244,63,94,0.2)';
+    if (bannerText) bannerText.textContent = isPos
+      ? 'Has invertido $'+totalInv.toFixed(0)+' y recuperado $'+totalRec.toFixed(0)+' → resultado neto: +$'+neto.toFixed(0)
+      : 'Has invertido $'+totalInv.toFixed(0)+' y recuperado $'+totalRec.toFixed(0)+' → resultado neto: -$'+Math.abs(neto).toFixed(0);
+    if (bannerText) bannerText.style.color = isPos ? 'var(--green)' : 'var(--red)';
+  }
+  setEl('capital-roi-val', entries.length ? (roi>=0?'+':'')+roi.toFixed(1)+'%' : '—', roi>=0?'var(--green)':'var(--red)');
+
+  // Metrics
+  setEl('cap-total-inv', '$'+totalInv.toFixed(0), 'var(--red)');
+  setEl('cap-total-inv-sub', inversiones.length+' inversiones registradas');
+  setEl('cap-total-rec', '$'+totalRec.toFixed(0), 'var(--green)');
+  setEl('cap-total-rec-sub', retiros.length+' retiros / beneficios');
+  setEl('cap-neto', (neto>=0?'+':'')+' $'+Math.abs(neto).toFixed(0), neto>=0?'var(--green)':'var(--red)');
+  setEl('cap-neto-sub', 'P&L trades ($'+(pnlTrades>=0?'+':'')+pnlTrades.toFixed(0)+') - inversiones');
+  setEl('cap-total-accounts', challenges.length, 'var(--amber)');
+  setEl('cap-accounts-sub', aprobadas+' aprobadas · '+fallidas+' fallidas');
+  setEl('cap-approval-rate', approvalRate !== null ? approvalRate+'%' : '—', approvalRate>=50?'var(--green)':'var(--red)');
+  setEl('cap-approval-sub', 'de '+challenges.length+' challenges/fondeadas');
+  setEl('cap-avg-cost', challenges.length ? '$'+avgCost.toFixed(0) : '$0', avgCost>200?'var(--red)':'var(--amber)');
+
+  // ── CHARTS ─────────────────────────────────────────────
+  if (_capChartEv) { try{_capChartEv.destroy();}catch(e){} _capChartEv=null; }
+  if (_capChartTypes) { try{_capChartTypes.destroy();}catch(e){} _capChartTypes=null; }
+  var th = typeof getChartTheme==='function' ? getChartTheme() : {grid:'rgba(255,255,255,0.05)',tick:'#50505e'};
+
+  // Evolution chart — monthly
+  var ctxEv = document.getElementById('cap-chart-evolution');
+  if (ctxEv && entries.length) {
+    var monthMap = {};
+    entries.slice().reverse().forEach(function(e){
+      var m = (e.fecha||'').slice(0,7);
+      if (!m) return;
+      if (!monthMap[m]) monthMap[m] = {inv:0, rec:0};
+      if (e.tipo==='retiro') monthMap[m].rec += parseFloat(e.coste)||0;
+      else monthMap[m].inv += parseFloat(e.coste)||0;
+    });
+    var mLabels = Object.keys(monthMap).sort();
+    var mInv=[], mRec=[];
+    var cumInv=0, cumRec=0;
+    mLabels.forEach(function(m){ cumInv+=monthMap[m].inv; cumRec+=monthMap[m].rec; mInv.push(cumInv); mRec.push(cumRec); });
+    _capChartEv = new Chart(ctxEv, { type:'line',
+      data:{ labels:mLabels.map(function(m){ return m.slice(5)+'/'+m.slice(2,4); }),
+        datasets:[
+          {label:'Invertido', data:mInv, borderColor:'#f43f5e', backgroundColor:'rgba(244,63,94,0.08)', borderWidth:2, fill:true, tension:0.4, pointRadius:0},
+          {label:'Recuperado', data:mRec, borderColor:'#00b87a', backgroundColor:'rgba(0,184,122,0.08)', borderWidth:2, fill:true, tension:0.4, pointRadius:0}
+        ]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:true, labels:{color:th.tick,font:{size:10}}}},
+        scales:{ x:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:10}}},
+                 y:{grid:{color:th.grid},ticks:{color:th.tick,font:{size:10},callback:function(v){return '$'+v;}}} }}
+    });
+  }
+
+  // Types donut
+  var ctxT = document.getElementById('cap-chart-types');
+  if (ctxT && inversiones.length) {
+    var typeMap = {};
+    inversiones.forEach(function(e){ typeMap[e.tipo]=(typeMap[e.tipo]||0)+(parseFloat(e.coste)||0); });
+    var typeLabels = Object.keys(typeMap);
+    var typeColors = {challenge:'#f43f5e',fondeada:'#f59e0b',reset:'#3b82f6',capital_propio:'#8b5cf6',otro:'#9090a0'};
+    _capChartTypes = new Chart(ctxT, { type:'doughnut',
+      data:{ labels:typeLabels.map(function(t){ return t.replace('_',' '); }),
+        datasets:[{ data:typeLabels.map(function(t){ return typeMap[t]; }),
+          backgroundColor:typeLabels.map(function(t){ return typeColors[t]||'#9090a0'; }), borderWidth:0 }]},
+      options:{ responsive:true, maintainAspectRatio:false, cutout:'60%',
+        plugins:{legend:{display:true, position:'bottom', labels:{color:th.tick,font:{size:10},padding:8}}} }
+    });
+  }
+
+  // ── INSIGHTS ───────────────────────────────────────────
+  var insights = [];
+  if (fallidas >= 3) insights.push({ icon:'⚠️', color:'var(--red)', text:'Tienes '+fallidas+' cuentas fallidas. Revisa tus reglas de gestión antes de comprar otra.' });
+  if (roi < -20) insights.push({ icon:'📉', color:'var(--red)', text:'Tu rentabilidad real es negativa ('+roi.toFixed(1)+'%). Estás gastando más de lo que ganas.' });
+  if (avgCost > 300) insights.push({ icon:'💸', color:'var(--amber)', text:'Tu coste medio por cuenta es elevado ($'+avgCost.toFixed(0)+'). Considera tamaños más pequeños.' });
+  if (approvalRate !== null && approvalRate < 30) insights.push({ icon:'🎯', color:'var(--amber)', text:'Solo apruebas el '+approvalRate+'% de tus challenges. Trabaja más en consistencia antes de comprar.' });
+  if (totalInv > 0 && totalRec === 0) insights.push({ icon:'💰', color:'var(--blue)', text:'Aún no has registrado ningún retiro. ¿Has sacado beneficios de tus cuentas fondeadas?' });
+  if (challenges.length > 3 && fallidas/challenges.length > 0.6) insights.push({ icon:'🔄', color:'var(--red)', text:'El '+(Math.round(fallidas/challenges.length*100))+'% de tus cuentas fallan. Analiza qué errores las están causando.' });
+
+  var insSection = document.getElementById('cap-insights-section');
+  var insList = document.getElementById('cap-insights-list');
+  if (insSection && insList) {
+    if (insights.length) {
+      insSection.style.display = 'block';
+      insList.innerHTML = insights.map(function(ins){
+        return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;">' +
+          '<div style="font-size:20px;flex-shrink:0;">'+ins.icon+'</div>' +
+          '<div style="font-size:13px;color:'+ins.color+';font-weight:500;">'+ins.text+'</div>' +
+        '</div>';
+      }).join('');
+    } else {
+      insSection.style.display = 'none';
+    }
+  }
+
+  renderCapitalTable();
+}
+
+// ── TABLE ──────────────────────────────────────────────────
+function renderCapitalTable() {
+  var filterTipo   = (document.getElementById('cap-filter-tipo') || {}).value || '';
+  var filterEstado = (document.getElementById('cap-filter-estado') || {}).value || '';
+  var el = document.getElementById('cap-table-body');
+  if (!el) return;
+
+  var filtered = capitalEntries.filter(function(e){
+    if (filterTipo   && e.tipo   !== filterTipo)   return false;
+    if (filterEstado && e.estado !== filterEstado) return false;
+    return true;
+  });
+
+  if (!filtered.length) {
+    el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text3);font-size:12px;">Sin resultados con los filtros seleccionados</div>';
+    return;
+  }
+
+  var estadoColors = { activa:'var(--green)', aprobada:'var(--blue)', fallida:'var(--red)', retirada:'var(--amber)' };
+  var estadoBg    = { activa:'var(--green-bg)', aprobada:'var(--blue-bg)', fallida:'var(--red-bg)', retirada:'var(--amber-bg)' };
+  var tipoEmoji   = { challenge:'🎯', fondeada:'🏆', reset:'🔄', capital_propio:'💰', retiro:'📈', otro:'📦' };
+
+  el.innerHTML = '<table style="width:100%;border-collapse:collapse;">' +
+    '<thead><tr>' +
+      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Tipo</th>' +
+      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Proveedor</th>' +
+      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Tamaño</th>' +
+      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Fecha</th>' +
+      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);">Estado</th>' +
+      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:right;font-weight:600;border-bottom:1px solid var(--border);">Importe</th>' +
+      '<th style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px;text-align:center;font-weight:600;border-bottom:1px solid var(--border);">Acción</th>' +
+    '</tr></thead><tbody>' +
+    filtered.map(function(e){
+      var isRetiro = e.tipo === 'retiro';
+      var estadoClr = estadoColors[e.estado] || 'var(--text2)';
+      var estadoBgClr = estadoBg[e.estado] || 'var(--bg3)';
+      var emoji = tipoEmoji[e.tipo] || '📦';
+      var tipoLabel = (e.tipo||'').replace('_',' ').replace(/\w/g,function(c){ return c.toUpperCase(); });
+      return '<tr style="transition:background 0.1s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">'+
+        '<td style="padding:10px 18px;font-size:12px;border-bottom:1px solid var(--border);">'+emoji+' <span style="font-weight:600;color:var(--text);">'+tipoLabel+'</span></td>'+
+        '<td style="padding:10px 18px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);">'+(e.proveedor||'—')+'</td>'+
+        '<td style="padding:10px 18px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);">'+(e.tamano||'—')+'</td>'+
+        '<td style="padding:10px 18px;font-size:12px;color:var(--text3);border-bottom:1px solid var(--border);font-family:monospace;">'+(e.fecha?e.fecha.slice(0,10):'—')+'</td>'+
+        '<td style="padding:10px 18px;border-bottom:1px solid var(--border);">'+
+          '<span style="font-size:10px;font-weight:700;background:'+estadoBgClr+';color:'+estadoClr+';padding:3px 10px;border-radius:20px;">'+((e.estado||'').toUpperCase())+'</span>'+
+        '</td>'+
+        '<td style="padding:10px 18px;font-size:13px;font-weight:800;text-align:right;border-bottom:1px solid var(--border);color:'+(isRetiro?'var(--green)':'var(--red)')+';">'+
+          (isRetiro?'+':'-')+'$'+parseFloat(e.coste||0).toFixed(2)+
+        '</td>'+
+        '<td style="padding:10px 18px;text-align:center;border-bottom:1px solid var(--border);">'+
+          '<button onclick="deleteCapEntry(''+e.id+'')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:4px 8px;border-radius:5px;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">✕</button>'+
+        '</td>'+
+      '</tr>';
+    }).join('') + '</tbody></table>';
+}
+
+// ── DELETE ─────────────────────────────────────────────────
+async function deleteCapEntry(id) {
+  if (!confirm('¿Eliminar esta entrada?')) return;
+  capitalEntries = capitalEntries.filter(function(e){ return String(e.id) !== String(id); });
+  try { await sb.from('capital_tracker').delete().eq('id', id).eq('user_id', currentUser.id); } catch(e){}
+  renderCapitalPanel();
+}
+
 window.addEventListener('load', async () => {
   // Set date field
   const fFecha = document.getElementById('f-fecha');
@@ -10203,6 +10726,8 @@ window.addEventListener('load', async () => {
       try { syncDashboardMetrics(); } catch(e) { console.warn('dash sync:', e); }
       try { renderSidebarProfileWidget(); } catch(e) {}
     }, 300);
+    // Load capital tracker
+    loadCapitalEntries().catch(function(){});
   }
 
   // Start quote carousel
