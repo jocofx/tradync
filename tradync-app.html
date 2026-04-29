@@ -3340,7 +3340,15 @@ function goTab(id, el) {
   if (id==='insights') setTimeout(function(){try{runInsights()}catch(e){}},50);
   if (id==='afiliados') setTimeout(function(){try{loadAffiliateData()}catch(e){}},100);
   if (id==='estadisticas') setTimeout(function(){try{renderStatsPanel()}catch(e){}},100);
-  if (id==='capital') setTimeout(function(){try{renderCapitalPanel()}catch(e){}},100);
+  if (id==='capital') {
+    setTimeout(function(){
+      loadCapitalEntries().then(function(){
+        try { renderCapitalPanel(); } catch(e) { console.warn('renderCapitalPanel:', e); }
+      }).catch(function(e){
+        try { renderCapitalPanel(); } catch(e2) {}
+      });
+    }, 50);
+  }
   if (id==='gestor-ea') setTimeout(function(){try{loadGestorEA()}catch(e){}},200);
   if (id==='broker') setTimeout(function(){try{brokerAutoStep()}catch(e){}},300);
 }
@@ -10336,11 +10344,16 @@ async function saveCapitalEntry() {
     renderCapitalPanel();
     setTimeout(function(){ closeCapitalModal(); }, 800);
   } catch(e) {
-    if(msg){ msg.style.color='var(--red)'; msg.textContent='Error: '+e.message; }
-    // Save locally if table doesn't exist yet
-    capitalEntries.push(Object.assign({id:Date.now(), created_at:new Date().toISOString()}, entry));
+    console.error('saveCapitalEntry error:', e.message);
+    if (e.message && e.message.includes('relation') && e.message.includes('does not exist')) {
+      if(msg){ msg.style.color='var(--amber)'; msg.textContent='⚠ Crea la tabla capital_tracker en Supabase primero'; }
+    } else {
+      if(msg){ msg.style.color='var(--red)'; msg.textContent='Error: '+e.message; }
+    }
+    // Save locally as fallback
+    capitalEntries.unshift(Object.assign({id:Date.now(), created_at:new Date().toISOString()}, entry));
     renderCapitalPanel();
-    setTimeout(function(){ closeCapitalModal(); }, 800);
+    setTimeout(function(){ closeCapitalModal(); }, 1200);
   } finally {
     if(btn){ btn.disabled=false; btn.textContent='Guardar inversión'; }
   }
@@ -10350,13 +10363,21 @@ async function saveCapitalEntry() {
 async function loadCapitalEntries() {
   if (!currentUser) return;
   try {
-    var { data, error } = await sb.from('capital_tracker')
+    var result = await sb.from('capital_tracker')
       .select('*')
       .eq('user_id', currentUser.id)
       .order('fecha', { ascending: false });
-    if (!error && data) capitalEntries = data;
+    if (result.error) {
+      console.warn('capital_tracker load error:', result.error.message);
+      // If table doesn't exist, it will show as empty — no crash
+      return;
+    }
+    if (result.data) {
+      capitalEntries = result.data;
+      console.log('Capital entries loaded:', capitalEntries.length);
+    }
   } catch(e) {
-    console.warn('capital_tracker table not found — using local data');
+    console.warn('loadCapitalEntries exception:', e.message);
   }
 }
 
@@ -10670,7 +10691,9 @@ window.addEventListener('load', async () => {
       try { renderSidebarProfileWidget(); } catch(e) {}
     }, 300);
     // Load capital tracker
-    loadCapitalEntries().catch(function(){});
+    loadCapitalEntries().then(function() {
+      try { renderCapitalPanel(); } catch(e) {}
+    }).catch(function(){});
   }
 
   // Start quote carousel
