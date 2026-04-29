@@ -10723,7 +10723,7 @@ function openInvDetail(invId) {
           '<span style="font-size:12px;font-weight:600;flex:1;">'+(g.tipo||'—').charAt(0).toUpperCase()+(g.tipo||'').slice(1)+'</span>'+
           '<span style="font-size:11px;color:var(--text3);font-family:monospace;">'+(g.fecha||'').slice(0,10)+'</span>'+
           '<span style="font-size:13px;font-weight:800;color:var(--green);">+$'+parseFloat(g.cantidad||0).toFixed(2)+'</span>'+
-          '<button onclick="deleteGanancia(\'' + g.id + '\')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;" onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--text3)\'">✕</button>'+
+          '<button onclick="deleteGanancia('+JSON.stringify(String(g.id))+')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">✕</button>'+
         '</div>';
       }).join('')
     : '<div style="padding:16px 0;text-align:center;color:var(--text3);font-size:12px;">Sin ganancias registradas para esta inversión</div>';
